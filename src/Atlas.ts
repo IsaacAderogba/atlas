@@ -1,67 +1,99 @@
 import fs from "fs";
 import readline from "readline";
-import { ConsolePrinter } from "./printer/ConsolePrinter";
-import { Printer } from "./printer/Printer";
+import { ConsoleReporter } from "./reporter/ConsoleReporter";
+import { Reporter } from "./reporter/Reporter";
 import { SourceRange } from "./utils/SourceRange";
 
+export enum AtlasStatus {
+  "SYNTAX_ERROR" = "SYNTAX_ERROR",
+  "STATIC_ERROR" = "STATIC_ERROR",
+  "RUNTIME_ERROR" = "RUNTIME_ERROR",
+  "SUCCESS" = "SUCCESS",
+  "VALID" = "VALID",
+}
+
+interface AtlasProps {
+  reporter: Reporter;
+}
+
 export class Atlas {
-  private static readonly printer: Printer = new ConsolePrinter();
+  private readonly reporter: Reporter;
 
-  public static main(args: string[]): void {
-    if (args.length > 1) {
-      console.log("Usage: atlas [script]");
-      process.exit(64);
-    } else if (args.length == 1) {
-      this.runFile(args[0]);
-    } else {
-      this.runPrompt();
-    }
+  constructor({ reporter = new ConsoleReporter() }: Partial<AtlasProps> = {}) {
+    this.reporter = reporter;
   }
 
-  private static runFile(path: string): void {
-    const str = fs.readFileSync(path, { encoding: "utf-8" });
-    this.run(str);
+  run(source: string): AtlasStatus {
+    const { status, tokens } = this.check(source);
+
+    if (status !== AtlasStatus.VALID) return status;
+
+    return AtlasStatus.SUCCESS;
   }
 
-  private static runPrompt(): void {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    rl.setPrompt("> ");
-    rl.prompt();
-    rl.on("line", input => {
-      this.run(input);
-      rl.prompt();
-    });
-  }
-
-  private static run(source: string): void {
+  check(source: string): { status: AtlasStatus; tokens: any[] } {
     const scanner = new Scanner(source);
-    const tokens = scanner.scanTokens();
+    const { errors, tokens } = scanner.scanTokens();
 
-    console.log(tokens);
-  }
+    for (const error of errors) {
+      this.reporter.reportErrorRange(source, error.sourceRange, error.message);
+    }
 
-  static error(source: string, range: SourceRange, message: string): void {
-    const indent = 6;
-
-    const { start } = range;
-    const sourceLine = source.split("\n")[start.line - 1].replace(/\t/g, " ");
-
-    const underline =
-      Array(indent + start.column - 1)
-        .fill(" ")
-        .join("") + Array(range.length()).fill("^").join("");
-
-    const report =
-      `${start.line}:${start.column} - error: ${message}\n\n` +
-      `${start.line.toString().padEnd(indent)}${sourceLine}\n` +
-      underline;
-
-    this.printer.printError(report);
+    return { status: AtlasStatus.VALID, tokens };
   }
 }
 
-Atlas.main(process.argv.slice(2));
+// cli
+function main(args: string[]): void {
+  if (args.length > 1) {
+    console.log("Usage: atlas [script]");
+    process.exit(64);
+  } else if (args.length == 1) {
+    runFile(args[0]);
+  } else {
+    runPrompt();
+  }
+}
+
+function runFile(path: string): void {
+  const reporter = new ConsoleReporter();
+  let source: string;
+
+  try {
+    source = fs.readFileSync(path, { encoding: "utf8" });
+  } catch (error) {
+    reporter.reportError(`Unable to open file: ${path}`);
+    process.exit(66);
+  }
+
+  const atlas = new Atlas({ reporter });
+  const status = atlas.run(source);
+
+  switch (status) {
+    case AtlasStatus.SYNTAX_ERROR:
+    case AtlasStatus.STATIC_ERROR:
+      return process.exit(65);
+    case AtlasStatus.RUNTIME_ERROR:
+      return process.exit(70);
+    case AtlasStatus.SUCCESS:
+      return process.exit(0);
+  }
+}
+
+function runPrompt(): void {
+  const atlas = new Atlas();
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.setPrompt("> ");
+  rl.prompt();
+  rl.on("line", input => {
+    atlas.run(input);
+    rl.prompt();
+  });
+}
+
+main(process.argv.slice(2));
