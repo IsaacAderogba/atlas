@@ -1,7 +1,8 @@
 import fs from "fs";
 import readline from "readline";
-import { Atlas, AtlasStatus } from "./Atlas";
+import { Atlas } from "./Atlas";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
+import { AtlasStatus } from "./utils/AtlasStatus";
 
 function main(args: string[]): void {
   if (args.length > 1) {
