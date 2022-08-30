@@ -31,6 +31,7 @@ describe("Scanner tokens", () => {
       const { scanner } = setupTests(char);
       const { tokens } = scanner.scanTokens();
       expect(tokens[0].type).toEqual(type);
+      expect(tokens.length).toEqual(2);
     });
   });
 
@@ -46,6 +47,31 @@ describe("Scanner tokens", () => {
       const { scanner } = setupTests(char);
       const { tokens } = scanner.scanTokens();
       expect(tokens[0].type).toEqual(type);
+      expect(tokens.length).toEqual(2);
+    });
+  });
+
+  it("ignores white space and comments", () => {
+    const charTypes: { char: string; type: TokenType }[] = [
+      { char: " ", type: "EOF" },
+      { char: "\r", type: "EOF" },
+      { char: "\t", type: "EOF" },
+      { char: "\n", type: "EOF" },
+      { char: "// comment", type: "EOF" },
+      { char: "/* block comment */", type: "EOF" },
+      {
+        char: `/*
+                * block comment 
+                */`,
+        type: "EOF",
+      },
+    ];
+
+    charTypes.forEach(({ char, type }) => {
+      const { scanner } = setupTests(char);
+      const { tokens } = scanner.scanTokens();
+      expect(tokens[0].type).toEqual(type);
+      expect(tokens.length).toEqual(1);
     });
   });
 });
