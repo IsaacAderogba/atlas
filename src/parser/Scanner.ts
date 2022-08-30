@@ -94,7 +94,8 @@ export class Scanner {
         // Ignore whitespace
         break;
       case '"':
-        this.string();
+      case "'":
+        this.string(char);
         break;
       default:
         if (isDigit(char)) {
@@ -127,14 +128,14 @@ export class Scanner {
     this.addToken(Keywords.get(text) || "IDENTIFIER");
   }
 
-  private string(): void {
-    while (this.peek() !== '"' && !this.isAtEnd()) {
+  private string(char: '"' | "'"): void {
+    while (this.peek() !== char && !this.isAtEnd()) {
       this.advance();
     }
 
     if (this.isAtEnd()) return this.error(Errors.UnterminatedString);
 
-    // The closing ".
+    // The closing " | '.
     this.advance();
 
     // Trim the surrounding quotes

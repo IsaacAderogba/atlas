@@ -110,6 +110,7 @@ describe("Scanner tokens", () => {
       { char: "2", type: "NUMBER", literal: 2 },
       { char: "2.2", type: "NUMBER", literal: 2.2 },
       { char: '"string"', type: "STRING", literal: "string" },
+      { char: "'string'", type: "STRING", literal: "string" },
     ];
 
     charTypes.forEach(({ char, type, literal }) => {
