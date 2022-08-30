@@ -6,6 +6,6 @@ export class ConsolePrinter implements Printer {
   }
 
   printError(message: string): void {
-    console.log(message);
+    console.error(message);
   }
 }
