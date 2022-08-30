@@ -1,4 +1,5 @@
 import { TokenType } from "../../ast/TokenType";
+import { AtlasValue } from "../../utils/AtlasValue";
 import { Errors } from "../../utils/Errors";
 import { Scanner } from "../Scanner";
 
@@ -99,6 +100,24 @@ describe("Scanner tokens", () => {
       const { scanner } = setupTests(char);
       const { tokens } = scanner.scanTokens();
       expect(tokens[0].type).toEqual(type);
+      expect(tokens.length).toEqual(2);
+    });
+  });
+
+  it("tokenizes literals", () => {
+    const charTypes: { char: string; type: TokenType; literal: AtlasValue }[] = [
+      { char: "identifier", type: "IDENTIFIER", literal: null },
+      { char: "2", type: "NUMBER", literal: 2 },
+      { char: "2.2", type: "NUMBER", literal: 2.2 },
+      { char: '"string"', type: "STRING", literal: "string" },
+    ];
+
+    charTypes.forEach(({ char, type, literal }) => {
+      const { scanner } = setupTests(char);
+      const { tokens } = scanner.scanTokens();
+      expect(tokens[0].type).toEqual(type);
+      expect(tokens[0].literal).toEqual(literal);
+
       expect(tokens.length).toEqual(2);
     });
   });
