@@ -6,7 +6,7 @@ export class ConsoleReporter implements Reporter {
     console.log(message);
   }
 
-  reportErrorRange(source: string, range: SourceRange, message: string): void {
+  reportRangeError(source: string, range: SourceRange, message: string): void {
     const indent = 6;
 
     const { start } = range;
