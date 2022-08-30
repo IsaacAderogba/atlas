@@ -33,6 +33,21 @@ describe("Scanner tokens", () => {
       expect(tokens[0].type).toEqual(type);
     });
   });
+
+  it("tokenizes double-character tokens", () => {
+    const charTypes: { char: string; type: TokenType }[] = [
+      { char: "!=", type: "BANG_EQUAL" },
+      { char: "==", type: "EQUAL_EQUAL" },
+      { char: "<=", type: "LESS_EQUAL" },
+      { char: ">=", type: "GREATER_EQUAL" },
+    ];
+
+    charTypes.forEach(({ char, type }) => {
+      const { scanner } = setupTests(char);
+      const { tokens } = scanner.scanTokens();
+      expect(tokens[0].type).toEqual(type);
+    });
+  });
 });
 
 describe("Scanner errors", () => {
