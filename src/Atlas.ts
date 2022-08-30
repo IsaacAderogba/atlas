@@ -16,10 +16,9 @@ export class Atlas {
   run(source: string): AtlasStatus {
     const { status, tokens } = this.check(source);
 
-    console.log("tokens", tokens);
-
     if (status !== AtlasStatus.VALID) return status;
 
+    console.log("tokens", tokens);
     return AtlasStatus.SUCCESS;
   }
 

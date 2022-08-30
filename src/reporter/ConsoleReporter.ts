@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { SourceRange } from "../utils/SourceRange";
 import { Reporter } from "./Reporter";
 
@@ -17,10 +18,11 @@ export class ConsoleReporter implements Reporter {
         .fill(" ")
         .join("") + Array(range.length()).fill("^").join("");
 
-    const report =
-      `${start.line}:${start.column} - error: ${message}\n\n` +
-      `${start.line.toString().padEnd(indent)}${sourceLine}\n` +
-      underline;
+    const lineColumn = chalk.blue(`${start.line}:${start.column} | `);
+    const startLine = `${start.line.toString().padEnd(indent)}`;
+    const errMessage = chalk.red(`error: ${message}`);
+
+    const report = `${lineColumn}${errMessage}\n\n` + `${startLine}${sourceLine}\n` + chalk.blue(underline);
 
     this.error(report);
   }

@@ -101,7 +101,7 @@ export class Scanner {
         } else if (isAlpha(char)) {
           this.identifier();
         } else {
-          this.error(`Unexpected character: ${char}`);
+          this.error(`unexpected character`);
         }
     }
   }
@@ -131,7 +131,7 @@ export class Scanner {
       this.advance();
     }
 
-    if (this.isAtEnd()) return this.error("Unterminated string.");
+    if (this.isAtEnd()) return this.error("unterminated string");
 
     // The closing ".
     this.advance();
