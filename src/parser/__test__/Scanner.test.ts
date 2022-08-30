@@ -74,6 +74,34 @@ describe("Scanner tokens", () => {
       expect(tokens.length).toEqual(1);
     });
   });
+
+  it("tokenizes keywords", () => {
+    const charTypes: { char: string; type: TokenType }[] = [
+      { char: "and", type: "AND" },
+      { char: "class", type: "CLASS" },
+      { char: "else", type: "ELSE" },
+      { char: "for", type: "FOR" },
+      { char: "fun", type: "FUN" },
+      { char: "if", type: "IF" },
+      { char: "nil", type: "NIL" },
+      { char: "or", type: "OR" },
+      { char: "print", type: "PRINT" },
+      { char: "return", type: "RETURN" },
+      { char: "super", type: "SUPER" },
+      { char: "this", type: "THIS" },
+      { char: "true", type: "TRUE" },
+      { char: "type", type: "TYPE" },
+      { char: "var", type: "VAR" },
+      { char: "while", type: "WHILE" },
+    ];
+
+    charTypes.forEach(({ char, type }) => {
+      const { scanner } = setupTests(char);
+      const { tokens } = scanner.scanTokens();
+      expect(tokens[0].type).toEqual(type);
+      expect(tokens.length).toEqual(2);
+    });
+  });
 });
 
 describe("Scanner errors", () => {
