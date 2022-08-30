@@ -2,6 +2,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
 import { AtlasValue } from "../utils/AtlasValue";
+import { Errors } from "../utils/Errors";
 import { SourceRange } from "../utils/SourceRange";
 import { Keywords } from "./Keywords";
 import { SyntaxError } from "./SyntaxError";
@@ -101,7 +102,7 @@ export class Scanner {
         } else if (isAlpha(char)) {
           this.identifier();
         } else {
-          this.error(`unexpected character`);
+          this.error(Errors.UnexpectedCharacter);
         }
     }
   }
@@ -131,7 +132,7 @@ export class Scanner {
       this.advance();
     }
 
-    if (this.isAtEnd()) return this.error("unterminated string");
+    if (this.isAtEnd()) return this.error(Errors.UnterminatedString);
 
     // The closing ".
     this.advance();
