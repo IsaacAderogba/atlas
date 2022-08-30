@@ -1,7 +1,7 @@
 import { SourceRange } from "../utils/SourceRange";
 
 export interface Reporter {
-  report(message: string): void;
-  reportError(message: string): void;
-  reportRangeError(source: string, range: SourceRange, message: string): void;
+  log(message: string): void;
+  error(message: string): void;
+  rangeError(source: string, range: SourceRange, message: string): void;
 }

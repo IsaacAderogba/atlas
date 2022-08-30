@@ -16,6 +16,8 @@ export class Atlas {
   run(source: string): AtlasStatus {
     const { status, tokens } = this.check(source);
 
+    console.log("tokens", tokens);
+
     if (status !== AtlasStatus.VALID) return status;
 
     return AtlasStatus.SUCCESS;
@@ -23,10 +25,11 @@ export class Atlas {
 
   check(source: string): { status: AtlasStatus; tokens: any[] } {
     const scanner = new Scanner(source);
-    const { errors, tokens } = scanner.scanTokens();
+    const { tokens, errors } = scanner.scanTokens();
 
-    for (const error of errors) {
-      this.reporter.reportRangeError(source, error.sourceRange, error.message);
+    if (errors.length) {
+      errors.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
+      return { status: AtlasStatus.SYNTAX_ERROR, tokens: [] };
     }
 
     return { status: AtlasStatus.VALID, tokens };

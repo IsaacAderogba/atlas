@@ -22,7 +22,7 @@ function runFile(path: string): void {
   try {
     source = fs.readFileSync(path, { encoding: "utf8" });
   } catch (error) {
-    reporter.reportError(`Unable to open file: ${path}`);
+    reporter.error(`Unable to open file: ${path}`);
     process.exit(66);
   }
 

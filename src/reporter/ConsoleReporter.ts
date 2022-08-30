@@ -2,11 +2,11 @@ import { SourceRange } from "../utils/SourceRange";
 import { Reporter } from "./Reporter";
 
 export class ConsoleReporter implements Reporter {
-  report(message: string): void {
+  log(message: string): void {
     console.log(message);
   }
 
-  reportRangeError(source: string, range: SourceRange, message: string): void {
+  rangeError(source: string, range: SourceRange, message: string): void {
     const indent = 6;
 
     const { start } = range;
@@ -22,10 +22,10 @@ export class ConsoleReporter implements Reporter {
       `${start.line.toString().padEnd(indent)}${sourceLine}\n` +
       underline;
 
-    this.reportError(report);
+    this.error(report);
   }
 
-  reportError(message: string): void {
+  error(message: string): void {
     console.error(message);
   }
 }
