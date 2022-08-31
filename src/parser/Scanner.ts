@@ -6,6 +6,11 @@ import { Errors } from "../utils/Errors";
 import { SourceRange } from "../utils/SourceRange";
 import { Keywords } from "./Keywords";
 import { SyntaxError } from "./SyntaxError";
+import { AtlasString } from "../runtime/AtlasString";
+import { AtlasNumber } from "../runtime/AtlasNumber";
+import { AtlasNull } from "../runtime/AtlasNull";
+import { AtlasTrue } from "../runtime/AtlasTrue";
+import { AtlasFalse } from "../runtime/AtlasFalse";
 
 export class Scanner {
   private readonly source: string;
@@ -28,7 +33,7 @@ export class Scanner {
     }
 
     const column = 1 + this.start - this.lineStart;
-    this.tokens.push(new Token("EOF", "", null, this.line, column));
+    this.tokens.push(new Token("EOF", "", undefined, this.line, column));
     return { tokens: this.tokens, errors: this.errors };
   }
 
@@ -101,7 +106,7 @@ export class Scanner {
         if (isDigit(char)) {
           this.number();
         } else if (isAlpha(char)) {
-          this.identifier();
+          this.primitives();
         } else {
           this.error(Errors.UnexpectedCharacter);
         }
@@ -121,11 +126,23 @@ export class Scanner {
     }
   }
 
-  private identifier(): void {
+  private primitives(): void {
     while (isAlphaNumeric(this.peek())) this.advance();
 
     const text = this.source.substring(this.start, this.current);
-    this.addToken(Keywords.get(text) || "IDENTIFIER");
+    switch (text) {
+      case "null":
+        this.addToken("NULL", new AtlasNull());
+        break;
+      case "true":
+        this.addToken("TRUE", new AtlasTrue());
+        break;
+      case "false":
+        this.addToken("FALSE", new AtlasFalse());
+        break;
+      default:
+        this.addToken(Keywords.get(text) || "IDENTIFIER");
+    }
   }
 
   private string(char: '"' | "'"): void {
@@ -140,7 +157,7 @@ export class Scanner {
 
     // Trim the surrounding quotes
     const value = this.source.substring(this.start + 1, this.current - 1);
-    this.addToken("STRING", value);
+    this.addToken("STRING", new AtlasString(value));
   }
 
   private number(): void {
@@ -155,7 +172,7 @@ export class Scanner {
     }
 
     const value = parseFloat(this.source.substring(this.start, this.current));
-    this.addToken("NUMBER", value);
+    this.addToken("NUMBER", new AtlasNumber(value));
   }
 
   private match(expected: string): boolean {
@@ -187,7 +204,7 @@ export class Scanner {
     return char;
   }
 
-  private addToken(type: TokenType, literal: AtlasValue = null): void {
+  private addToken(type: TokenType, literal?: AtlasValue): void {
     const text = this.source.substring(this.start, this.current);
     const column = 1 + this.start - this.lineStart;
     this.tokens.push(new Token(type, text, literal, this.line, column));

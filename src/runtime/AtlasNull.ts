@@ -1,10 +1,11 @@
+import { TokenType } from "../ast/TokenType";
 import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
 
 class AtlasNull {
-  readonly type = "NULL";
+  readonly type: TokenType = "NULL";
   static readonly atlasClassName = "Null";
 
-  constructor(readonly value: null) {}
+  constructor(readonly value: null = null) {}
 
   toString(): string {
     return String(this.value);

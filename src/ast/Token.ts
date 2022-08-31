@@ -6,7 +6,7 @@ export class Token {
   constructor(
     readonly type: TokenType,
     readonly lexeme: string,
-    readonly literal: AtlasValue,
+    readonly literal: AtlasValue | undefined,
     readonly line: number,
     readonly column: number
   ) {}
