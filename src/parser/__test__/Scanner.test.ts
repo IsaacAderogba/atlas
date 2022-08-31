@@ -27,6 +27,8 @@ describe("Scanner tokens", () => {
       { char: ";", type: "SEMICOLON" },
       { char: "*", type: "STAR" },
       { char: "/", type: "SLASH" },
+      { char: "?", type: "QUESTION_MARK" },
+      { char: ":", type: "COLON" },
       { char: "!", type: "BANG" },
       { char: "=", type: "EQUAL" },
       { char: "<", type: "LESS" },
