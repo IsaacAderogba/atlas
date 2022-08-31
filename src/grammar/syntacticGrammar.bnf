@@ -7,3 +7,7 @@ factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary 
                 | primary ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ")" ;
+error          -> ( "!=" | "==" ) equality
+                | ( ">" | ">=" | "<" | "<=" ) comparison
+                | ( "+" ) term
+                | ( "/" | "*" ) factor ;
