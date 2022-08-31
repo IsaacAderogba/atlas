@@ -1,7 +1,7 @@
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
-import { AtlasValue } from "../utils/AtlasValue";
+import { AtlasValue } from "../runtime/AtlasValue";
 import { Errors } from "../utils/Errors";
 import { SourceRange } from "../utils/SourceRange";
 import { Keywords } from "./Keywords";

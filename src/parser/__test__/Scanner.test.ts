@@ -1,5 +1,5 @@
 import { TokenType } from "../../ast/TokenType";
-import { AtlasValue } from "../../utils/AtlasValue";
+import { AtlasValue } from "../../runtime/AtlasValue";
 import { Errors } from "../../utils/Errors";
 import { Scanner } from "../Scanner";
 

@@ -1,4 +1,4 @@
-import { AtlasValue } from "../utils/AtlasValue";
+import { AtlasValue } from "../runtime/AtlasValue";
 import { SourceRange } from "../utils/SourceRange";
 import { TokenType } from "./TokenType";
 
