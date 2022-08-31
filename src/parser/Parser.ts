@@ -102,6 +102,11 @@ export class Parser {
     return false;
   }
 
+  private consume(type: TokenType, message: string): Token {
+    if (this.check(type)) return this.advance();
+    throw this.error(this.peek(), message);
+  }
+
   private check(type: TokenType): boolean {
     if (this.isAtEnd()) return false;
     return this.peek().type === type;
@@ -122,5 +127,33 @@ export class Parser {
 
   private previous(): Token {
     return this.tokens[this.current - 1];
+  }
+
+  private synchronize(): void {
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      if (this.previous().type === "SEMICOLON") return;
+
+      switch (this.peek().type) {
+        case "CLASS":
+        case "FUN":
+        case "VAR":
+        case "FOR":
+        case "IF":
+        case "WHILE":
+        case "PRINT":
+        case "RETURN":
+          return;
+      }
+
+      this.advance();
+    }
+  }
+
+  private error(token: Token, message: string): SyntaxError {
+    const error = new SyntaxError(message, token.sourceRange());
+    this.errors.push(error);
+    return error;
   }
 }
