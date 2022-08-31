@@ -1,3 +1,4 @@
+import { Parser } from "./parser/Parser";
 import { Scanner } from "./parser/Scanner";
 import { Reporter } from "./reporter/Reporter";
 import { AtlasStatus } from "./utils/AtlasStatus";
@@ -14,23 +15,31 @@ export class Atlas {
   }
 
   run(source: string): AtlasStatus {
-    const { status, tokens } = this.check(source);
+    const { status, expression } = this.check(source);
 
     if (status !== AtlasStatus.VALID) return status;
 
-    console.log("tokens", tokens);
+    console.log("expression", expression);
     return AtlasStatus.SUCCESS;
   }
 
-  check(source: string): { status: AtlasStatus; tokens: any[] } {
+  check(source: string): { status: AtlasStatus; expression?: any } {
     const scanner = new Scanner(source);
-    const { tokens, errors } = scanner.scanTokens();
+    const { tokens, errors: scanErrs } = scanner.scanTokens();
 
-    if (errors.length) {
-      errors.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
-      return { status: AtlasStatus.SYNTAX_ERROR, tokens: [] };
+    if (scanErrs.length) {
+      scanErrs.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
+      return { status: AtlasStatus.SYNTAX_ERROR };
     }
 
-    return { status: AtlasStatus.VALID, tokens };
+    const parser = new Parser(tokens);
+    const { expression, errors: parseErrs } = parser.parse();
+
+    if (parseErrs.length) {
+      parseErrs.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
+      return { status: AtlasStatus.SYNTAX_ERROR };
+    }
+
+    return { status: AtlasStatus.VALID, expression };
   }
 }

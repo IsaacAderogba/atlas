@@ -32,8 +32,8 @@ export class Scanner {
       this.scanToken();
     }
 
-    const column = 1 + this.start - this.lineStart;
-    this.tokens.push(new Token("EOF", "", undefined, this.line, column));
+    const column = 2 + this.start - this.lineStart;
+    this.tokens.push(new Token("EOF", "\0", undefined, this.line, column));
     return { tokens: this.tokens, errors: this.errors };
   }
 

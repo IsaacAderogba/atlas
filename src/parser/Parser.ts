@@ -13,6 +13,15 @@ export class Parser {
     this.tokens = tokens;
   }
 
+  public parse(): { expression: Expr | null; errors: SyntaxError[] } {
+    try {
+      const expression = this.expression();
+      return { expression, errors: this.errors };
+    } catch (err) {
+      return { expression: null, errors: this.errors };
+    }
+  }
+
   private expression(): Expr {
     return this.equality();
   }
@@ -129,6 +138,7 @@ export class Parser {
     return this.tokens[this.current - 1];
   }
 
+  // @ts-ignore
   private synchronize(): void {
     this.advance();
 
