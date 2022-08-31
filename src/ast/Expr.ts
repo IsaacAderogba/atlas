@@ -49,20 +49,6 @@ export class GroupingExpr implements BaseExpr {
   }
 }
 
-export class LiteralExpr implements BaseExpr {
-  constructor(readonly value: AtlasValue, readonly token: Token) {}
-
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitLiteralExpr(this);
-  }
-
-  sourceRange(): SourceRange {
-    const start = this.token.sourceRange().start;
-    const end = this.token.sourceRange().end;
-    return new SourceRange(start, end);
-  }
-}
-
 export class UnaryExpr implements BaseExpr {
   constructor(readonly operator: Token, readonly right: Expr) {}
 
@@ -77,7 +63,35 @@ export class UnaryExpr implements BaseExpr {
   }
 }
 
-export type Expr = BinaryExpr | GroupingExpr | LiteralExpr | UnaryExpr;
+export class LiteralExpr implements BaseExpr {
+  constructor(readonly value: AtlasValue, readonly token: Token) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitLiteralExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.token.sourceRange().start;
+    const end = this.token.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class ErrorExpr implements BaseExpr {
+  constructor(readonly token: Token) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitErrorExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.token.sourceRange().start;
+    const end = this.token.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export type Expr = TernaryExpr | BinaryExpr | GroupingExpr | LiteralExpr | UnaryExpr | ErrorExpr;
 
 export interface ExprVisitor<T> {
   visitTernaryExpr(expr: TernaryExpr): T;
@@ -85,4 +99,5 @@ export interface ExprVisitor<T> {
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
+  visitErrorExpr(expr: ErrorExpr): T;
 }

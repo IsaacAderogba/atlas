@@ -1,4 +1,4 @@
-import { BinaryExpr, TernaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "../ast/Expr";
+import { BinaryExpr, TernaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr, ErrorExpr } from "../ast/Expr";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
@@ -108,6 +108,30 @@ export class Parser {
       const expr = this.expression();
       this.consume("RIGHT_PAREN", Errors.ExpectedRightParen);
       return new GroupingExpr(expr);
+    }
+
+    if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
+      this.error(this.previous(), Errors.ExpectedLeftOperand);
+      this.equality();
+      return new ErrorExpr(this.previous());
+    }
+
+    if (this.match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL")) {
+      this.error(this.previous(), Errors.ExpectedLeftOperand);
+      this.comparison();
+      return new ErrorExpr(this.previous());
+    }
+
+    if (this.match("PLUS")) {
+      this.error(this.previous(), Errors.ExpectedLeftOperand);
+      this.term();
+      return new ErrorExpr(this.previous());
+    }
+
+    if (this.match("SLASH", "STAR")) {
+      this.error(this.previous(), Errors.ExpectedLeftOperand);
+      this.factor();
+      return new ErrorExpr(this.previous());
     }
 
     throw this.error(this.peek(), Errors.ExpectedExpression);
