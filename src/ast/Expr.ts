@@ -7,6 +7,20 @@ interface BaseExpr {
   sourceRange(): SourceRange;
 }
 
+export class TernaryExpr implements BaseExpr {
+  constructor(readonly expression: Expr, readonly thenBranch: Expr, readonly elseBranch: Expr) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitTernaryExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.expression.sourceRange().start;
+    const end = this.elseBranch.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class BinaryExpr implements BaseExpr {
   constructor(readonly left: Expr, readonly operator: Token, readonly right: Expr) {}
 
@@ -66,6 +80,7 @@ export class UnaryExpr implements BaseExpr {
 export type Expr = BinaryExpr | GroupingExpr | LiteralExpr | UnaryExpr;
 
 export interface ExprVisitor<T> {
+  visitTernaryExpr(expr: TernaryExpr): T;
   visitBinaryExpr(expr: BinaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;

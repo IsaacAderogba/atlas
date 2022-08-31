@@ -1,4 +1,4 @@
-import { BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "../ast/Expr";
+import { BinaryExpr, TernaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "../ast/Expr";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
@@ -23,7 +23,20 @@ export class Parser {
   }
 
   private expression(): Expr {
-    return this.equality();
+    return this.ternary();
+  }
+
+  private ternary(): Expr {
+    let expr = this.equality();
+
+    if (this.match("QUESTION")) {
+      const thenBranch = this.ternary();
+      this.consume("COLON", Errors.ExpectedColon);
+      const elseBranch = this.ternary();
+      expr = new TernaryExpr(expr, thenBranch, elseBranch);
+    }
+
+    return expr;
   }
 
   private equality(): Expr {

@@ -72,7 +72,7 @@ export class Scanner {
         this.addToken("STAR");
         break;
       case "?":
-        this.addToken("QUESTION_MARK");
+        this.addToken("QUESTION");
         break;
       case ":":
         this.addToken("COLON");

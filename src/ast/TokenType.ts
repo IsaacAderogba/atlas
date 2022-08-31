@@ -14,7 +14,7 @@ export type TokenType =
   | "SLASH"
   | "STAR"
   | "COLON"
-  | "QUESTION_MARK"
+  | "QUESTION"
 
   // One or two character tokens.
   | "BANG"
