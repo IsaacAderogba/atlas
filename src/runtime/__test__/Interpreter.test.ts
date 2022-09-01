@@ -140,4 +140,15 @@ describe("Interpreter errors", () => {
       expect(errors[0].message).toContain(Errors.ExpectedBoolean);
     });
   });
+
+  it("errors with prohibited zero division", () => {
+    const sources = ["4 / 0"];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toContain(Errors.ProhibitedZeroDivision);
+    });
+  });
 });

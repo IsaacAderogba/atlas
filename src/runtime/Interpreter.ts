@@ -65,10 +65,12 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
             this.getNumberValue(rightSource, right)
         );
       case "SLASH":
-        return new AtlasNumber(
-          this.getNumberValue(leftSource, left) /
-            this.getNumberValue(rightSource, right)
-        );
+        const numerator = this.getNumberValue(leftSource, left);
+        const denominator = this.getNumberValue(rightSource, right);
+        if (denominator === 0) {
+          throw this.error(rightSource, Errors.ProhibitedZeroDivision);
+        }
+        return new AtlasNumber(numerator / denominator);
       case "STAR":
         return new AtlasNumber(
           this.getNumberValue(leftSource, left) *

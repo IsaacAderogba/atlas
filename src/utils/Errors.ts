@@ -9,4 +9,5 @@ export const Errors = {
   ExpectedBoolean: "expected boolean",
   UnexpectedUnaryOperator: "unexpected unary operator",
   UnexpectedBinaryOperator: "unexpected binary operator",
+  ProhibitedZeroDivision: "prohibited division by zero",
 };
