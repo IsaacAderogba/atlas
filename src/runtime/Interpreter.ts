@@ -12,7 +12,7 @@ import { AtlasNumber } from "./AtlasNumber";
 import { AtlasTrue } from "./AtlasTrue";
 import { AtlasValue } from "./AtlasValue";
 import { InterpreterError } from "./InterpreterError";
-import { getBooleanValue, getNumberValue } from "./operands";
+import { areEqualValues, getBooleanValue, getNumberValue } from "./operands";
 
 export class Interpreter implements ExprVisitor<AtlasValue> {
   private evaluate(expr: Expr): AtlasValue {
@@ -39,6 +39,24 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
         return new AtlasNumber(getNumberValue(left) / getNumberValue(right));
       case "STAR":
         return new AtlasNumber(getNumberValue(left) * getNumberValue(right));
+      case "GREATER":
+        const isGreater = getNumberValue(left) > getNumberValue(right);
+        return isGreater ? new AtlasTrue() : new AtlasFalse();
+      case "GREATER_EQUAL":
+        const isGreaterEqual = getNumberValue(left) >= getNumberValue(right);
+        return isGreaterEqual ? new AtlasTrue() : new AtlasFalse();
+      case "LESS":
+        const isLess = getNumberValue(left) < getNumberValue(right);
+        return isLess ? new AtlasTrue() : new AtlasFalse();
+      case "LESS_EQUAL":
+        const isLessEqual = getNumberValue(left) <= getNumberValue(right);
+        return isLessEqual ? new AtlasTrue() : new AtlasFalse();
+      case "BANG_EQUAL":
+        const areNotEqual = !areEqualValues(left, right);
+        return areNotEqual ? new AtlasTrue() : new AtlasFalse();
+      case "EQUAL_EQUAL":
+        const areEqual = areEqualValues(left, right);
+        return areEqual ? new AtlasTrue() : new AtlasFalse();
       default:
         throw new InterpreterError(
           `Unexpected binary operator: ${expr.operator.lexeme}`

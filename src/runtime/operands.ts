@@ -11,3 +11,27 @@ export const getBooleanValue = (operand: AtlasValue): boolean => {
   if (operand.type === "FALSE") return operand.value;
   throw new InterpreterError(`Operand ${operand.type} must be a boolean.`);
 };
+
+export const areEqualValues = (
+  left: AtlasValue,
+  right: AtlasValue
+): boolean => {
+  const types: AtlasValue["type"][] = [
+    "NULL",
+    "STRING",
+    "NUMBER",
+    "TRUE",
+    "FALSE",
+  ];
+
+  const areEqual = types.some(type => {
+    if (left.type === type && right.type === type) {
+      return left.value === right.value;
+    }
+    return false;
+  });
+  if (areEqual) return true;
+
+  // fallback to comparison by reference
+  return left === right;
+};
