@@ -46,7 +46,7 @@ describe("Interpreter evaluations", () => {
     });
   });
 
-  it("evaluates binary expression", () => {
+  it("evaluates binary expressions", () => {
     const tests = [
       { source: "4 + 4", object: { value: 8 } },
       { source: "4 - 4", object: { value: 0 } },
@@ -66,11 +66,46 @@ describe("Interpreter evaluations", () => {
     });
   });
 
-  /**
-   * grouping
-   * unary
-   * literal
-   */
+  it("evaluates unary expressions", () => {
+    const tests = [
+      { source: "!true", object: { value: false } },
+      { source: "-4", object: { value: -4 } },
+      { source: "--4", object: { value: 4 } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
+
+  it("evaluates literal expressions", () => {
+    const tests = [
+      { source: "true", object: { value: true } },
+      { source: "false", object: { value: false } },
+      { source: "4", object: { value: 4 } },
+      { source: "null", object: { value: null } },
+      { source: "'string'", object: { value: "string" } },
+      { source: '"string"', object: { value: "string" } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
+
+  it("evaluates grouping expressions", () => {
+    const tests = [
+      { source: "4 + 4 * 4", object: { value: 20 } },
+      { source: "(4 + 4) * 4", object: { value: 32 } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
 });
 
 describe("Interpreter errors", () => {
