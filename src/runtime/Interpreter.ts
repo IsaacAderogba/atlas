@@ -15,25 +15,52 @@ import { RuntimeError } from "./RuntimeError";
 import { areEqualValues } from "./operands";
 import { SourceRangeable } from "../utils/SourceRange";
 import { Errors } from "../utils/Errors";
+import { ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from "../ast/Stmt";
+import { Reporter } from "../reporter/Reporter";
 
-export class Interpreter implements ExprVisitor<AtlasValue> {
+interface InterpreterProps {
+  reporter: Reporter;
+}
+
+export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
+  private reporter: Reporter;
   private errors: RuntimeError[] = [];
 
-  interpret(expression: Expr): {
-    value: AtlasValue | null;
-    errors: RuntimeError[];
-  } {
+  constructor({ reporter }: InterpreterProps) {
+    this.reporter = reporter;
+  }
+
+  interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {
       this.errors = [];
-      const value = this.evaluate(expression);
-      return { value, errors: [] };
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+
+      return { errors: this.errors };
     } catch (error) {
-      return { value: null, errors: this.errors };
+      if (error instanceof RuntimeError) {
+        return { errors: this.errors };
+      }
+      throw error;
     }
   }
 
   evaluate(expr: Expr): AtlasValue {
     return expr.accept(this);
+  }
+
+  private execute(stmt: Stmt): void {
+    stmt.accept(this);
+  }
+
+  visitExpressionStmt(stmt: ExpressionStmt): void {
+    this.evaluate(stmt.expression);
+  }
+
+  visitPrintStmt(stmt: PrintStmt): void {
+    const value = this.evaluate(stmt.expression);
+    this.reporter.log(value.toString());
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasValue {

@@ -33,8 +33,11 @@ export class Parser {
       }
 
       return { statements, errors: this.errors };
-    } catch (err) {
-      return { statements: [], errors: this.errors };
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return { statements: [], errors: this.errors };
+      }
+      throw error;
     }
   }
 

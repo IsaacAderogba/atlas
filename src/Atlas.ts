@@ -11,17 +11,18 @@ interface AtlasProps {
 
 export class Atlas {
   private reporter: Reporter;
-  private interpreter = new Interpreter();
+  private interpreter: Interpreter;
 
   constructor({ reporter }: AtlasProps) {
     this.reporter = reporter;
+    this.interpreter = new Interpreter({ reporter });
   }
 
   run(source: string): AtlasStatus {
     const { status, statements } = this.check(source);
     if (status !== AtlasStatus.VALID) return status;
 
-    const { value, errors } = this.interpreter.interpret(statements);
+    const { errors } = this.interpreter.interpret(statements);
 
     if (errors.length) {
       errors.forEach(e =>
@@ -29,8 +30,6 @@ export class Atlas {
       );
       return AtlasStatus.RUNTIME_ERROR;
     }
-
-    console.log("output", value);
 
     return AtlasStatus.SUCCESS;
   }

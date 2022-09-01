@@ -27,16 +27,23 @@ export class Scanner {
   }
 
   scan(): { tokens: Token[]; errors: SyntaxError[] } {
-    this.errors = [];
+    try {
+      this.errors = [];
 
-    while (!this.isAtEnd()) {
-      this.start = this.current;
-      this.scanToken();
+      while (!this.isAtEnd()) {
+        this.start = this.current;
+        this.scanToken();
+      }
+
+      const column = 2 + this.start - this.lineStart;
+      this.tokens.push(new Token("EOF", "\0", undefined, this.line, column));
+      return { tokens: this.tokens, errors: this.errors };
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return { tokens: [], errors: this.errors };
+      }
+      throw error;
     }
-
-    const column = 2 + this.start - this.lineStart;
-    this.tokens.push(new Token("EOF", "\0", undefined, this.line, column));
-    return { tokens: this.tokens, errors: this.errors };
   }
 
   private scanToken(): void {

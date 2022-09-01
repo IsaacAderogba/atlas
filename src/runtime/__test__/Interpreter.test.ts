@@ -1,14 +1,15 @@
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
+import { ConsoleReporter } from "../../reporter/ConsoleReporter";
 import { Errors } from "../../utils/Errors";
 import { Interpreter } from "../Interpreter";
 
-const setupTests = (
-  source: string
-): {
+interface SetupTests {
   interpret: () => ReturnType<Interpreter["interpret"]>;
   evaluate: () => ReturnType<Interpreter["evaluate"]>;
-} => {
+}
+
+const setupTests = (source: string): SetupTests => {
   const scanner = new Scanner(source);
   const { tokens, errors: scanErrs } = scanner.scan();
 
@@ -18,19 +19,24 @@ const setupTests = (
   }
 
   const parser = new Parser(tokens);
-  const { expression, errors: parseErrs } = parser.parse();
+  const interpreter = new Interpreter({ reporter: new ConsoleReporter() });
 
-  if (!expression || parseErrs.length) {
-    console.log("Parse errors", parseErrs);
-    throw new Error("Parse failed");
-  }
+  const setup: SetupTests = {
+    interpret: () => {
+      const { statements, errors: parseErrs } = parser.parse();
 
-  const interpreter = new Interpreter();
-
-  return {
-    interpret: () => interpreter.interpret(expression),
-    evaluate: () => interpreter.evaluate(expression),
+      if (!statements || parseErrs.length) {
+        console.log("Parse errors", parseErrs);
+        throw new Error("Parse failed");
+      }
+      return interpreter.interpret(statements);
+    },
+    evaluate: () => {
+      return interpreter.evaluate(parser.expression());
+    },
   };
+
+  return setup;
 };
 
 describe("Interpreter evaluations", () => {
