@@ -4,7 +4,6 @@ import { AtlasNull } from "../../runtime/AtlasNull";
 import { AtlasNumber } from "../../runtime/AtlasNumber";
 import { AtlasString } from "../../runtime/AtlasString";
 import { AtlasTrue } from "../../runtime/AtlasTrue";
-// import { AtlasValue } from "../../runtime/AtlasValue";
 import { Errors } from "../../utils/Errors";
 import { Scanner } from "../Scanner";
 

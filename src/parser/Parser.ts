@@ -22,7 +22,7 @@ export class Parser {
     }
   }
 
-  private expression(): Expr {
+  public expression(): Expr {
     return this.ternary();
   }
 
