@@ -1,8 +1,8 @@
 import { AtlasValue } from "../runtime/AtlasValue";
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange, SourceRangeable } from "../utils/SourceRange";
 import { TokenType } from "./TokenType";
 
-export class Token {
+export class Token implements SourceRangeable {
   constructor(
     readonly type: TokenType,
     readonly lexeme: string,

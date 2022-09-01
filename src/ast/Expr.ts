@@ -1,9 +1,9 @@
 import { AtlasValue } from "../runtime/AtlasValue";
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange, SourceRangeable } from "../utils/SourceRange";
 import { ASTError } from "./ASTError";
 import { Token } from "./Token";
 
-interface BaseExpr {
+interface BaseExpr extends SourceRangeable {
   accept<T>(visitor: ExprVisitor<T>): T;
   sourceRange(): SourceRange;
 }

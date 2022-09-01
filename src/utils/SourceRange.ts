@@ -1,6 +1,6 @@
 import { SourceLocation } from "./SourceLocation";
 
-export class SourceRange {
+export class SourceRange implements SourceRangeable {
   constructor(readonly start: SourceLocation, readonly end: SourceLocation) {}
 
   length(): number {
@@ -15,4 +15,8 @@ export class SourceRange {
   sourceRange(): SourceRange {
     return this;
   }
+}
+
+export interface SourceRangeable {
+  sourceRange(): SourceRange;
 }

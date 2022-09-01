@@ -11,8 +11,10 @@ import { AtlasFalse } from "./AtlasFalse";
 import { AtlasNumber } from "./AtlasNumber";
 import { AtlasTrue } from "./AtlasTrue";
 import { AtlasValue } from "./AtlasValue";
-import { InterpreterError } from "./InterpreterError";
-import { areEqualValues, getBooleanValue, getNumberValue } from "./operands";
+import { RuntimeError } from "./RuntimeError";
+import { areEqualValues } from "./operands";
+import { SourceRangeable } from "../utils/SourceRange";
+import { Errors } from "../utils/Errors";
 
 export class Interpreter implements ExprVisitor<AtlasValue> {
   private evaluate(expr: Expr): AtlasValue {
@@ -20,36 +22,62 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasValue {
-    const expression = this.evaluate(expr.expression);
+    const source = expr.expression;
+    const expression = this.evaluate(source);
 
-    if (getBooleanValue(expression)) return this.evaluate(expr.thenBranch);
+    if (this.getBooleanValue(source, expression)) {
+      return this.evaluate(expr.thenBranch);
+    }
     return this.evaluate(expr.elseBranch);
   }
 
   visitBinaryExpr(expr: BinaryExpr): AtlasValue {
+    const leftSource = expr.left;
+    const rightSource = expr.right;
+
     const left = this.evaluate(expr.left);
     const right = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
       case "PLUS":
-        return new AtlasNumber(getNumberValue(left) + getNumberValue(right));
+        return new AtlasNumber(
+          this.getNumberValue(leftSource, left) +
+            this.getNumberValue(rightSource, right)
+        );
       case "MINUS":
-        return new AtlasNumber(getNumberValue(left) - getNumberValue(right));
+        return new AtlasNumber(
+          this.getNumberValue(leftSource, left) -
+            this.getNumberValue(rightSource, right)
+        );
       case "SLASH":
-        return new AtlasNumber(getNumberValue(left) / getNumberValue(right));
+        return new AtlasNumber(
+          this.getNumberValue(leftSource, left) /
+            this.getNumberValue(rightSource, right)
+        );
       case "STAR":
-        return new AtlasNumber(getNumberValue(left) * getNumberValue(right));
+        return new AtlasNumber(
+          this.getNumberValue(leftSource, left) *
+            this.getNumberValue(rightSource, right)
+        );
       case "GREATER":
-        const isGreater = getNumberValue(left) > getNumberValue(right);
+        const isGreater =
+          this.getNumberValue(leftSource, left) >
+          this.getNumberValue(rightSource, right);
         return isGreater ? new AtlasTrue() : new AtlasFalse();
       case "GREATER_EQUAL":
-        const isGreaterEqual = getNumberValue(left) >= getNumberValue(right);
+        const isGreaterEqual =
+          this.getNumberValue(leftSource, left) >=
+          this.getNumberValue(rightSource, right);
         return isGreaterEqual ? new AtlasTrue() : new AtlasFalse();
       case "LESS":
-        const isLess = getNumberValue(left) < getNumberValue(right);
+        const isLess =
+          this.getNumberValue(leftSource, left) <
+          this.getNumberValue(rightSource, right);
         return isLess ? new AtlasTrue() : new AtlasFalse();
       case "LESS_EQUAL":
-        const isLessEqual = getNumberValue(left) <= getNumberValue(right);
+        const isLessEqual =
+          this.getNumberValue(leftSource, left) <=
+          this.getNumberValue(rightSource, right);
         return isLessEqual ? new AtlasTrue() : new AtlasFalse();
       case "BANG_EQUAL":
         const areNotEqual = !areEqualValues(left, right);
@@ -58,9 +86,7 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
         const areEqual = areEqualValues(left, right);
         return areEqual ? new AtlasTrue() : new AtlasFalse();
       default:
-        throw new InterpreterError(
-          `Unexpected binary operator: ${expr.operator.lexeme}`
-        );
+        throw this.error(expr.operator, Errors.UnexpectedBinaryOperator);
     }
   }
 
@@ -69,21 +95,36 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasValue {
+    const source = expr.right;
     const right = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
       case "BANG":
-        return getBooleanValue(right) ? new AtlasFalse() : new AtlasTrue();
+        const boolean = this.getBooleanValue(source, right);
+        return boolean ? new AtlasFalse() : new AtlasTrue();
       case "MINUS":
-        return new AtlasNumber(-getNumberValue(right));
+        return new AtlasNumber(-this.getNumberValue(source, right));
       default:
-        throw new InterpreterError(
-          `Unexpected unary operator: ${expr.operator.lexeme}`
-        );
+        throw this.error(expr.operator, Errors.UnexpectedUnaryOperator);
     }
   }
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
     return expr.value;
+  }
+
+  getNumberValue(source: SourceRangeable, operand: AtlasValue): number {
+    if (operand.type === "NUMBER") return operand.value;
+    throw this.error(source, Errors.ExpectedNumber);
+  }
+
+  getBooleanValue(source: SourceRangeable, operand: AtlasValue): boolean {
+    if (operand.type === "TRUE") return operand.value;
+    if (operand.type === "FALSE") return operand.value;
+    throw this.error(source, Errors.ExpectedBoolean);
+  }
+
+  private error(source: SourceRangeable, message: string): RuntimeError {
+    return new RuntimeError(message, source.sourceRange());
   }
 }

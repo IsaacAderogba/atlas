@@ -2,6 +2,7 @@ import { BinaryExpr, TernaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr, Er
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
+import { SourceRangeable } from "../utils/SourceRange";
 import { SyntaxError } from "./SyntaxError";
 
 export class Parser {
@@ -194,8 +195,8 @@ export class Parser {
     }
   }
 
-  private error(token: Token, message: string): SyntaxError {
-    const error = new SyntaxError(message, token.sourceRange());
+  private error(source: SourceRangeable, message: string): SyntaxError {
+    const error = new SyntaxError(message, source.sourceRange());
     this.errors.push(error);
     return error;
   }
