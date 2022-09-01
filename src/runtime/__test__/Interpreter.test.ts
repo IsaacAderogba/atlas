@@ -117,15 +117,15 @@ describe("Interpreter evaluations", () => {
 describe("Interpreter errors", () => {
   it("errors with expected number", () => {
     const sources = [
-      "-'4'",
-      "4 + '4'",
-      "4 - '4'",
-      "4 / '4'",
-      "4 * '4'",
-      "4 > '4'",
-      "4 >= '4'",
-      "4 < '4'",
-      "4 <= '4'",
+      "-'4';",
+      "4 + '4';",
+      "4 - '4';",
+      "4 / '4';",
+      "4 * '4';",
+      "4 > '4';",
+      "4 >= '4';",
+      "4 < '4';",
+      "4 <= '4';",
     ];
 
     sources.forEach(source => {
@@ -137,7 +137,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with expected boolean", () => {
-    const sources = ["!'4'", "4 ? true : false"];
+    const sources = ["!'4';", "4 ? true : false;"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
@@ -148,7 +148,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with prohibited zero division", () => {
-    const sources = ["4 / 0"];
+    const sources = ["4 / 0;"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
