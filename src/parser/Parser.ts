@@ -112,26 +112,22 @@ export class Parser {
 
     if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
       this.error(this.previous(), Errors.ExpectedLeftOperand);
-      this.equality();
-      return new ErrorExpr(this.previous());
+      return new ErrorExpr(this.previous(), this.equality());
     }
 
     if (this.match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL")) {
       this.error(this.previous(), Errors.ExpectedLeftOperand);
-      this.comparison();
-      return new ErrorExpr(this.previous());
+      return new ErrorExpr(this.previous(), this.comparison());
     }
 
     if (this.match("PLUS")) {
       this.error(this.previous(), Errors.ExpectedLeftOperand);
-      this.term();
-      return new ErrorExpr(this.previous());
+      return new ErrorExpr(this.previous(), this.term());
     }
 
     if (this.match("SLASH", "STAR")) {
       this.error(this.previous(), Errors.ExpectedLeftOperand);
-      this.factor();
-      return new ErrorExpr(this.previous());
+      return new ErrorExpr(this.previous(), this.factor());
     }
 
     throw this.error(this.peek(), Errors.ExpectedExpression);

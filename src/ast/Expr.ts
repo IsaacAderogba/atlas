@@ -78,15 +78,15 @@ export class LiteralExpr implements BaseExpr {
 }
 
 export class ErrorExpr implements BaseExpr {
-  constructor(readonly token: Token) {}
+  constructor(readonly error: Token, readonly expression: Expr) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitErrorExpr(this);
   }
 
   sourceRange(): SourceRange {
-    const start = this.token.sourceRange().start;
-    const end = this.token.sourceRange().end;
+    const start = this.error.sourceRange().start;
+    const end = this.expression.sourceRange().end;
     return new SourceRange(start, end);
   }
 }
