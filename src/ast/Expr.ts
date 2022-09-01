@@ -1,5 +1,6 @@
 import { AtlasValue } from "../runtime/AtlasValue";
 import { SourceRange } from "../utils/SourceRange";
+import { ASTError } from "./ASTError";
 import { Token } from "./Token";
 
 interface BaseExpr {
@@ -80,8 +81,8 @@ export class LiteralExpr implements BaseExpr {
 export class ErrorExpr implements BaseExpr {
   constructor(readonly error: Token, readonly expression: Expr) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitErrorExpr(this);
+  accept<T>(): T {
+    throw new ASTError("ErrorExpr should not be evaluated.");
   }
 
   sourceRange(): SourceRange {
@@ -99,5 +100,4 @@ export interface ExprVisitor<T> {
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
-  visitErrorExpr(expr: ErrorExpr): T;
 }

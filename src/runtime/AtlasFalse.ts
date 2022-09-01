@@ -1,8 +1,7 @@
-import { TokenType } from "../ast/TokenType";
 import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
 
 class AtlasFalse {
-  readonly type: TokenType = "FALSE";
+  readonly type = "FALSE";
   static readonly atlasClassName = "False";
 
   constructor(readonly value: false = false) {}

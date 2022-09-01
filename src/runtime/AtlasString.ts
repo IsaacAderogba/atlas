@@ -1,8 +1,7 @@
-import { TokenType } from "../ast/TokenType";
 import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
 
 class AtlasString {
-  readonly type: TokenType = "STRING";
+  readonly type = "STRING";
   static readonly atlasClassName = "String";
 
   constructor(readonly value: string) {}
