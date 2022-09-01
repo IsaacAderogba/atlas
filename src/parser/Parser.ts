@@ -1,4 +1,13 @@
-import { BinaryExpr, TernaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr, ErrorExpr } from "../ast/Expr";
+import {
+  BinaryExpr,
+  TernaryExpr,
+  Expr,
+  GroupingExpr,
+  LiteralExpr,
+  UnaryExpr,
+  ErrorExpr,
+} from "../ast/Expr";
+import { ExpressionStmt, PrintStmt, Stmt } from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
@@ -14,14 +23,37 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  public parse(): { expression: Expr | null; errors: SyntaxError[] } {
+  public parse(): { statements: Stmt[]; errors: SyntaxError[] } {
     try {
       this.errors = [];
-      const expression = this.expression();
-      return { expression, errors: this.errors };
+      const statements: Stmt[] = [];
+
+      while (!this.isAtEnd()) {
+        statements.push(this.statement());
+      }
+
+      return { statements, errors: this.errors };
     } catch (err) {
-      return { expression: null, errors: this.errors };
+      return { statements: [], errors: this.errors };
     }
+  }
+
+  private statement(): Stmt {
+    if (this.match("PRINT")) return this.printStatement();
+
+    return this.expressionStatement();
+  }
+
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+    return new PrintStmt(value);
+  }
+
+  private expressionStatement(): Stmt {
+    const value = this.expression();
+    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+    return new ExpressionStmt(value);
   }
 
   public expression(): Expr {

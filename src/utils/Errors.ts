@@ -3,6 +3,7 @@ export const Errors = {
   UnexpectedCharacter: "unexpected character",
   ExpectedRightParen: "expected right parenthesis",
   ExpectedColon: "expected colon",
+  ExpectedSemiColon: "expected semicolon",
   ExpectedExpression: "expected expression",
   ExpectedLeftOperand: "expected left-hand operand",
   ExpectedNumber: "expected number",

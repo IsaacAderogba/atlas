@@ -20,6 +20,8 @@ export class PrintStmt implements BaseStmt {
   }
 }
 
+export type Stmt = ExpressionStmt | PrintStmt;
+
 export interface StmtVisitor<T> {
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;
