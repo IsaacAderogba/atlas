@@ -2,7 +2,6 @@ program        -> statement* EOF ;
 declaration    -> varDecl
                 | statement ;
 varDecl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
-
 statement      -> exprStmt
                 | printStmt ;
 exprStmt       -> expression ";" ;

@@ -8,6 +8,7 @@ export const Errors = {
   ExpectedLeftOperand: "expected left-hand operand",
   ExpectedNumber: "expected number",
   ExpectedBoolean: "expected boolean",
+  ExpectedIdentifier: "expected identifier",
   UnexpectedUnaryOperator: "unexpected unary operator",
   UnexpectedBinaryOperator: "unexpected binary operator",
   ProhibitedZeroDivision: "prohibited division by zero",

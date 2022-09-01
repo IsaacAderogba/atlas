@@ -6,8 +6,9 @@ import {
   LiteralExpr,
   UnaryExpr,
   ErrorExpr,
+  VariableExpr,
 } from "../ast/Expr";
-import { ExpressionStmt, PrintStmt, Stmt } from "../ast/Stmt";
+import { ExpressionStmt, PrintStmt, Stmt, VarStmt } from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
@@ -28,7 +29,8 @@ export class Parser {
       const statements: Stmt[] = [];
 
       while (!this.isAtEnd()) {
-        statements.push(this.statement());
+        const decl = this.declaration();
+        if (decl) statements.push(decl);
       }
 
       return { statements, errors: this.errors };
@@ -38,6 +40,28 @@ export class Parser {
       }
       throw error;
     }
+  }
+
+  private declaration(): Stmt | null {
+    try {
+      if (this.match("VAR")) return this.varDeclaration();
+
+      return this.statement();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        this.synchronize();
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  private varDeclaration(): Stmt {
+    const name = this.consume("IDENTIFIER", Errors.ExpectedIdentifier);
+    const initializer = this.match("EQUAL") ? this.expression() : null;
+    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+
+    return new VarStmt(name, initializer);
   }
 
   private statement(): Stmt {
@@ -140,6 +164,10 @@ export class Parser {
       return new LiteralExpr(token.literal!, token);
     }
 
+    if (this.match("IDENTIFIER")) {
+      return new VariableExpr(this.previous());
+    }
+
     if (this.match("LEFT_PAREN")) {
       const expr = this.expression();
       this.consume("RIGHT_PAREN", Errors.ExpectedRightParen);
@@ -207,7 +235,6 @@ export class Parser {
     return this.tokens[this.current - 1];
   }
 
-  // @ts-ignore
   private synchronize(): void {
     this.advance();
 
