@@ -32,7 +32,7 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
     }
   }
 
-  private evaluate(expr: Expr): AtlasValue {
+  evaluate(expr: Expr): AtlasValue {
     return expr.accept(this);
   }
 
@@ -128,12 +128,15 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
     return expr.value;
   }
 
-  getNumberValue(source: SourceRangeable, operand: AtlasValue): number {
+  private getNumberValue(source: SourceRangeable, operand: AtlasValue): number {
     if (operand.type === "NUMBER") return operand.value;
     throw this.error(source, Errors.ExpectedNumber);
   }
 
-  getBooleanValue(source: SourceRangeable, operand: AtlasValue): boolean {
+  private getBooleanValue(
+    source: SourceRangeable,
+    operand: AtlasValue
+  ): boolean {
     if (operand.type === "TRUE") return operand.value;
     if (operand.type === "FALSE") return operand.value;
     throw this.error(source, Errors.ExpectedBoolean);
