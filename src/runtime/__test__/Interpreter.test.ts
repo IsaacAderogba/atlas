@@ -33,6 +33,46 @@ const setupTests = (
   };
 };
 
+describe("Interpreter evaluations", () => {
+  it("evaluates ternary expression", () => {
+    const tests = [
+      { source: "true ? true : false", object: { value: true } },
+      { source: "false ? true : false", object: { value: false } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
+
+  it("evaluates binary expression", () => {
+    const tests = [
+      { source: "4 + 4", object: { value: 8 } },
+      { source: "4 - 4", object: { value: 0 } },
+      { source: "4 / 4", object: { value: 1 } },
+      { source: "4 * 4", object: { value: 16 } },
+      { source: "4 > 4", object: { value: false } },
+      { source: "4 >= 4", object: { value: true } },
+      { source: "4 < 4", object: { value: false } },
+      { source: "4 <= 4", object: { value: true } },
+      { source: "4 != 4", object: { value: false } },
+      { source: "4 == 4", object: { value: true } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
+
+  /**
+   * grouping
+   * unary
+   * literal
+   */
+});
+
 describe("Interpreter errors", () => {
   it("errors with expected number", () => {
     const sources = [
