@@ -17,6 +17,25 @@ import { SourceRangeable } from "../utils/SourceRange";
 import { Errors } from "../utils/Errors";
 
 export class Interpreter implements ExprVisitor<AtlasValue> {
+  private expression: Expr;
+  private errors: RuntimeError[] = [];
+
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+
+  interpret(): {
+    value: AtlasValue | null;
+    errors: RuntimeError[];
+  } {
+    try {
+      const value = this.evaluate(this.expression);
+      return { value, errors: [] };
+    } catch (error) {
+      return { value: null, errors: this.errors };
+    }
+  }
+
   private evaluate(expr: Expr): AtlasValue {
     return expr.accept(this);
   }
@@ -125,6 +144,8 @@ export class Interpreter implements ExprVisitor<AtlasValue> {
   }
 
   private error(source: SourceRangeable, message: string): RuntimeError {
-    return new RuntimeError(message, source.sourceRange());
+    const error = new RuntimeError(message, source.sourceRange());
+    this.errors.push(error);
+    return error;
   }
 }

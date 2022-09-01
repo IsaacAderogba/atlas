@@ -1,6 +1,7 @@
 import { Parser } from "./parser/Parser";
 import { Scanner } from "./parser/Scanner";
 import { Reporter } from "./reporter/Reporter";
+import { Interpreter } from "./runtime/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 
 interface AtlasProps {
@@ -8,7 +9,7 @@ interface AtlasProps {
 }
 
 export class Atlas {
-  private readonly reporter: Reporter;
+  private reporter: Reporter;
 
   constructor({ reporter }: AtlasProps) {
     this.reporter = reporter;
@@ -16,10 +17,20 @@ export class Atlas {
 
   run(source: string): AtlasStatus {
     const { status, expression } = this.check(source);
-
     if (status !== AtlasStatus.VALID) return status;
 
-    console.log("expression", expression);
+    const interpreter = new Interpreter(expression);
+    const { value, errors } = interpreter.interpret();
+
+    if (errors.length) {
+      errors.forEach(e =>
+        this.reporter.rangeError(source, e.sourceRange, e.message)
+      );
+      return AtlasStatus.RUNTIME_ERROR;
+    }
+
+    console.log("output", value);
+
     return AtlasStatus.SUCCESS;
   }
 
@@ -28,7 +39,9 @@ export class Atlas {
     const { tokens, errors: scanErrs } = scanner.scanTokens();
 
     if (scanErrs.length) {
-      scanErrs.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
+      scanErrs.forEach(e =>
+        this.reporter.rangeError(source, e.sourceRange, e.message)
+      );
       return { status: AtlasStatus.SYNTAX_ERROR };
     }
 
@@ -36,7 +49,9 @@ export class Atlas {
     const { expression, errors: parseErrs } = parser.parse();
 
     if (parseErrs.length) {
-      parseErrs.forEach(e => this.reporter.rangeError(source, e.sourceRange, e.message));
+      parseErrs.forEach(e =>
+        this.reporter.rangeError(source, e.sourceRange, e.message)
+      );
       return { status: AtlasStatus.SYNTAX_ERROR };
     }
 
