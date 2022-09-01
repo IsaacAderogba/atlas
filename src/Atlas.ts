@@ -10,6 +10,7 @@ interface AtlasProps {
 
 export class Atlas {
   private reporter: Reporter;
+  private interpreter = new Interpreter();
 
   constructor({ reporter }: AtlasProps) {
     this.reporter = reporter;
@@ -19,8 +20,7 @@ export class Atlas {
     const { status, expression } = this.check(source);
     if (status !== AtlasStatus.VALID) return status;
 
-    const interpreter = new Interpreter(expression);
-    const { value, errors } = interpreter.interpret();
+    const { value, errors } = this.interpreter.interpret(expression);
 
     if (errors.length) {
       errors.forEach(e =>
@@ -36,7 +36,7 @@ export class Atlas {
 
   check(source: string): { status: AtlasStatus; expression?: any } {
     const scanner = new Scanner(source);
-    const { tokens, errors: scanErrs } = scanner.scanTokens();
+    const { tokens, errors: scanErrs } = scanner.scan();
 
     if (scanErrs.length) {
       scanErrs.forEach(e =>

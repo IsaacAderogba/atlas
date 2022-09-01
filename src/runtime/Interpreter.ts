@@ -17,19 +17,15 @@ import { SourceRangeable } from "../utils/SourceRange";
 import { Errors } from "../utils/Errors";
 
 export class Interpreter implements ExprVisitor<AtlasValue> {
-  private expression: Expr;
   private errors: RuntimeError[] = [];
 
-  constructor(expression: Expr) {
-    this.expression = expression;
-  }
-
-  interpret(): {
+  interpret(expression: Expr): {
     value: AtlasValue | null;
     errors: RuntimeError[];
   } {
     try {
-      const value = this.evaluate(this.expression);
+      this.errors = [];
+      const value = this.evaluate(expression);
       return { value, errors: [] };
     } catch (error) {
       return { value: null, errors: this.errors };

@@ -4,7 +4,7 @@ import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { parser: Parser } => {
   const scanner = new Scanner(source);
-  const { tokens } = scanner.scanTokens();
+  const { tokens } = scanner.scan();
   const parser = new Parser(tokens);
 
   return { parser };
@@ -127,14 +127,14 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 == 4 ? 3");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toEqual(Errors.ExpectedColon);
+    expect(errors[0].message).toContain(Errors.ExpectedColon);
   });
 
   it("errors with expected right paren", () => {
     const { parser } = setupTests("( 4 + 4");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toEqual(Errors.ExpectedRightParen);
+    expect(errors[0].message).toContain(Errors.ExpectedRightParen);
   });
 
   it("errors with expected left operand", () => {
@@ -144,7 +144,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toEqual(Errors.ExpectedLeftOperand);
+      expect(errors[0].message).toContain(Errors.ExpectedLeftOperand);
     });
   });
 
@@ -152,6 +152,6 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 +");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toEqual(Errors.ExpectedExpression);
+    expect(errors[0].message).toContain(Errors.ExpectedExpression);
   });
 });

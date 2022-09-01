@@ -26,7 +26,9 @@ export class Scanner {
     this.source = source;
   }
 
-  scanTokens(): { tokens: Token[]; errors: SyntaxError[] } {
+  scan(): { tokens: Token[]; errors: SyntaxError[] } {
+    this.errors = [];
+
     while (!this.isAtEnd()) {
       this.start = this.current;
       this.scanToken();
@@ -223,7 +225,10 @@ export class Scanner {
   private error(message: string): void {
     const line = this.line;
     const column = this.current - this.lineStart;
-    const sourceRange = new SourceRange({ line, column }, { line, column: column + 1 });
+    const sourceRange = new SourceRange(
+      { line, column },
+      { line, column: column + 1 }
+    );
     this.errors.push(new SyntaxError(message, sourceRange));
   }
 }

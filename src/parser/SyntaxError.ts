@@ -1,5 +1,11 @@
 import { SourceRange } from "../utils/SourceRange";
 
 export class SyntaxError {
-  constructor(readonly message: string, readonly sourceRange: SourceRange) {}
+  readonly message: string;
+  readonly sourceRange: SourceRange;
+  
+  constructor(message: string, sourceRange: SourceRange) {
+    this.message = `syntax error: ${message}`;
+    this.sourceRange = sourceRange;
+  }
 }

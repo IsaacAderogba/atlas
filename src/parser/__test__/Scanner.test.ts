@@ -36,7 +36,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -52,7 +52,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -76,7 +76,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(1);
     });
@@ -103,7 +103,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -117,7 +117,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type, literal }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -133,7 +133,7 @@ describe("Scanner tokens", () => {
 
     charTypes.forEach(({ char, type, literal }) => {
       const { scanner } = setupTests(char);
-      const { tokens } = scanner.scanTokens();
+      const { tokens } = scanner.scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -143,7 +143,7 @@ describe("Scanner tokens", () => {
 
   it("tokenizes true", () => {
     const { scanner } = setupTests("true");
-    const { tokens } = scanner.scanTokens();
+    const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("TRUE");
     expect(tokens[0].literal).toEqual(new AtlasTrue());
@@ -153,7 +153,7 @@ describe("Scanner tokens", () => {
 
   it("tokenizes false", () => {
     const { scanner } = setupTests("false");
-    const { tokens } = scanner.scanTokens();
+    const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("FALSE");
     expect(tokens[0].literal).toEqual(new AtlasFalse());
@@ -163,7 +163,7 @@ describe("Scanner tokens", () => {
 
   it("tokenizes null", () => {
     const { scanner } = setupTests("null");
-    const { tokens } = scanner.scanTokens();
+    const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("NULL");
     expect(tokens[0].literal).toEqual(new AtlasNull());
@@ -176,23 +176,23 @@ describe("Scanner errors", () => {
   it("errors with unexpected character", () => {
     const { scanner } = setupTests("£");
 
-    const { errors } = scanner.scanTokens();
-    expect(errors[0].message).toEqual(Errors.UnexpectedCharacter);
+    const { errors } = scanner.scan();
+    expect(errors[0].message).toContain(Errors.UnexpectedCharacter);
   });
 
   it("errors with unterminated string", () => {
     const { scanner } = setupTests('"Hello');
 
-    const { errors } = scanner.scanTokens();
-    expect(errors[0].message).toEqual(Errors.UnterminatedString);
+    const { errors } = scanner.scan();
+    expect(errors[0].message).toContain(Errors.UnterminatedString);
   });
 
   it("cascades multiple errors", () => {
     const { scanner } = setupTests('£"Hello');
 
-    const { errors } = scanner.scanTokens();
+    const { errors } = scanner.scan();
 
-    expect(errors[0].message).toEqual(Errors.UnexpectedCharacter);
-    expect(errors[1].message).toEqual(Errors.UnterminatedString);
+    expect(errors[0].message).toContain(Errors.UnexpectedCharacter);
+    expect(errors[1].message).toContain(Errors.UnterminatedString);
   });
 });

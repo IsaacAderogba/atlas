@@ -16,6 +16,7 @@ export class Parser {
 
   public parse(): { expression: Expr | null; errors: SyntaxError[] } {
     try {
+      this.errors = [];
       const expression = this.expression();
       return { expression, errors: this.errors };
     } catch (err) {

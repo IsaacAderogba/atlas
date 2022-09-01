@@ -1,6 +1,5 @@
 import { AtlasValue } from "../runtime/AtlasValue";
 import { SourceRange, SourceRangeable } from "../utils/SourceRange";
-import { ASTError } from "./ASTError";
 import { Token } from "./Token";
 
 interface BaseExpr extends SourceRangeable {
@@ -82,7 +81,7 @@ export class ErrorExpr implements BaseExpr {
   constructor(readonly error: Token, readonly expression: Expr) {}
 
   accept<T>(): T {
-    throw new ASTError("ErrorExpr should not be evaluated.");
+    throw new Error("ErrorExpr should not be evaluated.");
   }
 
   sourceRange(): SourceRange {

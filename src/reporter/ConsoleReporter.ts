@@ -20,7 +20,7 @@ export class ConsoleReporter implements Reporter {
 
     const lineColumn = chalk.blue(`${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
-    const errMessage = chalk.red(`error: ${message}`);
+    const errMessage = chalk.red(message);
 
     const report = `${lineColumn}${errMessage}\n\n` + `${startLine}${sourceLine}\n` + chalk.blue(underline);
 
