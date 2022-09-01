@@ -22,7 +22,6 @@ export class ConsoleReporter implements Reporter {
     const startLine = `${start.line.toString().padEnd(indent)}`;
     const errMessage = chalk.red(message);
 
-    console.log("range", range);
     const report = `${lineColumn}${errMessage}\n\n` + `${startLine}${sourceLine}\n` + chalk.blue(underline);
 
     this.error(report);

@@ -11,7 +11,6 @@ import { ExpressionStmt, PrintStmt, Stmt } from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
-import { SourceRangeable } from "../utils/SourceRange";
 import { SyntaxError } from "./SyntaxError";
 
 export class Parser {
@@ -182,7 +181,7 @@ export class Parser {
   }
 
   private consume(type: TokenType, message: string): Token {
-    if (this.check(type)) return this.advance();    
+    if (this.check(type)) return this.advance();
     throw this.error(this.peek(), message);
   }
 
@@ -231,8 +230,8 @@ export class Parser {
     }
   }
 
-  private error(source: SourceRangeable, message: string): SyntaxError {
-    const error = new SyntaxError(message, source.sourceRange());
+  private error(token: Token, message: string): SyntaxError {
+    const error = new SyntaxError(message, token.sourceRange());
     this.errors.push(error);
     return error;
   }

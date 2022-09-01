@@ -35,8 +35,7 @@ export class Scanner {
         this.scanToken();
       }
       this.start = this.current;
-      const column = 1 + this.start - this.lineStart;
-      this.tokens.push(new Token("EOF", "\0", undefined, this.line, column));
+      this.addToken("EOF", { text: "\0" });
 
       return { tokens: this.tokens, errors: this.errors };
     } catch (error) {
@@ -112,7 +111,6 @@ export class Scanner {
       case "\r":
       case "\t":
       case "\n":
-        // Ignore whitespace
         break;
       case '"':
       case "'":
@@ -148,13 +146,13 @@ export class Scanner {
     const text = this.source.substring(this.start, this.current);
     switch (text) {
       case "null":
-        this.addToken("NULL", new AtlasNull());
+        this.addToken("NULL", { literal: new AtlasNull() });
         break;
       case "true":
-        this.addToken("TRUE", new AtlasTrue());
+        this.addToken("TRUE", { literal: new AtlasTrue() });
         break;
       case "false":
-        this.addToken("FALSE", new AtlasFalse());
+        this.addToken("FALSE", { literal: new AtlasFalse() });
         break;
       default:
         this.addToken(Keywords.get(text) || "IDENTIFIER");
@@ -173,7 +171,7 @@ export class Scanner {
 
     // Trim the surrounding quotes
     const value = this.source.substring(this.start + 1, this.current - 1);
-    this.addToken("STRING", new AtlasString(value));
+    this.addToken("STRING", { literal: new AtlasString(value) });
   }
 
   private number(): void {
@@ -188,7 +186,7 @@ export class Scanner {
     }
 
     const value = parseFloat(this.source.substring(this.start, this.current));
-    this.addToken("NUMBER", new AtlasNumber(value));
+    this.addToken("NUMBER", { literal: new AtlasNumber(value) });
   }
 
   private match(expected: string): boolean {
@@ -220,8 +218,13 @@ export class Scanner {
     return char;
   }
 
-  private addToken(type: TokenType, literal?: AtlasValue): void {
-    const text = this.source.substring(this.start, this.current);
+  private addToken(
+    type: TokenType,
+    {
+      literal,
+      text = this.source.substring(this.start, this.current),
+    }: Partial<{ literal: AtlasValue; text: string }> = {}
+  ): void {
     const column = 1 + this.start - this.lineStart;
     this.tokens.push(new Token(type, text, literal, this.line, column));
   }

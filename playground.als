@@ -1,3 +1,3 @@
-print "one"
++ 4
 print true
 // print 2 + 1;
