@@ -1,4 +1,8 @@
 program        -> statement* EOF ;
+declaration    -> varDecl
+                | statement ;
+varDecl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
+
 statement      -> exprStmt
                 | printStmt ;
 exprStmt       -> expression ";" ;
@@ -11,7 +15,7 @@ term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary 
                 | primary ;
-primary        -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ")" ;
+primary        -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ")" | IDENTIFIER | error ;
 error          -> ( "!=" | "==" ) equality
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" ) term
