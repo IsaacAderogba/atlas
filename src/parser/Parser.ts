@@ -182,7 +182,7 @@ export class Parser {
 
   private consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
-    throw this.error(this.peek(), message);
+    throw this.error(this.previous() || this.peek(), message);
   }
 
   private check(type: TokenType): boolean {
