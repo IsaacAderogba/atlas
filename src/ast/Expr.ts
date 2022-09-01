@@ -8,7 +8,11 @@ interface BaseExpr extends SourceRangeable {
 }
 
 export class TernaryExpr implements BaseExpr {
-  constructor(readonly expression: Expr, readonly thenBranch: Expr, readonly elseBranch: Expr) {}
+  constructor(
+    readonly expression: Expr,
+    readonly thenBranch: Expr,
+    readonly elseBranch: Expr
+  ) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitTernaryExpr(this);
@@ -22,7 +26,11 @@ export class TernaryExpr implements BaseExpr {
 }
 
 export class BinaryExpr implements BaseExpr {
-  constructor(readonly left: Expr, readonly operator: Token, readonly right: Expr) {}
+  constructor(
+    readonly left: Expr,
+    readonly operator: Token,
+    readonly right: Expr
+  ) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitBinaryExpr(this);
@@ -91,7 +99,28 @@ export class ErrorExpr implements BaseExpr {
   }
 }
 
-export type Expr = TernaryExpr | BinaryExpr | GroupingExpr | LiteralExpr | UnaryExpr | ErrorExpr;
+export class VariableExpr {
+  constructor(readonly name: Token) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitVariableExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.name.sourceRange().start;
+    const end = this.name.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export type Expr =
+  | TernaryExpr
+  | BinaryExpr
+  | GroupingExpr
+  | LiteralExpr
+  | UnaryExpr
+  | ErrorExpr
+  | VariableExpr;
 
 export interface ExprVisitor<T> {
   visitTernaryExpr(expr: TernaryExpr): T;
@@ -99,4 +128,5 @@ export interface ExprVisitor<T> {
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
+  visitVariableExpr(expr: VariableExpr): T;
 }
