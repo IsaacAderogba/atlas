@@ -32,7 +32,6 @@ interface InterpreterProps {
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   private environment = new Environment();
   private reporter: Reporter;
-  private errors: RuntimeError[] = [];
 
   constructor({ reporter }: InterpreterProps) {
     this.reporter = reporter;
@@ -40,15 +39,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {
-      this.errors = [];
       for (const statement of statements) {
         this.execute(statement);
       }
 
-      return { errors: this.errors };
+      return { errors: [] };
     } catch (error) {
       if (error instanceof RuntimeError) {
-        return { errors: this.errors };
+        return { errors: [error] };
       }
       throw error;
     }
@@ -195,8 +193,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
-    const error = new RuntimeError(message, source.sourceRange());
-    this.errors.push(error);
-    return error;
+    return new RuntimeError(message, source.sourceRange());
   }
 }

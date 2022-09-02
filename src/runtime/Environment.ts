@@ -10,7 +10,7 @@ export class Environment {
     const value = this.values.get(token.lexeme);
     if (value) return value;
 
-    throw this.error(token, RuntimeErrors.undefinedVariable());
+    throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
   }
 
   define(name: string, value: AtlasValue): void {

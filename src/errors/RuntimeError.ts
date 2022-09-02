@@ -13,13 +13,16 @@ export class RuntimeErrors {
   }
 
   //
-  static undefinedVariable(): SourceMessage {
-    return this.formatError({ title: "undefined variable", body: "" });
+  static undefinedVariable(name: string): SourceMessage {
+    return this.formatError({
+      title: "undefined variable",
+      body: `the variable "${name}" was used before it was defined`,
+    });
   }
 
   //
   static prohibitedZeroDivision(): SourceMessage {
-    return this.formatError({ title: "prohibited division by zero", body: "" });
+    return this.formatError({ title: "prohibited division by zero", body: "prohibited attempt to divide by zero" });
   }
 
   //
@@ -33,10 +36,10 @@ export class RuntimeErrors {
 
   //
   static expectedNumber(): SourceMessage {
-    return this.formatError({ title: "expected number", body: "" });
+    return this.formatError({ title: "expected number", body: "a number was expected" });
   }
 
   static expectedBoolean(): SourceMessage {
-    return this.formatError({ title: "expected boolean", body: "" });
+    return this.formatError({ title: "expected boolean", body: "a boolean was expected" });
   }
 }
