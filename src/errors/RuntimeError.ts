@@ -8,31 +8,35 @@ export class RuntimeError {
 }
 
 export class RuntimeErrors {
+  static formatError({ title, body }: SourceMessage): SourceMessage {
+    return { title: "runtime error: " + title, body };
+  }
+
   //
   static undefinedVariable(): SourceMessage {
-    return { title: "undefined variable", body: "" };
+    return this.formatError({ title: "undefined variable", body: "" });
   }
 
   //
   static prohibitedZeroDivision(): SourceMessage {
-    return { title: "prohibited division by zero", body: "" };
+    return this.formatError({ title: "prohibited division by zero", body: "" });
   }
 
   //
   static unexpectedBinaryOperator(): SourceMessage {
-    return { title: "unexpected binary operator", body: "" };
+    return this.formatError({ title: "unexpected binary operator", body: "" });
   }
 
   static unexpectedUnaryOperator(): SourceMessage {
-    return { title: "unexpected unary operator", body: "" };
+    return this.formatError({ title: "unexpected unary operator", body: "" });
   }
 
   //
   static expectedNumber(): SourceMessage {
-    return { title: "expected number", body: "" };
+    return this.formatError({ title: "expected number", body: "" });
   }
 
   static expectedBoolean(): SourceMessage {
-    return { title: "expected boolean", body: "" };
+    return this.formatError({ title: "expected boolean", body: "" });
   }
 }

@@ -8,41 +8,45 @@ export class SyntaxError {
 }
 
 export class SyntaxErrors {
+  static formatError({ title, body }: SourceMessage): SourceMessage {
+    return { title: "syntax error: " + title, body };
+  }
+
   //
   static unterminatedString(): SourceMessage {
-    return { title: "unterminated string", body: "" };
+    return this.formatError({ title: "unterminated string", body: "" });
   }
 
   static unexpectedCharacter(): SourceMessage {
-    return { title: "unexpected character", body: "" };
+    return this.formatError({ title: "unexpected character", body: "" });
   }
 
   //
   static expectedIdentifier(): SourceMessage {
-    return { title: "expected identifier", body: "" };
+    return this.formatError({ title: "expected identifier", body: "" });
   }
 
   static expectedAssignment(): SourceMessage {
-    return { title: "expected assignment", body: "" };
+    return this.formatError({ title: "expected assignment", body: "" });
   }
 
   static expectedSemiColon(): SourceMessage {
-    return { title: "expected semicolon", body: "" };
+    return this.formatError({ title: "expected semicolon", body: "" });
   }
 
   static expectedColon(): SourceMessage {
-    return { title: "expected colon", body: "" };
+    return this.formatError({ title: "expected colon", body: "" });
   }
 
   static expectedRightParen(): SourceMessage {
-    return { title: "expected right parenthesis", body: "" };
+    return this.formatError({ title: "expected right parenthesis", body: "" });
   }
 
   static expectedExpression(): SourceMessage {
-    return { title: "expected expression", body: "" };
+    return this.formatError({ title: "expected expression", body: "" });
   }
 
   static expectedLeftOperand(): SourceMessage {
-    return { title: "expected left operand", body: "" };
+    return this.formatError({ title: "expected left operand", body: "" });
   }
 }
