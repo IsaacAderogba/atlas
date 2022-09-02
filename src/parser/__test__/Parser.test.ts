@@ -155,7 +155,9 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftOperand());
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedLeftOperand()
+      );
     });
   });
 
@@ -164,5 +166,42 @@ describe("Parser errors", () => {
 
     const { errors } = parser.parse();
     expect(errors[0].message).toMatchObject(SyntaxErrors.expectedExpression());
+  });
+
+  it("errors with expected identifier", () => {
+    const { parser } = setupTests("var ");
+
+    const { errors } = parser.parse();
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedIdentifier());
+  });
+
+  it("errors with expected assignment", () => {
+    const { parser } = setupTests("var x");
+
+    const { errors } = parser.parse();
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedAssignment());
+  });
+
+  it("errors with expected semicolon", () => {
+    const { parser } = setupTests("var x = null");
+
+    const { errors } = parser.parse();
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedSemiColon());
+  });
+
+  it("errors with expected right brace", () => {
+    const { parser } = setupTests("{ var x = 5; ");
+
+    const { errors } = parser.parse();
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedRightBrace());
+  });
+
+  it("errors with invalid assignment target", () => {
+    const { parser } = setupTests("4 = 4;");
+
+    const { errors } = parser.parse();
+    expect(errors[0].message).toMatchObject(
+      SyntaxErrors.invalidAssignmentTarget()
+    );
   });
 });
