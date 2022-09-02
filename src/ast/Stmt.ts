@@ -6,6 +6,14 @@ interface BaseStmt {
   accept<T>(visitor: StmtVisitor<T>): T;
 }
 
+export class BlockStmt {
+  constructor(readonly statements: Stmt[]) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitBlockStmt(this);
+  }
+}
+
 export class VarStmt implements BaseStmt {
   constructor(readonly name: Token, readonly initializer: Expr) {}
 
@@ -38,9 +46,10 @@ export class ErrorStmt implements BaseStmt {
   }
 }
 
-export type Stmt = VarStmt | ExpressionStmt | PrintStmt | ErrorStmt;
+export type Stmt = BlockStmt | VarStmt | ExpressionStmt | PrintStmt | ErrorStmt;
 
 export interface StmtVisitor<T> {
+  visitBlockStmt(stmt: BlockStmt): T;
   visitVarStmt(stmt: VarStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;

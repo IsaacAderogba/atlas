@@ -10,6 +10,7 @@ import {
   AssignExpr,
 } from "../ast/Expr";
 import {
+  BlockStmt,
   ErrorStmt,
   ExpressionStmt,
   PrintStmt,
@@ -72,6 +73,7 @@ export class Parser {
 
   private statement(): Stmt {
     if (this.match("PRINT")) return this.printStatement();
+    if (this.match("LEFT_BRACE")) return this.blockStatement();
 
     return this.expressionStatement();
   }
@@ -80,6 +82,17 @@ export class Parser {
     const value = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new PrintStmt(value);
+  }
+
+  private blockStatement(): Stmt {
+    const statements: Stmt[] = [];
+
+    while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
+      statements.push(this.declaration());
+    }
+
+    this.consume("RIGHT_BRACE", SyntaxErrors.expectedRightBrace());
+    return new BlockStmt(statements);
   }
 
   private expressionStatement(): Stmt {

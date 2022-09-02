@@ -70,6 +70,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedRightBrace(): SourceMessage {
+    return this.formatError({
+      title: "expected right brace",
+      body: 'a right brace "}" was expected',
+    });
+  }
+
   static expectedExpression(): SourceMessage {
     return this.formatError({
       title: "expected expression",
