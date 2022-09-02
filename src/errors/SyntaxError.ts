@@ -29,30 +29,51 @@ export class SyntaxErrors {
 
   //
   static expectedIdentifier(): SourceMessage {
-    return this.formatError({ title: "expected identifier", body: "" });
+    return this.formatError({
+      title: "expected identifier",
+      body: "a variable name was expected",
+    });
   }
 
   static expectedAssignment(): SourceMessage {
-    return this.formatError({ title: "expected assignment", body: "" });
+    return this.formatError({
+      title: "expected assignment",
+      body: 'an assignment operator "=" was expected',
+    });
   }
 
   static expectedSemiColon(): SourceMessage {
-    return this.formatError({ title: "expected semicolon", body: "" });
+    return this.formatError({
+      title: "expected semicolon",
+      body: 'a semicolon ";" was expected',
+    });
   }
 
   static expectedColon(): SourceMessage {
-    return this.formatError({ title: "expected colon", body: "" });
+    return this.formatError({
+      title: "expected colon",
+      body: 'a colon ":" was expected',
+    });
   }
 
   static expectedRightParen(): SourceMessage {
-    return this.formatError({ title: "expected right parenthesis", body: "" });
+    return this.formatError({
+      title: "expected right parenthesis",
+      body: 'a right parenthesis ")" was expected',
+    });
   }
 
   static expectedExpression(): SourceMessage {
-    return this.formatError({ title: "expected expression", body: "" });
+    return this.formatError({
+      title: "expected expression",
+      body: "an expression that evaluates to a value was expected",
+    });
   }
 
   static expectedLeftOperand(): SourceMessage {
-    return this.formatError({ title: "expected left operand", body: "" });
+    return this.formatError({
+      title: "expected left operand",
+      body: "a left-hand side operand was expected",
+    });
   }
 }
