@@ -10,7 +10,71 @@ const setupTests = (source: string): { parser: Parser } => {
   return { parser };
 };
 
+describe("Parser statements", () => {
+  it("parses variable declaration statements", () => {
+    const { parser } = setupTests("var x = 4;");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      initializer: {
+        token: { lexeme: "4", type: "NUMBER" },
+      },
+      name: { lexeme: "x", type: "IDENTIFIER" },
+    });
+  });
+
+  it("parses block statements", () => {
+    const { parser } = setupTests("{ var x = 4; }");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      statements: [
+        {
+          initializer: {
+            token: { lexeme: "4", type: "NUMBER" },
+          },
+          name: { lexeme: "x", type: "IDENTIFIER" },
+        },
+      ],
+    });
+  });
+
+  it("parses expression statements", () => {
+    const { parser } = setupTests("4;");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      expression: {
+        token: { lexeme: "4", type: "NUMBER" },
+      },
+    });
+  });
+
+  it("parses error statements", () => {
+    const { parser } = setupTests("4");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      error: {
+        message: {},
+      },
+    });
+  });
+});
+
 describe("Parser expressions", () => {
+  it("parses assignment expressions", () => {
+    const { parser } = setupTests("hid = 4");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      name: { lexeme: "hid", type: "IDENTIFIER" },
+      value: {
+        token: { lexeme: "4", type: "NUMBER" },
+      },
+    });
+  });
+
   it("parses ternary expressions", () => {
     const { parser } = setupTests("true ? 4 : 3");
 
