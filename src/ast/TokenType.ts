@@ -50,6 +50,5 @@ export type TokenType =
   | "VAR"
   | "WHILE"
 
-  // End of line or file.
-  | "EOL"
+  // End of file.
   | "EOF";

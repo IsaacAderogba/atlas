@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "debug": "ts-node src/main.ts ./playground.ats"
   },
   "repository": {
     "type": "git",
