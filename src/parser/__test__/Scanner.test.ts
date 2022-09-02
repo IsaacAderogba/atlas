@@ -1,10 +1,10 @@
 import { TokenType } from "../../ast/TokenType";
+import { SyntaxErrors } from "../../errors/SyntaxError";
 import { AtlasFalse } from "../../runtime/AtlasFalse";
 import { AtlasNull } from "../../runtime/AtlasNull";
 import { AtlasNumber } from "../../runtime/AtlasNumber";
 import { AtlasString } from "../../runtime/AtlasString";
 import { AtlasTrue } from "../../runtime/AtlasTrue";
-import { Errors } from "../../utils/Errors";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { scanner: Scanner } => {
@@ -177,14 +177,14 @@ describe("Scanner errors", () => {
     const { scanner } = setupTests("£");
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toContain(Errors.UnexpectedCharacter);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.unexpectedCharacter());
   });
 
   it("errors with unterminated string", () => {
     const { scanner } = setupTests('"Hello');
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toContain(Errors.UnterminatedString);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.unterminatedString());
   });
 
   it("cascades multiple errors", () => {
@@ -192,7 +192,7 @@ describe("Scanner errors", () => {
 
     const { errors } = scanner.scan();
 
-    expect(errors[0].message).toContain(Errors.UnexpectedCharacter);
-    expect(errors[1].message).toContain(Errors.UnterminatedString);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.unexpectedCharacter());
+    expect(errors[1].message).toMatchObject(SyntaxErrors.unterminatedString());
   });
 });

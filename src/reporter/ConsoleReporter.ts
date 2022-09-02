@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { SourceRange } from "../utils/Source";
+import { SourceMessage, SourceRange } from "../utils/Source";
 import { Reporter } from "./Reporter";
 
 export class ConsoleReporter implements Reporter {
@@ -7,7 +7,11 @@ export class ConsoleReporter implements Reporter {
     console.log(message);
   }
 
-  rangeError(source: string, range: SourceRange, message: string): void {
+  rangeError(
+    source: string,
+    range: SourceRange,
+    { title }: SourceMessage
+  ): void {
     const indent = 6;
 
     const { start } = range;
@@ -20,9 +24,12 @@ export class ConsoleReporter implements Reporter {
 
     const lineColumn = chalk.blue(`${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
-    const errMessage = chalk.red(message);
+    const errMessage = chalk.red(title);
 
-    const report = `${lineColumn}${errMessage}\n\n` + `${startLine}${sourceLine}\n` + chalk.blue(underline);
+    const report =
+      `${lineColumn}${errMessage}\n\n` +
+      `${startLine}${sourceLine}\n` +
+      chalk.blue(underline);
 
     this.error(report);
   }

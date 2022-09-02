@@ -2,10 +2,9 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
 import { AtlasValue } from "../runtime/AtlasValue";
-import { Errors } from "../utils/Errors";
-import { SourceRange } from "../utils/Source";
+import { SourceMessage, SourceRange } from "../utils/Source";
 import { Keywords } from "./Keywords";
-import { SyntaxError } from "./SyntaxError";
+import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { AtlasString } from "../runtime/AtlasString";
 import { AtlasNumber } from "../runtime/AtlasNumber";
 import { AtlasNull } from "../runtime/AtlasNull";
@@ -122,7 +121,7 @@ export class Scanner {
         } else if (isAlpha(char)) {
           this.primitives();
         } else {
-          this.error(Errors.UnexpectedCharacter);
+          this.error(SyntaxErrors.unexpectedCharacter());
         }
     }
   }
@@ -164,7 +163,7 @@ export class Scanner {
       this.advance();
     }
 
-    if (this.isAtEnd()) return this.error(Errors.UnterminatedString);
+    if (this.isAtEnd()) return this.error(SyntaxErrors.unterminatedString());
 
     // The closing " | '.
     this.advance();
@@ -233,7 +232,7 @@ export class Scanner {
     return this.current >= this.source.length;
   }
 
-  private error(message: string): void {
+  private error(message: SourceMessage): void {
     const line = this.line;
     const column = this.current - this.lineStart;
     const sourceRange = new SourceRange(

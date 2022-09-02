@@ -1,8 +1,7 @@
 import { Token } from "../ast/Token";
-import { Errors } from "../utils/Errors";
-import { SourceRangeable } from "../utils/Source";
+import { SourceMessage, SourceRangeable } from "../utils/Source";
 import { AtlasValue } from "./AtlasValue";
-import { RuntimeError } from "./RuntimeError";
+import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 
 export class Environment {
   private values = new Map<string, AtlasValue>();
@@ -11,14 +10,14 @@ export class Environment {
     const value = this.values.get(token.lexeme);
     if (value) return value;
 
-    throw this.error(token, Errors.UndefinedVariable);
+    throw this.error(token, RuntimeErrors.undefinedVariable());
   }
 
   define(name: string, value: AtlasValue): void {
     this.values.set(name, value);
   }
 
-  private error(source: SourceRangeable, message: string): RuntimeError {
+  private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
     return new RuntimeError(message, source.sourceRange());
   }
 }

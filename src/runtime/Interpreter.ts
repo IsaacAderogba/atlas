@@ -12,10 +12,9 @@ import { AtlasFalse } from "./AtlasFalse";
 import { AtlasNumber } from "./AtlasNumber";
 import { AtlasTrue } from "./AtlasTrue";
 import { AtlasValue } from "./AtlasValue";
-import { RuntimeError } from "./RuntimeError";
+import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
-import { SourceRangeable } from "../utils/Source";
-import { Errors } from "../utils/Errors";
+import { SourceMessage, SourceRangeable } from "../utils/Source";
 import {
   ExpressionStmt,
   PrintStmt,
@@ -109,7 +108,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         const numerator = this.getNumberValue(leftSource, left);
         const denominator = this.getNumberValue(rightSource, right);
         if (denominator === 0) {
-          throw this.error(rightSource, Errors.ProhibitedZeroDivision);
+          throw this.error(rightSource, RuntimeErrors.prohibitedZeroDivision());
         }
         return new AtlasNumber(numerator / denominator);
       case "STAR":
@@ -144,7 +143,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         const areEqual = areEqualValues(left, right);
         return areEqual ? new AtlasTrue() : new AtlasFalse();
       default:
-        throw this.error(expr.operator, Errors.UnexpectedBinaryOperator);
+        throw this.error(
+          expr.operator,
+          RuntimeErrors.unexpectedBinaryOperator()
+        );
     }
   }
 
@@ -163,7 +165,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       case "MINUS":
         return new AtlasNumber(-this.getNumberValue(source, right));
       default:
-        throw this.error(expr.operator, Errors.UnexpectedUnaryOperator);
+        throw this.error(
+          expr.operator,
+          RuntimeErrors.unexpectedUnaryOperator()
+        );
     }
   }
 
@@ -177,7 +182,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   private getNumberValue(source: SourceRangeable, operand: AtlasValue): number {
     if (operand.type === "NUMBER") return operand.value;
-    throw this.error(source, Errors.ExpectedNumber);
+    throw this.error(source, RuntimeErrors.expectedNumber());
   }
 
   private getBooleanValue(
@@ -186,10 +191,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   ): boolean {
     if (operand.type === "TRUE") return operand.value;
     if (operand.type === "FALSE") return operand.value;
-    throw this.error(source, Errors.ExpectedBoolean);
+    throw this.error(source, RuntimeErrors.expectedBoolean());
   }
 
-  private error(source: SourceRangeable, message: string): RuntimeError {
+  private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
     const error = new RuntimeError(message, source.sourceRange());
     this.errors.push(error);
     return error;

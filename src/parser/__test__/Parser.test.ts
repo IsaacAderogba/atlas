@@ -1,4 +1,4 @@
-import { Errors } from "../../utils/Errors";
+import { SyntaxErrors } from "../../errors/SyntaxError";
 import { Parser } from "../Parser";
 import { Scanner } from "../Scanner";
 
@@ -128,14 +128,14 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 == 4 ? 3");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toContain(Errors.ExpectedColon);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedColon());
   });
 
   it("errors with expected right paren", () => {
     const { parser } = setupTests("( 4 + 4");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toContain(Errors.ExpectedRightParen);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedRightParen());
   });
 
   it("errors with expected left operand", () => {
@@ -155,7 +155,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toContain(Errors.ExpectedLeftOperand);
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftOperand());
     });
   });
 
@@ -163,6 +163,6 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 +");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toContain(Errors.ExpectedExpression);
+    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedExpression());
   });
 });

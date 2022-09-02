@@ -1,4 +1,4 @@
-import { SyntaxError } from "../parser/SyntaxError";
+import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../runtime/AtlasValue";
 import { SourceRange, SourceRangeable } from "../utils/Source";
 import { Token } from "./Token";

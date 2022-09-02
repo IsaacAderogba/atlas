@@ -17,8 +17,8 @@ import {
 } from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
-import { Errors } from "../utils/Errors";
-import { SyntaxError } from "./SyntaxError";
+import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
+import { SourceMessage } from "../utils/Source";
 
 export class Parser {
   private tokens: Token[];
@@ -61,10 +61,10 @@ export class Parser {
   }
 
   private varDeclaration(): Stmt {
-    const name = this.consume("IDENTIFIER", Errors.ExpectedIdentifier);
-    this.consume("EQUAL", Errors.ExpectedAssignment);
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
-    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
 
     return new VarStmt(name, initializer);
   }
@@ -77,13 +77,13 @@ export class Parser {
 
   private printStatement(): Stmt {
     const value = this.expression();
-    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new PrintStmt(value);
   }
 
   private expressionStatement(): Stmt {
     const value = this.expression();
-    this.consume("SEMICOLON", Errors.ExpectedSemiColon);
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ExpressionStmt(value);
   }
 
@@ -96,7 +96,7 @@ export class Parser {
 
     if (this.match("QUESTION")) {
       const thenBranch = this.ternary();
-      this.consume("COLON", Errors.ExpectedColon);
+      this.consume("COLON", SyntaxErrors.expectedColon());
       const elseBranch = this.ternary();
       expr = new TernaryExpr(expr, thenBranch, elseBranch);
     }
@@ -175,31 +175,43 @@ export class Parser {
 
     if (this.match("LEFT_PAREN")) {
       const expr = this.expression();
-      this.consume("RIGHT_PAREN", Errors.ExpectedRightParen);
+      this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
       return new GroupingExpr(expr);
     }
 
     if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
-      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
       return new ErrorExpr(err, this.previous(), this.equality());
     }
 
     if (this.match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL")) {
-      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
       return new ErrorExpr(err, this.previous(), this.comparison());
     }
 
     if (this.match("PLUS")) {
-      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
       return new ErrorExpr(err, this.previous(), this.term());
     }
 
     if (this.match("SLASH", "STAR")) {
-      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
       return new ErrorExpr(err, this.previous(), this.factor());
     }
 
-    throw this.error(this.peek(), Errors.ExpectedExpression);
+    throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
   private match(...types: TokenType[]): boolean {
@@ -213,7 +225,7 @@ export class Parser {
     return false;
   }
 
-  private consume(type: TokenType, message: string): Token {
+  private consume(type: TokenType, message: SourceMessage): Token {
     if (this.check(type)) return this.advance();
     throw this.error(this.previous() || this.peek(), message);
   }
@@ -264,7 +276,7 @@ export class Parser {
     return new ErrorStmt(err);
   }
 
-  private error(token: Token, message: string): SyntaxError {
+  private error(token: Token, message: SourceMessage): SyntaxError {
     const error = new SyntaxError(message, token.sourceRange());
     this.errors.push(error);
     return error;

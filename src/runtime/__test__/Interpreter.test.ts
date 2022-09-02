@@ -1,7 +1,7 @@
+import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
 import { ConsoleReporter } from "../../reporter/ConsoleReporter";
-import { Errors } from "../../utils/Errors";
 import { Interpreter } from "../Interpreter";
 
 interface SetupTests {
@@ -132,7 +132,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toContain(Errors.ExpectedNumber);
+      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedNumber());
     });
   });
 
@@ -143,7 +143,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toContain(Errors.ExpectedBoolean);
+      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedBoolean());
     });
   });
 
@@ -154,7 +154,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toContain(Errors.ProhibitedZeroDivision);
+      expect(errors[0].message).toMatchObject(
+        RuntimeErrors.prohibitedZeroDivision()
+      );
     });
   });
 });

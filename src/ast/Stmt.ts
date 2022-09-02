@@ -1,4 +1,4 @@
-import { SyntaxError } from "../parser/SyntaxError";
+import { SyntaxError } from "../errors/SyntaxError";
 import { Expr } from "./Expr";
 import { Token } from "./Token";
 
