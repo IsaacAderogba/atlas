@@ -27,6 +27,13 @@ export class SyntaxErrors {
     });
   }
 
+  static invalidAssignmentTarget(): SourceMessage {
+    return this.formatError({
+      title: "invalid assignment target",
+      body: "left-hand side of an assignment must be valid",
+    });
+  }
+
   //
   static expectedIdentifier(): SourceMessage {
     return this.formatError({

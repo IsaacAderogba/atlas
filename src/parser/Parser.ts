@@ -7,6 +7,7 @@ import {
   UnaryExpr,
   ErrorExpr,
   VariableExpr,
+  AssignExpr,
 } from "../ast/Expr";
 import {
   ErrorStmt,
@@ -18,7 +19,7 @@ import {
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
-import { SourceMessage } from "../utils/Source";
+import { SourceMessage, SourceRangeable } from "../utils/Source";
 
 export class Parser {
   private tokens: Token[];
@@ -88,7 +89,23 @@ export class Parser {
   }
 
   public expression(): Expr {
-    return this.ternary();
+    return this.assignment();
+  }
+
+  private assignment(): Expr {
+    const expr = this.ternary();
+
+    if (this.match("EQUAL")) {
+      const value = this.assignment();
+
+      if (expr instanceof VariableExpr) {
+        return new AssignExpr(expr.name, value);
+      }
+
+      this.error(expr, SyntaxErrors.invalidAssignmentTarget());
+    }
+
+    return expr;
   }
 
   private ternary(): Expr {
@@ -276,8 +293,8 @@ export class Parser {
     return new ErrorStmt(err);
   }
 
-  private error(token: Token, message: SourceMessage): SyntaxError {
-    const error = new SyntaxError(message, token.sourceRange());
+  private error(source: SourceRangeable, message: SourceMessage): SyntaxError {
+    const error = new SyntaxError(message, source.sourceRange());
     this.errors.push(error);
     return error;
   }

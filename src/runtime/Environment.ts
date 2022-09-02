@@ -13,6 +13,14 @@ export class Environment {
     throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
   }
 
+  assign(token: Token, value: AtlasValue): void {
+    if (this.values.has(token.lexeme)) {
+      this.values.set(token.lexeme, value);
+    } else {
+      throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
+    }
+  }
+
   define(token: Token, value: AtlasValue): void {
     if (this.values.has(token.lexeme)) {
       throw this.error(token, RuntimeErrors.prohibitedRedeclaration());

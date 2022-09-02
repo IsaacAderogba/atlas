@@ -7,7 +7,9 @@ statement      -> exprStmt
                 | printStmt ;
 exprStmt       -> expression ";" ;
 printStmt      -> "print" expression ";";
-expression     -> ternary ;
+expression     -> assignment ;
+assignment     -> IDENTIFIER "=" assignment
+                | ternary ;
 ternary        -> equality ( "?" ternary ":" ternary )? ;
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;

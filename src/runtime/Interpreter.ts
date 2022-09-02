@@ -1,4 +1,5 @@
 import {
+  AssignExpr,
   BinaryExpr,
   Expr,
   ExprVisitor,
@@ -72,6 +73,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitVarStmt(stmt: VarStmt): void {
     const value = this.evaluate(stmt.initializer);
     this.environment.define(stmt.name, value);
+  }
+
+  visitAssignExpr(expr: AssignExpr): AtlasValue {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasValue {

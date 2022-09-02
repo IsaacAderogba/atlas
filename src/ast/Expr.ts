@@ -8,6 +8,20 @@ interface BaseExpr extends SourceRangeable {
   sourceRange(): SourceRange;
 }
 
+export class AssignExpr {
+  constructor(readonly name: Token, readonly value: Expr) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitAssignExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.name.sourceRange().start;
+    const end = this.value.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class TernaryExpr implements BaseExpr {
   constructor(
     readonly expression: Expr,
@@ -119,6 +133,7 @@ export class VariableExpr {
 }
 
 export type Expr =
+  | AssignExpr
   | TernaryExpr
   | BinaryExpr
   | GroupingExpr
@@ -128,6 +143,7 @@ export type Expr =
   | VariableExpr;
 
 export interface ExprVisitor<T> {
+  visitAssignExpr(expr: AssignExpr): T;
   visitTernaryExpr(expr: TernaryExpr): T;
   visitBinaryExpr(expr: BinaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
