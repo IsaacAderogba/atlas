@@ -1,3 +1,0 @@
-
-var hid = "4";
-print hid;

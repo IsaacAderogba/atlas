@@ -88,7 +88,9 @@ export class Parser {
     const statements: Stmt[] = [];
 
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      statements.push(this.declaration());
+      const decl = this.declaration();
+      if (decl instanceof ErrorStmt) throw decl.error;
+      statements.push(decl);
     }
 
     this.consume("RIGHT_BRACE", SyntaxErrors.expectedRightBrace());
