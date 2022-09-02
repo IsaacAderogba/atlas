@@ -1,3 +1,4 @@
+import { SyntaxError } from "../parser/SyntaxError";
 import { AtlasValue } from "../runtime/AtlasValue";
 import { SourceRange, SourceRangeable } from "../utils/SourceRange";
 import { Token } from "./Token";
@@ -86,14 +87,18 @@ export class LiteralExpr implements BaseExpr {
 }
 
 export class ErrorExpr implements BaseExpr {
-  constructor(readonly error: Token, readonly expression: Expr) {}
+  constructor(
+    readonly error: SyntaxError,
+    readonly token: Token,
+    readonly expression: Expr
+  ) {}
 
   accept<T>(): T {
     throw new Error("ErrorExpr should not be evaluated.");
   }
 
   sourceRange(): SourceRange {
-    const start = this.error.sourceRange().start;
+    const start = this.token.sourceRange().start;
     const end = this.expression.sourceRange().end;
     return new SourceRange(start, end);
   }

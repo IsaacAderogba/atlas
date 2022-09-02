@@ -8,7 +8,13 @@ import {
   ErrorExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { ExpressionStmt, PrintStmt, Stmt, VarStmt } from "../ast/Stmt";
+import {
+  ErrorStmt,
+  ExpressionStmt,
+  PrintStmt,
+  Stmt,
+  VarStmt,
+} from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { Errors } from "../utils/Errors";
@@ -24,33 +30,31 @@ export class Parser {
   }
 
   public parse(): { statements: Stmt[]; errors: SyntaxError[] } {
-    try {
-      this.errors = [];
-      const statements: Stmt[] = [];
+    this.errors = [];
+    const statements: Stmt[] = [];
 
+    try {
       while (!this.isAtEnd()) {
-        const decl = this.declaration();
-        if (decl) statements.push(decl);
+        statements.push(this.declaration());
       }
 
       return { statements, errors: this.errors };
     } catch (error) {
       if (error instanceof SyntaxError) {
-        return { statements: [], errors: this.errors };
+        return { statements, errors: this.errors };
       }
       throw error;
     }
   }
 
-  private declaration(): Stmt | null {
+  private declaration(): Stmt {
     try {
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
     } catch (error) {
       if (error instanceof SyntaxError) {
-        this.synchronize();
-        return null;
+        return this.errorStatement(error);
       }
       throw error;
     }
@@ -58,7 +62,7 @@ export class Parser {
 
   private varDeclaration(): Stmt {
     const name = this.consume("IDENTIFIER", Errors.ExpectedIdentifier);
-    const initializer = this.match("EQUAL") ? this.expression() : null;
+    const initializer = this.match("EQUAL") ? this.expression() : undefined;
     this.consume("SEMICOLON", Errors.ExpectedSemiColon);
 
     return new VarStmt(name, initializer);
@@ -175,23 +179,23 @@ export class Parser {
     }
 
     if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
-      this.error(this.previous(), Errors.ExpectedLeftOperand);
-      return new ErrorExpr(this.previous(), this.equality());
+      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      return new ErrorExpr(err, this.previous(), this.equality());
     }
 
     if (this.match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL")) {
-      this.error(this.previous(), Errors.ExpectedLeftOperand);
-      return new ErrorExpr(this.previous(), this.comparison());
+      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      return new ErrorExpr(err, this.previous(), this.comparison());
     }
 
     if (this.match("PLUS")) {
-      this.error(this.previous(), Errors.ExpectedLeftOperand);
-      return new ErrorExpr(this.previous(), this.term());
+      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      return new ErrorExpr(err, this.previous(), this.term());
     }
 
     if (this.match("SLASH", "STAR")) {
-      this.error(this.previous(), Errors.ExpectedLeftOperand);
-      return new ErrorExpr(this.previous(), this.factor());
+      const err = this.error(this.previous(), Errors.ExpectedLeftOperand);
+      return new ErrorExpr(err, this.previous(), this.factor());
     }
 
     throw this.error(this.peek(), Errors.ExpectedExpression);
@@ -235,11 +239,11 @@ export class Parser {
     return this.tokens[this.current - 1];
   }
 
-  private synchronize(): void {
+  private errorStatement(err: SyntaxError): Stmt {
     this.advance();
 
     while (!this.isAtEnd()) {
-      if (this.previous().type === "SEMICOLON") return;
+      if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
 
       switch (this.peek().type) {
         case "CLASS":
@@ -250,11 +254,13 @@ export class Parser {
         case "WHILE":
         case "PRINT":
         case "RETURN":
-          return;
+          return new ErrorStmt(err);
       }
 
       this.advance();
     }
+
+    return new ErrorStmt(err);
   }
 
   private error(token: Token, message: string): SyntaxError {

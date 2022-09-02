@@ -1,6 +1,7 @@
 program        -> statement* EOF ;
 declaration    -> varDecl
-                | statement ;
+                | statement
+                | errorStmt ;
 varDecl        -> "var" IDENTIFIER ( "=" expression )? ";" ;
 statement      -> exprStmt
                 | printStmt ;
@@ -19,3 +20,4 @@ error          -> ( "!=" | "==" ) equality
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" ) term
                 | ( "/" | "*" ) factor ;
+errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "print" | "return" | ";";

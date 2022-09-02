@@ -114,7 +114,8 @@ describe("Parser expressions", () => {
 
     const expression = parser.expression();
     expect(expression).toMatchObject({
-      error: { lexeme: "+", type: "PLUS" },
+      error: {},
+      token: { lexeme: "+", type: "PLUS" },
       expression: {
         token: { lexeme: "4", type: "NUMBER" },
       },
@@ -138,7 +139,17 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left operand", () => {
-    const expressions = ["!= 4", "== 4", "> 4", ">= 4", "< 4", "<= 4", "+ 4", "/ 4", "* 4"];
+    const expressions = [
+      "!= 4",
+      "== 4",
+      "> 4",
+      ">= 4",
+      "< 4",
+      "<= 4",
+      "+ 4",
+      "/ 4",
+      "* 4",
+    ];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
