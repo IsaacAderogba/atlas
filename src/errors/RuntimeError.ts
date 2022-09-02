@@ -25,6 +25,10 @@ export class RuntimeErrors {
     return this.formatError({ title: "prohibited division by zero", body: "prohibited attempt to divide by zero" });
   }
 
+  static prohibitedRedeclaration(): SourceMessage {
+    return this.formatError({ title: "prohibited variable redeclaration", body: "existing variables cannot be redeclared" });
+  }
+
   //
   static unexpectedBinaryOperator(): SourceMessage {
     return this.formatError({ title: "unexpected binary operator", body: "" });

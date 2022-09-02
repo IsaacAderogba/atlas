@@ -13,8 +13,11 @@ export class Environment {
     throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
   }
 
-  define(name: string, value: AtlasValue): void {
-    this.values.set(name, value);
+  define(token: Token, value: AtlasValue): void {
+    if (this.values.has(token.lexeme)) {
+      throw this.error(token, RuntimeErrors.prohibitedRedeclaration());
+    }
+    this.values.set(token.lexeme, value);
   }
 
   private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
