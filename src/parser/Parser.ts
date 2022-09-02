@@ -62,7 +62,8 @@ export class Parser {
 
   private varDeclaration(): Stmt {
     const name = this.consume("IDENTIFIER", Errors.ExpectedIdentifier);
-    const initializer = this.match("EQUAL") ? this.expression() : undefined;
+    this.consume("EQUAL", Errors.ExpectedAssignment);
+    const initializer = this.expression();
     this.consume("SEMICOLON", Errors.ExpectedSemiColon);
 
     return new VarStmt(name, initializer);

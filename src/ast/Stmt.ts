@@ -7,7 +7,7 @@ interface BaseStmt {
 }
 
 export class VarStmt implements BaseStmt {
-  constructor(readonly name: Token, readonly initializer: Expr | undefined) {}
+  constructor(readonly name: Token, readonly initializer: Expr) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitVarStmt(this);

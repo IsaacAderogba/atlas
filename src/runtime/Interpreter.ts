@@ -6,6 +6,7 @@ import {
   LiteralExpr,
   TernaryExpr,
   UnaryExpr,
+  VariableExpr,
 } from "../ast/Expr";
 import { AtlasFalse } from "./AtlasFalse";
 import { AtlasNumber } from "./AtlasNumber";
@@ -15,14 +16,22 @@ import { RuntimeError } from "./RuntimeError";
 import { areEqualValues } from "./operands";
 import { SourceRangeable } from "../utils/SourceRange";
 import { Errors } from "../utils/Errors";
-import { ExpressionStmt, PrintStmt, Stmt, StmtVisitor } from "../ast/Stmt";
+import {
+  ExpressionStmt,
+  PrintStmt,
+  Stmt,
+  StmtVisitor,
+  VarStmt,
+} from "../ast/Stmt";
 import { Reporter } from "../reporter/Reporter";
+import { Environment } from "./Environment";
 
 interface InterpreterProps {
   reporter: Reporter;
 }
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
+  private environment = new Environment();
   private reporter: Reporter;
   private errors: RuntimeError[] = [];
 
@@ -61,6 +70,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitPrintStmt(stmt: PrintStmt): void {
     const value = this.evaluate(stmt.expression);
     this.reporter.log(value.toString());
+  }
+
+  visitVarStmt(stmt: VarStmt): void {
+    const value = this.evaluate(stmt.initializer);
+    this.environment.define(stmt.name.lexeme, value);
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasValue {
@@ -155,6 +169,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
     return expr.value;
+  }
+
+  visitVariableExpr(expr: VariableExpr): AtlasValue {
+    return this.environment.get(expr.name);
   }
 
   private getNumberValue(source: SourceRangeable, operand: AtlasValue): number {

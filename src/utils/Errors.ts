@@ -1,6 +1,8 @@
 export const Errors = {
   UnterminatedString: "unterminated string",
   UnexpectedCharacter: "unexpected character",
+  UndefinedVariable: "undefined variable",
+  ExpectedAssignment: "expected assignment",
   ExpectedRightParen: "expected right parenthesis",
   ExpectedColon: "expected colon",
   ExpectedSemiColon: "expected semicolon",
