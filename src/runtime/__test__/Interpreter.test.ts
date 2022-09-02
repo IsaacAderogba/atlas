@@ -1,3 +1,4 @@
+import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
@@ -5,6 +6,7 @@ import { ConsoleReporter } from "../../reporter/ConsoleReporter";
 import { Interpreter } from "../Interpreter";
 
 interface SetupTests {
+  interpreter: Interpreter;
   interpret: () => ReturnType<Interpreter["interpret"]>;
   evaluate: () => ReturnType<Interpreter["evaluate"]>;
 }
@@ -22,6 +24,7 @@ const setupTests = (source: string): SetupTests => {
   const interpreter = new Interpreter({ reporter: new ConsoleReporter() });
 
   const setup: SetupTests = {
+    interpreter,
     interpret: () => {
       const { statements, errors: parseErrs } = parser.parse();
 
@@ -39,7 +42,55 @@ const setupTests = (source: string): SetupTests => {
   return setup;
 };
 
+describe("Interpreter statements", () => {
+  it("interprets block statements", () => {
+    const { interpreter, interpret } = setupTests("var x = 4; { x = 2; }");
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+  });
+
+  it("interprets var statements", () => {
+    const { interpreter, interpret } = setupTests("var x = 4;");
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 4 });
+  });
+
+  it("interprets expression statements", () => {
+    const { interpreter, interpret } = setupTests(
+      'var x = true ? "hello" : "goodbye";'
+    );
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "hello" });
+  });
+});
+
 describe("Interpreter evaluations", () => {
+  it("evaluates assignment expressions", () => {
+    const { interpreter, interpret } = setupTests("var x = 4;");
+    interpret();
+
+    const { tokens } = new Scanner("x = 2").scan();
+    const expression = new Parser(tokens).expression() as AssignExpr;
+    const result = interpreter.visitAssignExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+  });
+
   it("evaluates ternary expression", () => {
     const tests = [
       { source: "true ? true : false", object: { value: true } },
