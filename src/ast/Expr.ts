@@ -1,6 +1,6 @@
 import { SyntaxError } from "../parser/SyntaxError";
 import { AtlasValue } from "../runtime/AtlasValue";
-import { SourceRange, SourceRangeable } from "../utils/SourceRange";
+import { SourceRange, SourceRangeable } from "../utils/Source";
 import { Token } from "./Token";
 
 interface BaseExpr extends SourceRangeable {

@@ -1,5 +1,3 @@
-import { SourceLocation } from "./SourceLocation";
-
 export class SourceRange implements SourceRangeable {
   constructor(readonly start: SourceLocation, readonly end: SourceLocation) {}
 
@@ -19,4 +17,14 @@ export class SourceRange implements SourceRangeable {
 
 export interface SourceRangeable {
   sourceRange(): SourceRange;
+}
+
+export interface SourceLocation {
+  line: number;
+  column: number;
+}
+
+export interface SourceMessage {
+  title: string;
+  body: string;
 }

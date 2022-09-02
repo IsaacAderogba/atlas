@@ -3,7 +3,7 @@ import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
 import { AtlasValue } from "../runtime/AtlasValue";
 import { Errors } from "../utils/Errors";
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange } from "../utils/Source";
 import { Keywords } from "./Keywords";
 import { SyntaxError } from "./SyntaxError";
 import { AtlasString } from "../runtime/AtlasString";

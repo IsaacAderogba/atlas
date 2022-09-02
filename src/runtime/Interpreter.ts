@@ -14,7 +14,7 @@ import { AtlasTrue } from "./AtlasTrue";
 import { AtlasValue } from "./AtlasValue";
 import { RuntimeError } from "./RuntimeError";
 import { areEqualValues } from "./operands";
-import { SourceRangeable } from "../utils/SourceRange";
+import { SourceRangeable } from "../utils/Source";
 import { Errors } from "../utils/Errors";
 import {
   ExpressionStmt,

@@ -1,4 +1,4 @@
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange } from "../utils/Source";
 
 export class RuntimeError {
   readonly message: string;

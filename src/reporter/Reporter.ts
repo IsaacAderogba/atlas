@@ -1,4 +1,4 @@
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange } from "../utils/Source";
 
 export interface Reporter {
   log(message: string): void;

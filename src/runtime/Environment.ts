@@ -1,6 +1,6 @@
 import { Token } from "../ast/Token";
 import { Errors } from "../utils/Errors";
-import { SourceRangeable } from "../utils/SourceRange";
+import { SourceRangeable } from "../utils/Source";
 import { AtlasValue } from "./AtlasValue";
 import { RuntimeError } from "./RuntimeError";
 

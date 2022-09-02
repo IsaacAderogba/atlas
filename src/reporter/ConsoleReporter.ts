@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { SourceRange } from "../utils/SourceRange";
+import { SourceRange } from "../utils/Source";
 import { Reporter } from "./Reporter";
 
 export class ConsoleReporter implements Reporter {
