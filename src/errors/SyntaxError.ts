@@ -14,11 +14,17 @@ export class SyntaxErrors {
 
   //
   static unterminatedString(): SourceMessage {
-    return this.formatError({ title: "unterminated string", body: "" });
+    return this.formatError({
+      title: "unterminated string",
+      body: "a string must be terminated with a closing quotation mark",
+    });
   }
 
-  static unexpectedCharacter(): SourceMessage {
-    return this.formatError({ title: "unexpected character", body: "" });
+  static unsupportedCharacter(): SourceMessage {
+    return this.formatError({
+      title: "unsupported character",
+      body: "this source character is not supported by the interpreter",
+    });
   }
 
   //

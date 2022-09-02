@@ -173,11 +173,11 @@ describe("Scanner tokens", () => {
 });
 
 describe("Scanner errors", () => {
-  it("errors with unexpected character", () => {
+  it("errors with unsupported character", () => {
     const { scanner } = setupTests("£");
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unexpectedCharacter());
+    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
   });
 
   it("errors with unterminated string", () => {
@@ -192,7 +192,7 @@ describe("Scanner errors", () => {
 
     const { errors } = scanner.scan();
 
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unexpectedCharacter());
+    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
     expect(errors[1].message).toMatchObject(SyntaxErrors.unterminatedString());
   });
 });

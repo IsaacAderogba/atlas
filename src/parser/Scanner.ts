@@ -121,7 +121,7 @@ export class Scanner {
         } else if (isAlpha(char)) {
           this.primitives();
         } else {
-          this.error(SyntaxErrors.unexpectedCharacter());
+          this.error(SyntaxErrors.unsupportedCharacter());
         }
     }
   }
