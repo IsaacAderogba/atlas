@@ -1,7 +1,23 @@
-if (false) {
-  print "hi";
-} else if (false) {
-  print "ho";
-} else {
-  print "hmi";
+var a = "global a";
+var b = "global b";
+var c = "global c";
+{
+  var a = "outer a";
+  var b = "outer b";
+  {
+    var a = "inner a";
+    print a;
+    print b;
+    print c;
+  
+  
+  print a;
+  print b;
+  print c;
 }
+print a;
+print b;
+print c;
+
+var hid = "4";
+print hid;

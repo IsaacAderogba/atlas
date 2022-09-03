@@ -36,18 +36,16 @@ export class Parser {
     this.errors = [];
     const statements: Stmt[] = [];
 
-    try {
-      while (!this.isAtEnd()) {
+    while (!this.isAtEnd()) {
+      try {
         statements.push(this.declaration());
+      } catch (error) {
+        if (!(error instanceof ErrorStmt)) throw error;
+        statements.push(error);
       }
-
-      return { statements, errors: this.errors };
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        return { statements, errors: this.errors };
-      }
-      throw error;
     }
+
+    return { statements, errors: this.errors };
   }
 
   private declaration(): Stmt {
@@ -56,9 +54,7 @@ export class Parser {
 
       return this.statement();
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        return this.errorStatement(error);
-      }
+      if (error instanceof SyntaxError) throw this.errorStatement(error);
       throw error;
     }
   }
@@ -101,9 +97,7 @@ export class Parser {
     const statements: Stmt[] = [];
 
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      const decl = this.declaration();
-      if (decl instanceof ErrorStmt) throw decl.error;
-      statements.push(decl);
+      statements.push(this.declaration());
     }
 
     this.consume("RIGHT_BRACE", SyntaxErrors.expectedRightBrace());
