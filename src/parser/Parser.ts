@@ -290,53 +290,54 @@ export class Parser {
       return new GroupingExpr(expr);
     }
 
-    // error expr
-    if (this.match("OR")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.or());
+    return this.errorExpression();
+  }
+
+  private errorStatement(err: SyntaxError): Stmt {
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
+
+      switch (this.peek().type) {
+        case "CLASS":
+        case "FUN":
+        case "VAR":
+        case "FOR":
+        case "IF":
+        case "WHILE":
+        case "PRINT":
+        case "RETURN":
+          return new ErrorStmt(err);
+      }
+
+      this.advance();
     }
 
-    if (this.match("AND")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.and());
-    }
+    return new ErrorStmt(err);
+  }
 
-    if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.equality());
-    }
+  private errorExpression(): Expr {
+    const leftOperandErrs: [TokenType[], () => Expr][] = [
+      [["OR"], this.or.bind(this)],
+      [["AND"], this.and.bind(this)],
+      [["BANG_EQUAL", "EQUAL_EQUAL"], this.equality.bind(this)],
+      [
+        ["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"],
+        this.comparison.bind(this),
+      ],
+      [["PLUS"], this.term.bind(this)],
+      [["SLASH", "STAR"], this.comparison.bind(this)],
+    ];
 
-    if (this.match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.comparison());
-    }
-
-    if (this.match("PLUS")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.term());
-    }
-
-    if (this.match("SLASH", "STAR")) {
-      const err = this.error(
-        this.previous(),
-        SyntaxErrors.expectedLeftOperand()
-      );
-      return new ErrorExpr(err, this.previous(), this.factor());
+    for (const [types, expr] of leftOperandErrs) {
+      if (this.match(...types)) {
+        return new ErrorExpr(
+          this.error(this.previous(), SyntaxErrors.expectedLeftOperand()),
+          this.previous(),
+          expr()
+        );
+      }
     }
 
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
@@ -378,30 +379,6 @@ export class Parser {
 
   private previous(): Token {
     return this.tokens[this.current - 1];
-  }
-
-  private errorStatement(err: SyntaxError): Stmt {
-    this.advance();
-
-    while (!this.isAtEnd()) {
-      // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
-
-      switch (this.peek().type) {
-        case "CLASS":
-        case "FUN":
-        case "VAR":
-        case "FOR":
-        case "IF":
-        case "WHILE":
-        case "PRINT":
-        case "RETURN":
-          return new ErrorStmt(err);
-      }
-
-      this.advance();
-    }
-
-    return new ErrorStmt(err);
   }
 
   private error(source: SourceRangeable, message: SourceMessage): SyntaxError {
