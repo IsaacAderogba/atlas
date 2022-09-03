@@ -23,6 +23,18 @@ describe("Parser statements", () => {
     });
   });
 
+  it("parses for statements", () => {
+    const { parser } = setupTests("for (;;) {}");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      body: { statements: [] },
+      condition: {
+        token: { lexeme: ";", type: "SEMICOLON" },
+      },
+    });
+  });
+
   it("parses while statements", () => {
     const { parser } = setupTests("while (4 + 4) 4;");
 
@@ -271,7 +283,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if", "while"];
+    const expressions = ["if", "while", "for"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -282,7 +294,12 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected right paren", () => {
-    const expressions = ["( 4 + 4", "if (4 == 4", "while (4 == 4"];
+    const expressions = [
+      "( 4 + 4",
+      "if (4 == 4",
+      "while (4 == 4",
+      "for (;; 4 + 4",
+    ];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -341,10 +358,14 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected semicolon", () => {
-    const { parser } = setupTests("var x = null");
+    const expressions = ["var x = null", "for (;4 + 4"];
 
-    const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedSemiColon());
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedSemiColon());
+    });
   });
 
   it("errors with expected right brace", () => {

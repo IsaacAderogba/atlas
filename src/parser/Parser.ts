@@ -23,6 +23,7 @@ import {
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
+import { AtlasTrue } from "../runtime/AtlasTrue";
 import { SourceMessage, SourceRangeable } from "../utils/Source";
 
 export class Parser {
@@ -71,12 +72,48 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("FOR")) return this.forStatement();
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
     if (this.match("PRINT")) return this.printStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
 
     return this.expressionStatement();
+  }
+
+  private forStatement(): Stmt {
+    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+
+    let initializer: Stmt | undefined;
+    if (this.match("SEMICOLON")) {
+      initializer = undefined;
+    } else if (this.match("VAR")) {
+      initializer = this.varDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    let condition = this.check("SEMICOLON") ? undefined : this.expression();
+    const postConditionSemicolon = this.consume(
+      "SEMICOLON",
+      SyntaxErrors.expectedSemiColon()
+    );
+
+    const increment = this.check("RIGHT_PAREN") ? undefined : this.expression();
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+
+    let body = this.statement();
+
+    // Convert the "for" loop into a "while" loop
+    if (increment) body = new BlockStmt([body, new ExpressionStmt(increment)]);
+    if (!condition) {
+      condition = new LiteralExpr(new AtlasTrue(), postConditionSemicolon);
+    }
+
+    body = new WhileStmt(condition, body);
+    if (initializer) body = new BlockStmt([initializer, body]);
+
+    return body;
   }
 
   private whileStatement(): Stmt {
