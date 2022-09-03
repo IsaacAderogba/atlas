@@ -1,5 +1,5 @@
 import { AtlasValue } from "../runtime/AtlasValue";
-import { SourceRange, SourceRangeable } from "../utils/Source";
+import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { TokenType } from "./TokenType";
 
 export class Token implements SourceRangeable {

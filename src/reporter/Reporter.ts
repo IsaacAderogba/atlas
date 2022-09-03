@@ -1,4 +1,4 @@
-import { SourceMessage, SourceRange } from "../utils/Source";
+import { SourceMessage, SourceRange } from "../errors/SourceError";
 
 export interface Reporter {
   log(message: string): void;

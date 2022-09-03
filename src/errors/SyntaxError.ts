@@ -1,6 +1,6 @@
-import { SourceMessage, SourceRange } from "../utils/Source";
+import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
-export class SyntaxError {
+export class SyntaxError implements SourceError {
   constructor(
     readonly message: SourceMessage,
     readonly sourceRange: SourceRange

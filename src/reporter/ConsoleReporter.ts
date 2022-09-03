@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { SourceMessage, SourceRange } from "../utils/Source";
+import { SourceMessage, SourceRange } from "../errors/SourceError";
 import { Reporter } from "./Reporter";
 
 export class ConsoleReporter implements Reporter {

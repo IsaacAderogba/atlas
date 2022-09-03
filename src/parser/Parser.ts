@@ -24,7 +24,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { AtlasTrue } from "../runtime/AtlasTrue";
-import { SourceMessage, SourceRangeable } from "../utils/Source";
+import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 
 export class Parser {
   private tokens: Token[];

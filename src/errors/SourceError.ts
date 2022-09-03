@@ -1,3 +1,8 @@
+export interface SourceError {
+  sourceRange: SourceRange;
+  message: SourceMessage;
+}
+
 export class SourceRange implements SourceRangeable {
   constructor(readonly start: SourceLocation, readonly end: SourceLocation) {}
 
