@@ -23,6 +23,28 @@ describe("Parser statements", () => {
     });
   });
 
+  it("parses while statements", () => {
+    const { parser } = setupTests("while (4 + 4) 4;");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      body: {
+        expression: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+      },
+      condition: {
+        left: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+        operator: { lexeme: "+", type: "PLUS" },
+        right: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+      },
+    });
+  });
+
   it("parses if statements", () => {
     const { parser } = setupTests("if (4 + 4) 4;");
 
@@ -249,7 +271,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if"];
+    const expressions = ["if", "while"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -260,7 +282,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected right paren", () => {
-    const expressions = ["( 4 + 4", "if (4 == 4"];
+    const expressions = ["( 4 + 4", "if (4 == 4", "while (4 == 4"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);

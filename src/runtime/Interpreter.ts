@@ -25,6 +25,7 @@ import {
   Stmt,
   StmtVisitor,
   VarStmt,
+  WhileStmt,
 } from "../ast/Stmt";
 import { Reporter } from "../reporter/Reporter";
 import { Environment } from "./Environment";
@@ -85,14 +86,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.evaluate(stmt.expression);
   }
 
-  visitIfStmt(stmt: IfStmt): void {
-    if (this.getBooleanValue(stmt.condition, this.evaluate(stmt.condition))) {
-      this.execute(stmt.thenBranch);
-    } else if (stmt.elseBranch) {
-      this.execute(stmt.elseBranch);
-    }
-  }
-
   visitPrintStmt(stmt: PrintStmt): void {
     const value = this.evaluate(stmt.expression);
     this.reporter.log(value.toString());
@@ -101,6 +94,22 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitVarStmt(stmt: VarStmt): void {
     const value = this.evaluate(stmt.initializer);
     this.environment.define(stmt.name.lexeme, value, stmt.name);
+  }
+
+  visitWhileStmt(stmt: WhileStmt): void {
+    while (
+      this.getBooleanValue(stmt.condition, this.evaluate(stmt.condition))
+    ) {
+      this.execute(stmt.body);
+    }
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    if (this.getBooleanValue(stmt.condition, this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {

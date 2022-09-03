@@ -78,6 +78,19 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "STRING", value: "hello" });
   });
 
+  it("interprets while statements", () => {
+    const { interpreter, interpret } = setupTests(
+      'var x = 2; while (x < 5) x = x + 1;'
+    );
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 5 });
+  });
+
   it("interprets if statements", () => {
     const { interpreter, interpret } = setupTests(
       'var x = 2; if (x == 2) x = 1;'

@@ -6,7 +6,7 @@ interface BaseStmt {
   accept<T>(visitor: StmtVisitor<T>): T;
 }
 
-export class BlockStmt {
+export class BlockStmt implements BaseStmt {
   constructor(readonly statements: Stmt[]) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
@@ -38,7 +38,7 @@ export class PrintStmt implements BaseStmt {
   }
 }
 
-export class IfStmt {
+export class IfStmt implements BaseStmt {
   constructor(
     readonly condition: Expr,
     readonly thenBranch: Stmt,
@@ -58,11 +58,20 @@ export class VarStmt implements BaseStmt {
   }
 }
 
+export class WhileStmt {
+  constructor(readonly condition: Expr, readonly body: Stmt) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitWhileStmt(this);
+  }
+}
+
 export type Stmt =
   | BlockStmt
   | ErrorStmt
   | IfStmt
   | VarStmt
+  | WhileStmt
   | ExpressionStmt
   | PrintStmt;
 
@@ -73,4 +82,5 @@ export interface StmtVisitor<T> {
   visitPrintStmt(stmt: PrintStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitVarStmt(stmt: VarStmt): T;
+  visitWhileStmt(stmt: WhileStmt): T;
 }

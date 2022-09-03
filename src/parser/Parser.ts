@@ -18,6 +18,7 @@ import {
   PrintStmt,
   Stmt,
   VarStmt,
+  WhileStmt,
 } from "../ast/Stmt";
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
@@ -70,11 +71,21 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
     if (this.match("PRINT")) return this.printStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
 
     return this.expressionStatement();
+  }
+
+  private whileStatement(): Stmt {
+    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+    const condition = this.expression();
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+    const body = this.statement();
+
+    return new WhileStmt(condition, body);
   }
 
   private ifStatement(): Stmt {
