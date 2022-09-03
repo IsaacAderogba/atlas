@@ -23,6 +23,29 @@ describe("Parser statements", () => {
     });
   });
 
+  it("parses if statements", () => {
+    const { parser } = setupTests("if (4 + 4) 4;");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      condition: {
+        left: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+        operator: { lexeme: "+", type: "PLUS" },
+        right: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+      },
+      elseBranch: undefined,
+      thenBranch: {
+        expression: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+      },
+    });
+  });
+
   it("parses block statements", () => {
     const { parser } = setupTests("{ var x = 4; }");
 
@@ -195,11 +218,28 @@ describe("Parser errors", () => {
     expect(errors[0].message).toMatchObject(SyntaxErrors.expectedColon());
   });
 
-  it("errors with expected right paren", () => {
-    const { parser } = setupTests("( 4 + 4");
+  it("errors with expected left paren", () => {
+    const expressions = ["if"];
 
-    const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedRightParen());
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftParen());
+    });
+  });
+
+  it("errors with expected right paren", () => {
+    const expressions = ["( 4 + 4", "if (4 == 4"];
+
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedRightParen()
+      );
+    });
   });
 
   it("errors with expected left operand", () => {

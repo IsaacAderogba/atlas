@@ -63,6 +63,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedLeftParen(): SourceMessage {
+    return this.formatError({
+      title: "expected left parenthesis",
+      body: 'a left parenthesis "(" was expected',
+    });
+  }
+
   static expectedRightParen(): SourceMessage {
     return this.formatError({
       title: "expected right parenthesis",
@@ -80,7 +87,7 @@ export class SyntaxErrors {
   static expectedExpression(): SourceMessage {
     return this.formatError({
       title: "expected expression",
-      body: "an expression that evaluates to a value was expected",
+      body: "an expression was expected",
     });
   }
 

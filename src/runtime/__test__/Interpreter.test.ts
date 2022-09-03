@@ -77,6 +77,19 @@ describe("Interpreter statements", () => {
 
     expect(result).toMatchObject({ type: "STRING", value: "hello" });
   });
+
+  it("interprets if statements", () => {
+    const { interpreter, interpret } = setupTests(
+      'var x = 2; if (x == 2) x = 1;'
+    );
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 1 });
+  });
 });
 
 describe("Interpreter evaluations", () => {

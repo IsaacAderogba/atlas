@@ -19,6 +19,7 @@ import { SourceMessage, SourceRangeable } from "../utils/Source";
 import {
   BlockStmt,
   ExpressionStmt,
+  IfStmt,
   PrintStmt,
   Stmt,
   StmtVisitor,
@@ -64,7 +65,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   executeBlock(statements: Stmt[], environment: Environment): void {
     const previous = this.environment;
-    
+
     try {
       this.environment = environment;
       for (const statement of statements) {
@@ -81,6 +82,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    if (this.getBooleanValue(stmt.condition, this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   visitPrintStmt(stmt: PrintStmt): void {
@@ -100,10 +109,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasValue {
-    const source = expr.expression;
-    const expression = this.evaluate(source);
-
-    if (this.getBooleanValue(source, expression)) {
+    if (this.getBooleanValue(expr.expression, this.evaluate(expr.expression))) {
       return this.evaluate(expr.thenBranch);
     }
     return this.evaluate(expr.elseBranch);

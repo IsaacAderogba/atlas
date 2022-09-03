@@ -14,11 +14,11 @@ export class BlockStmt {
   }
 }
 
-export class VarStmt implements BaseStmt {
-  constructor(readonly name: Token, readonly initializer: Expr) {}
+export class ErrorStmt implements BaseStmt {
+  constructor(readonly error: SyntaxError) {}
 
-  accept<T>(visitor: StmtVisitor<T>): T {
-    return visitor.visitVarStmt(this);
+  accept<T>(): T {
+    throw new Error("ErrorStmt should not be executed.");
   }
 }
 
@@ -38,20 +38,39 @@ export class PrintStmt implements BaseStmt {
   }
 }
 
-export class ErrorStmt implements BaseStmt {
-  constructor(readonly error: SyntaxError) {}
+export class IfStmt {
+  constructor(
+    readonly condition: Expr,
+    readonly thenBranch: Stmt,
+    readonly elseBranch?: Stmt
+  ) {}
 
-  accept<T>(): T {
-    throw new Error("ErrorStmt should not be executed.");
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitIfStmt(this);
   }
 }
 
-export type Stmt = BlockStmt | VarStmt | ExpressionStmt | PrintStmt | ErrorStmt;
+export class VarStmt implements BaseStmt {
+  constructor(readonly name: Token, readonly initializer: Expr) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitVarStmt(this);
+  }
+}
+
+export type Stmt =
+  | BlockStmt
+  | ErrorStmt
+  | IfStmt
+  | VarStmt
+  | ExpressionStmt
+  | PrintStmt;
 
 export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
-  visitVarStmt(stmt: VarStmt): T;
+  visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;
-  visitErrorStmt?(stmt: ErrorStmt): T;
+  visitIfStmt(stmt: IfStmt): T;
+  visitVarStmt(stmt: VarStmt): T;
 }

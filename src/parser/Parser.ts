@@ -13,6 +13,7 @@ import {
   BlockStmt,
   ErrorStmt,
   ExpressionStmt,
+  IfStmt,
   PrintStmt,
   Stmt,
   VarStmt,
@@ -72,10 +73,22 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("IF")) return this.ifStatement();
     if (this.match("PRINT")) return this.printStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
 
     return this.expressionStatement();
+  }
+
+  private ifStatement(): Stmt {
+    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+    const condition = this.expression();
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+
+    const thenBranch = this.statement();
+    const elseBranch = this.match("ELSE") ? this.statement() : undefined;
+
+    return new IfStmt(condition, thenBranch, elseBranch);
   }
 
   private printStatement(): Stmt {
@@ -288,7 +301,7 @@ export class Parser {
     this.advance();
 
     while (!this.isAtEnd()) {
-      if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
+      // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
 
       switch (this.peek().type) {
         case "CLASS":
