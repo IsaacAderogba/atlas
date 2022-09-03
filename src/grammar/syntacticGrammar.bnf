@@ -14,7 +14,9 @@ block          -> "{" declaration* "}" ;
 expression     -> assignment ;
 assignment     -> IDENTIFIER "=" assignment
                 | ternary ;
-ternary        -> equality ( "?" ternary ":" ternary )? ;
+ternary        -> logic_or ( "?" ternary ":" ternary )? ;
+logic_or       -> logic_and ( "or" logic_and )* ;
+logic_and      -> equality ( "and" equality )* ;
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
@@ -22,7 +24,9 @@ factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary 
                 | primary ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | "(" expression ")" | error ;
-error          -> ( "!=" | "==" ) equality
+error          -> ( "or" ) logic_or
+                | ( "and" ) logic_and
+                | ( "!=" | "==" ) equality
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" ) term
                 | ( "/" | "*" ) factor ;

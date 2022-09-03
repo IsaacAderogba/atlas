@@ -5,6 +5,7 @@ import {
   ExprVisitor,
   GroupingExpr,
   LiteralExpr,
+  LogicalExpr,
   TernaryExpr,
   UnaryExpr,
   VariableExpr,
@@ -203,6 +204,25 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
     return expr.value;
+  }
+
+  visitLogicalExpr(expr: LogicalExpr): AtlasValue {
+    const left = this.evaluate(expr.left);
+
+    switch (expr.operator.type) {
+      case "OR":
+        if (this.getBooleanValue(expr.left, left)) return left;
+        break;
+      case "AND":
+        if (!this.getBooleanValue(expr.left, left)) return left;
+        break;
+      default:
+        throw this.error(
+          expr.operator,
+          RuntimeErrors.unexpectedLogicalOperator()
+        );
+    }
+    return this.evaluate(expr.right);
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {

@@ -116,6 +116,18 @@ describe("Interpreter evaluations", () => {
     });
   });
 
+  it("evaluates logical expressions", () => {
+    const tests = [
+      { source: "false or true", object: { value: true } },
+      { source: "false and true", object: { value: false } },
+    ];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toMatchObject(object);
+    });
+  });
+
   it("evaluates binary expressions", () => {
     const tests = [
       { source: "4 + 4", object: { value: 8 } },

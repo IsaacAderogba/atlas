@@ -115,6 +115,36 @@ describe("Parser expressions", () => {
     });
   });
 
+  it("parses or expressions", () => {
+    const { parser } = setupTests("true or false");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      left: {
+        token: { lexeme: "true", type: "TRUE" },
+      },
+      operator: { lexeme: "or", type: "OR" },
+      right: {
+        token: { lexeme: "false", type: "FALSE" },
+      },
+    });
+  });
+
+  it("parses and expressions", () => {
+    const { parser } = setupTests("true and false");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      left: {
+        token: { lexeme: "true", type: "TRUE" },
+      },
+      operator: { lexeme: "and", type: "AND" },
+      right: {
+        token: { lexeme: "false", type: "FALSE" },
+      },
+    });
+  });
+
   it("parses equality expressions", () => {
     const { parser } = setupTests("4 == 4");
 
@@ -253,6 +283,8 @@ describe("Parser errors", () => {
       "+ 4",
       "/ 4",
       "* 4",
+      "or 4",
+      "and 4",
     ];
 
     expressions.forEach(expr => {

@@ -38,6 +38,10 @@ export class RuntimeErrors {
     return this.formatError({ title: "unexpected unary operator", body: "" });
   }
 
+  static unexpectedLogicalOperator(): SourceMessage {
+    return this.formatError({ title: "unexpected logical operator", body: "" });
+  }
+
   //
   static expectedNumber(): SourceMessage {
     return this.formatError({ title: "expected number", body: "a number was expected" });

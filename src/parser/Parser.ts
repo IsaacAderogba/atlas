@@ -8,6 +8,7 @@ import {
   ErrorExpr,
   VariableExpr,
   AssignExpr,
+  LogicalExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -131,7 +132,7 @@ export class Parser {
   }
 
   private ternary(): Expr {
-    let expr = this.equality();
+    let expr = this.or();
 
     if (this.match("QUESTION")) {
       const thenBranch = this.ternary();
@@ -143,13 +144,36 @@ export class Parser {
     return expr;
   }
 
+  private or(): Expr {
+    let expr = this.and();
+
+    while (this.match("OR")) {
+      const operator = this.previous();
+      const right = this.and();
+      expr = new LogicalExpr(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private and(): Expr {
+    let expr = this.equality();
+
+    while (this.match("AND")) {
+      const operator = this.previous();
+      const right = this.equality();
+      expr = new LogicalExpr(expr, operator, right);
+    }
+
+    return expr;
+  }
+
   private equality(): Expr {
     let expr = this.comparison();
 
     while (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
       const operator = this.previous();
       const right = this.comparison();
-
       expr = new BinaryExpr(expr, operator, right);
     }
 
@@ -216,6 +240,23 @@ export class Parser {
       const expr = this.expression();
       this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
       return new GroupingExpr(expr);
+    }
+
+    // error expr
+    if (this.match("OR")) {
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
+      return new ErrorExpr(err, this.previous(), this.or());
+    }
+
+    if (this.match("AND")) {
+      const err = this.error(
+        this.previous(),
+        SyntaxErrors.expectedLeftOperand()
+      );
+      return new ErrorExpr(err, this.previous(), this.and());
     }
 
     if (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
