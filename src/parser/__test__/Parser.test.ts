@@ -358,7 +358,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected semicolon", () => {
-    const expressions = ["var x = null", "for (;4 + 4"];
+    const expressions = ["var x = null", "for (;4 + 4", "while(true) break"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -382,5 +382,16 @@ describe("Parser errors", () => {
     expect(errors[0].message).toMatchObject(
       SyntaxErrors.invalidAssignmentTarget()
     );
+  });
+
+  it("errors with expected loop", () => {
+    const expressions = ["break;"];
+
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLoop());
+    });
   });
 });

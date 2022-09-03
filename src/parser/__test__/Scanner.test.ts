@@ -85,6 +85,7 @@ describe("Scanner tokens", () => {
   it("tokenizes keywords and identifiers", () => {
     const charTypes: { char: string; type: TokenType }[] = [
       { char: "and", type: "AND" },
+      { char: "break", type: "BREAK" },
       { char: "class", type: "CLASS" },
       { char: "else", type: "ELSE" },
       { char: "for", type: "FOR" },

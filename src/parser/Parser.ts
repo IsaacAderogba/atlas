@@ -12,6 +12,7 @@ import {
 } from "../ast/Expr";
 import {
   BlockStmt,
+  BreakStmt,
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
@@ -30,6 +31,7 @@ export class Parser {
   private tokens: Token[];
   private errors: SyntaxError[] = [];
   private current = 0;
+  private loopDepth = 0;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -77,6 +79,7 @@ export class Parser {
     if (this.match("IF")) return this.ifStatement();
     if (this.match("PRINT")) return this.printStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
+    if (this.match("BREAK")) return this.breakStatement();
 
     return this.expressionStatement();
   }
@@ -102,27 +105,37 @@ export class Parser {
     const increment = this.check("RIGHT_PAREN") ? undefined : this.expression();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
-    let body = this.statement();
+    try {
+      this.loopDepth++;
+      let body = this.statement();
 
-    // Convert the "for" loop into a "while" loop
-    if (increment) body = new BlockStmt([body, new ExpressionStmt(increment)]);
-    if (!condition) {
-      condition = new LiteralExpr(new AtlasTrue(), postConditionSemicolon);
+      // Convert the "for" loop into a "while" loop
+      if (increment)
+        body = new BlockStmt([body, new ExpressionStmt(increment)]);
+      if (!condition) {
+        condition = new LiteralExpr(new AtlasTrue(), postConditionSemicolon);
+      }
+
+      body = new WhileStmt(condition, body);
+      if (initializer) body = new BlockStmt([initializer, body]);
+      return body;
+    } finally {
+      this.loopDepth--;
     }
-
-    body = new WhileStmt(condition, body);
-    if (initializer) body = new BlockStmt([initializer, body]);
-
-    return body;
   }
 
   private whileStatement(): Stmt {
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
-    const body = this.statement();
 
-    return new WhileStmt(condition, body);
+    try {
+      this.loopDepth++;
+      const body = this.statement();
+      return new WhileStmt(condition, body);
+    } finally {
+      this.loopDepth--;
+    }
   }
 
   private ifStatement(): Stmt {
@@ -134,6 +147,13 @@ export class Parser {
     const elseBranch = this.match("ELSE") ? this.statement() : undefined;
 
     return new IfStmt(condition, thenBranch, elseBranch);
+  }
+
+  private breakStatement(): Stmt {
+    const token = this.previous();
+    if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+    return new BreakStmt(token);
   }
 
   private printStatement(): Stmt {
@@ -300,6 +320,7 @@ export class Parser {
       // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
 
       switch (this.peek().type) {
+        case "BREAK":
         case "CLASS":
         case "FUN":
         case "VAR":

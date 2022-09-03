@@ -35,6 +35,13 @@ export class SyntaxErrors {
   }
 
   //
+  static expectedLoop(): SourceMessage {
+    return this.formatError({
+      title: "expected loop",
+      body: "statement was used outside of the context of a loop",
+    });
+  }
+
   static expectedIdentifier(): SourceMessage {
     return this.formatError({
       title: "expected identifier",

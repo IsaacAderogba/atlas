@@ -2,6 +2,7 @@ import { TokenType } from "../ast/TokenType";
 
 export const Keywords = new Map<string, TokenType>([
   ["and", "AND"],
+  ["break", "BREAK"],
   ["class", "CLASS"],
   ["else", "ELSE"],
   ["for", "FOR"],

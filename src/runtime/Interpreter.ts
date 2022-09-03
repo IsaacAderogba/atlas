@@ -19,6 +19,7 @@ import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
+  BreakStmt,
   ExpressionStmt,
   IfStmt,
   PrintStmt,
@@ -100,7 +101,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     while (
       this.getBooleanValue(stmt.condition, this.evaluate(stmt.condition))
     ) {
-      this.execute(stmt.body);
+      try {
+        this.execute(stmt.body);
+      } catch (err) {
+        if (err instanceof BreakStmt) break;
+        throw err;
+      }
     }
   }
 
@@ -110,6 +116,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     } else if (stmt.elseBranch) {
       this.execute(stmt.elseBranch);
     }
+  }
+
+  visitBreakStmt(stmt: BreakStmt): void {
+    throw stmt;
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
