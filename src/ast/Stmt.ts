@@ -30,7 +30,6 @@ export class ContinueStmt implements BaseStmt {
   }
 }
 
-
 export class ErrorStmt implements BaseStmt {
   constructor(readonly error: SyntaxError) {}
 
@@ -76,7 +75,11 @@ export class VarStmt implements BaseStmt {
 }
 
 export class WhileStmt {
-  constructor(readonly condition: Expr, readonly body: Stmt) {}
+  constructor(
+    readonly condition: Expr,
+    readonly body: Stmt,
+    readonly increment: Expr | undefined,
+  ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitWhileStmt(this);

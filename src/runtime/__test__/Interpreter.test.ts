@@ -78,121 +78,91 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "STRING", value: "hello" });
   });
 
-  it("interprets for statements", () => {
-    const { interpreter, interpret } = setupTests(
-      "var x = 2; for (; x < 5; x = x + 1) { }"
-    );
-    interpret();
-
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({ type: "NUMBER", value: 5 });
-  });
-
   it("interprets while statements", () => {
-    const { interpreter, interpret } = setupTests(
-      "var x = 2; while (x < 5) x = x + 1;"
-    );
-    interpret();
-
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({ type: "NUMBER", value: 5 });
-  });
-
-  it("interprets while break statements", () => {
-    const { interpreter, interpret } = setupTests(
-      `
-      var x = 0;
-      while (x < 5) {
-        break;
-        x = x + 1;
-      }
-      `
-    );
-    interpret();
-
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({ type: "NUMBER", value: 0 });
-  });
-
-  it("interprets while continue statements", () => {
-    const { interpreter, interpret } = setupTests(
-      `
-      var x = 0;
-      var y = 0;
-      while (x < 5) {
-        x = x + 1;
-        if (x == 2) continue;        
-        y = y + 1;
-      }
-      `
-    );
-    interpret();
-
-    const expressions = [
-      { char: "y", object: { type: "NUMBER", value: 4 } },
-      { char: "x", object: { type: "NUMBER", value: 5 } },
+    const tests = [
+      "var x = 2; while (x < 5) x = x + 1;",
+      "var x = 2; while (x < 5; x = x + 1) {}",
     ];
 
-    expressions.forEach(({ char, object }) => {
-      const { tokens } = new Scanner(char).scan();
+    tests.forEach(test => {
+      const { interpreter, interpret } = setupTests(test);
+      interpret();
+
+      const { tokens } = new Scanner("x").scan();
       const expression = new Parser(tokens).expression() as VariableExpr;
       const result = interpreter.visitVariableExpr(expression);
-      expect(result).toMatchObject(object);
+
+      expect(result).toMatchObject({ type: "NUMBER", value: 5 });
     });
   });
 
-  it("interprets for break statements", () => {
-    const { interpreter, interpret } = setupTests(
+  it("interprets while break statements", () => {
+    const tests = [
       `
-      var x = 0;
-      for (; x < 5; x = x + 1) {
-        break;
-      }
+    var x = 0;
+    while (x < 5) {
+      break;
+      x = x + 1;
+    }
+    `,
       `
-    );
-    interpret();
+    var x = 0;
+    while (x < 5; x = x + 1) {
+      break;
+    }
+    `,
+    ];
 
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
+    tests.forEach(test => {
+      const { interpreter, interpret } = setupTests(test);
+      interpret();
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 0 });
+      const { tokens } = new Scanner("x").scan();
+      const expression = new Parser(tokens).expression() as VariableExpr;
+      const result = interpreter.visitVariableExpr(expression);
+
+      expect(result).toMatchObject({ type: "NUMBER", value: 0 });
+    });
   });
 
-  // it("interprets for continue statements", () => {
-  //   const { interpreter, interpret } = setupTests(
-  //     `
-  //     var x = 0;
-  //     var y = 0;
-  //     for (; x < 5; x = x + 1) {
-  //       if (x == 2) continue;        
-  //       y = y + 1;
-  //     }
-  //     `
-  //   );
-  //   interpret();
+  it("interprets while continue statements", () => {
+    const tests = [
+      `
+    var x = 0;
+    var y = 0;
+    while (x < 5) {
+      x = x + 1;
+      if (x == 2) continue;        
+      y = y + 1;
+    }
+    `,
+      `
+    var x = 0;
+    var y = 0;
+    while (x < 5; x = x + 1) {
+      if (x == 2) continue;        
+      y = y + 1;
+    }
+    `,
+    ];
 
-  //   const expressions = [
-  //     { char: "y", object: { type: "NUMBER", value: 4 } },
-  //     { char: "x", object: { type: "NUMBER", value: 5 } },
-  //   ];
+    tests.forEach(test => {
+      const { interpreter, interpret } = setupTests(test);
+      interpret();
 
-  //   expressions.forEach(({ char, object }) => {
-  //     const { tokens } = new Scanner(char).scan();
-  //     const expression = new Parser(tokens).expression() as VariableExpr;
-  //     const result = interpreter.visitVariableExpr(expression);
-  //     expect(result).toMatchObject(object);
-  //   });
-  // });
+      const expressions = [
+        { char: "y", object: { type: "NUMBER", value: 4 } },
+        { char: "x", object: { type: "NUMBER", value: 5 } },
+      ];
+
+      expressions.forEach(({ char, object }) => {
+        const { tokens } = new Scanner(char).scan();
+        const expression = new Parser(tokens).expression() as VariableExpr;
+        const result = interpreter.visitVariableExpr(expression);
+        expect(result).toMatchObject(object);
+      });
+    });
+  });
 
   it("interprets if statements", () => {
     const { interpreter, interpret } = setupTests(

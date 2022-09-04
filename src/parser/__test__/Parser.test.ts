@@ -23,19 +23,7 @@ describe("Parser statements", () => {
     });
   });
 
-  it("parses for statements", () => {
-    const { parser } = setupTests("for (;;) {}");
-
-    const { statements } = parser.parse();
-    expect(statements[0]).toMatchObject({
-      body: { statements: [] },
-      condition: {
-        token: { lexeme: ";", type: "SEMICOLON" },
-      },
-    });
-  });
-
-  it("parses while statements", () => {
+  it("parses while condition statements", () => {
     const { parser } = setupTests("while (4 + 4) 4;");
 
     const { statements } = parser.parse();
@@ -53,6 +41,18 @@ describe("Parser statements", () => {
         right: {
           token: { lexeme: "4", type: "NUMBER" },
         },
+      },
+    });
+  });
+
+  it("parses while increment statements", () => {
+    const { parser } = setupTests("while (4 + 4; 4) {}");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      body: { statements: [] },
+      increment: {
+        token: { lexeme: "4", type: "NUMBER" },
       },
     });
   });
@@ -283,7 +283,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if", "while", "for"];
+    const expressions = ["if", "while"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -298,7 +298,8 @@ describe("Parser errors", () => {
       "( 4 + 4",
       "if (4 == 4",
       "while (4 == 4",
-      "for (;; 4 + 4",
+      "while (4 == 4; 4;",
+      "while (4 == 4; true ? true : false",
     ];
 
     expressions.forEach(expr => {
@@ -337,10 +338,16 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected expression", () => {
-    const { parser } = setupTests("4 +");
+    const expressions = ["4 +", "while (true;) {}"];
 
-    const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedExpression());
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedExpression()
+      );
+    });
   });
 
   it("errors with expected identifier", () => {
@@ -360,7 +367,6 @@ describe("Parser errors", () => {
   it("errors with expected semicolon", () => {
     const expressions = [
       "var x = null",
-      "for (;4 + 4",
       "while(true) break",
       "while(true) continue",
     ];
