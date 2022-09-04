@@ -84,7 +84,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
-    const func = new AtlasFunction(stmt);
+    const func = new AtlasFunction(stmt, this.environment);
     this.environment.define(stmt.name.lexeme, func);
   }
 

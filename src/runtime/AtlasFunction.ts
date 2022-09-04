@@ -11,14 +11,17 @@ class AtlasFunction implements AtlasCallable {
   readonly type = "FUNCTION";
   static readonly atlasClassName = "Function";
 
-  constructor(private readonly declaration: FunctionStmt) {}
+  constructor(
+    private readonly declaration: FunctionStmt,
+    private readonly closure: Environment
+  ) {}
 
   arity(): number {
     return this.declaration.params.length;
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
-    const environment = new Environment(interpreter.globals);
+    const environment = new Environment(this.closure);
 
     for (const [i, param] of this.declaration.params.entries()) {
       environment.define(param.name.lexeme, args[i]);
