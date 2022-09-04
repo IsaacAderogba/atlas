@@ -11,11 +11,10 @@ interface AtlasProps {
 
 export class Atlas {
   private reporter: Reporter;
-  private interpreter: Interpreter;
+  private interpreter = new Interpreter();
 
   constructor({ reporter }: AtlasProps) {
     this.reporter = reporter;
-    this.interpreter = new Interpreter({ reporter });
   }
 
   run(source: string): AtlasStatus {

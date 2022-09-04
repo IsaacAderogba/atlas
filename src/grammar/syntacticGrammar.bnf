@@ -6,14 +6,12 @@ funDecl        -> "fun" function ;
 varDecl        -> "var" IDENTIFIER "=" expression ";" ;
 statement      -> exprStmt
                 | ifStmt
-                | printStmt
                 | whileStmt
                 | breakStmt
                 | continueStmt
                 | block ;
 exprStmt       -> expression ";" ;
 ifStmt         -> "if" "(" expression ")" statement ( "else" statement )? ;
-printStmt      -> "print" expression ";" ;
 whileStmt      -> "while" "(" expression ( ";" expression )? ")" statement ;
 breakStmt      -> "break" ";" ;
 continueStmt   -> "continue" ";" ;
@@ -38,7 +36,7 @@ error          -> ( "or" ) logic_or
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" ) term
                 | ( "/" | "*" ) factor ;
-errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "print" | "return" | ";";
+errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "return" | ";";
 
 function       -> IDENTIFIER "(" parameters? ")" block ;
 parameters     -> parameter ( "," parameter )* ;

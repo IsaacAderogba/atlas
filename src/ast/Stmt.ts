@@ -59,14 +59,6 @@ export class FunctionStmt {
   }
 }
 
-export class PrintStmt implements BaseStmt {
-  constructor(readonly expression: Expr) {}
-
-  accept<T>(visitor: StmtVisitor<T>): T {
-    return visitor.visitPrintStmt(this);
-  }
-}
-
 export class IfStmt implements BaseStmt {
   constructor(
     readonly condition: Expr,
@@ -108,8 +100,7 @@ export type Stmt =
   | IfStmt
   | VarStmt
   | WhileStmt
-  | ExpressionStmt
-  | PrintStmt;
+  | ExpressionStmt;
 
 export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
@@ -118,7 +109,6 @@ export interface StmtVisitor<T> {
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitFunctionStmt(stmt: FunctionStmt): T;
-  visitPrintStmt(stmt: PrintStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitVarStmt(stmt: VarStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;

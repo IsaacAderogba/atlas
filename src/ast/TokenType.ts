@@ -43,7 +43,6 @@ export type TokenType =
   | "IF"
   | "NULL"
   | "OR"
-  | "PRINT"
   | "RETURN"
   | "SUPER"
   | "THIS"

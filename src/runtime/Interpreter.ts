@@ -25,30 +25,19 @@ import {
   ExpressionStmt,
   FunctionStmt,
   IfStmt,
-  PrintStmt,
   Stmt,
   StmtVisitor,
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
-import { Reporter } from "../reporter/Reporter";
 import { Environment } from "./Environment";
 import { AtlasCallable } from "./AtlasCallable";
 import { globals } from "./globals";
 import { AtlasFunction } from "./AtlasFunction";
 
-interface InterpreterProps {
-  reporter: Reporter;
-}
-
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
   private environment = this.globals;
-  private reporter: Reporter;
-
-  constructor({ reporter }: InterpreterProps) {
-    this.reporter = reporter;
-  }
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {
@@ -97,11 +86,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitFunctionStmt(stmt: FunctionStmt): void {
     const func = new AtlasFunction(stmt);
     this.environment.define(stmt.name.lexeme, func);
-  }
-
-  visitPrintStmt(stmt: PrintStmt): void {
-    const value = this.evaluate(stmt.expression);
-    this.reporter.log(value.toString());
   }
 
   visitVarStmt(stmt: VarStmt): void {

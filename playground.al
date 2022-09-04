@@ -1,5 +1,6 @@
-fun sayHi() {
-  print "Hi";
+fun sayHi(first, last) {
+  print("Hi,");
+  print(first);
 }
 
-sayHi();
+sayHi("Dear", "Reader");
