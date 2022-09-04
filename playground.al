@@ -1,8 +1,7 @@
-var a = 0;
-var temp = null;
-
-for (var b = 1; a < 1; b = temp + b) {
-  print a;
-  temp = a;
-  a = b;
+var x = 0;
+var y = 0;
+for (; x < 5; x = x + 1) {
+  print x;
+  if (x == 2) continue;        
+  y = y + 1;
 }

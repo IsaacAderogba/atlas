@@ -123,6 +123,33 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "NUMBER", value: 0 });
   });
 
+  it("interprets while continue statements", () => {
+    const { interpreter, interpret } = setupTests(
+      `
+      var x = 0;
+      var y = 0;
+      while (x < 5) {
+        x = x + 1;
+        if (x == 2) continue;        
+        y = y + 1;
+      }
+      `
+    );
+    interpret();
+
+    const expressions = [
+      { char: "y", object: { type: "NUMBER", value: 4 } },
+      { char: "x", object: { type: "NUMBER", value: 5 } },
+    ];
+
+    expressions.forEach(({ char, object }) => {
+      const { tokens } = new Scanner(char).scan();
+      const expression = new Parser(tokens).expression() as VariableExpr;
+      const result = interpreter.visitVariableExpr(expression);
+      expect(result).toMatchObject(object);
+    });
+  });
+
   it("interprets for break statements", () => {
     const { interpreter, interpret } = setupTests(
       `
@@ -140,6 +167,32 @@ describe("Interpreter statements", () => {
 
     expect(result).toMatchObject({ type: "NUMBER", value: 0 });
   });
+
+  // it("interprets for continue statements", () => {
+  //   const { interpreter, interpret } = setupTests(
+  //     `
+  //     var x = 0;
+  //     var y = 0;
+  //     for (; x < 5; x = x + 1) {
+  //       if (x == 2) continue;        
+  //       y = y + 1;
+  //     }
+  //     `
+  //   );
+  //   interpret();
+
+  //   const expressions = [
+  //     { char: "y", object: { type: "NUMBER", value: 4 } },
+  //     { char: "x", object: { type: "NUMBER", value: 5 } },
+  //   ];
+
+  //   expressions.forEach(({ char, object }) => {
+  //     const { tokens } = new Scanner(char).scan();
+  //     const expression = new Parser(tokens).expression() as VariableExpr;
+  //     const result = interpreter.visitVariableExpr(expression);
+  //     expect(result).toMatchObject(object);
+  //   });
+  // });
 
   it("interprets if statements", () => {
     const { interpreter, interpret } = setupTests(

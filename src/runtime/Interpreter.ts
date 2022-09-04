@@ -20,6 +20,7 @@ import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
   BreakStmt,
+  ContinueStmt,
   ExpressionStmt,
   IfStmt,
   PrintStmt,
@@ -105,6 +106,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(stmt.body);
       } catch (err) {
         if (err instanceof BreakStmt) break;
+        if (err instanceof ContinueStmt) continue;
         throw err;
       }
     }
@@ -119,6 +121,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
+    throw stmt;
+  }
+
+  visitContinueStmt(stmt: ContinueStmt): void {
     throw stmt;
   }
 

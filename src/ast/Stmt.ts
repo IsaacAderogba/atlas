@@ -22,6 +22,15 @@ export class BreakStmt implements BaseStmt {
   }
 }
 
+export class ContinueStmt implements BaseStmt {
+  constructor(readonly token: Token) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitContinueStmt(this);
+  }
+}
+
+
 export class ErrorStmt implements BaseStmt {
   constructor(readonly error: SyntaxError) {}
 
@@ -77,6 +86,7 @@ export class WhileStmt {
 export type Stmt =
   | BlockStmt
   | BreakStmt
+  | ContinueStmt
   | ErrorStmt
   | IfStmt
   | VarStmt
@@ -87,6 +97,7 @@ export type Stmt =
 export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
   visitBreakStmt(stmt: BreakStmt): T;
+  visitContinueStmt(stmt: ContinueStmt): T;
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;

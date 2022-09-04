@@ -13,6 +13,7 @@ import {
 import {
   BlockStmt,
   BreakStmt,
+  ContinueStmt,
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
@@ -80,6 +81,7 @@ export class Parser {
     if (this.match("PRINT")) return this.printStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
     if (this.match("BREAK")) return this.breakStatement();
+    if (this.match("CONTINUE")) return this.continueStatement();
 
     return this.expressionStatement();
   }
@@ -154,6 +156,13 @@ export class Parser {
     if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new BreakStmt(token);
+  }
+
+  private continueStatement(): Stmt {
+    const token = this.previous();
+    if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+    return new ContinueStmt(token);
   }
 
   private printStatement(): Stmt {
@@ -321,6 +330,7 @@ export class Parser {
 
       switch (this.peek().type) {
         case "BREAK":
+        case "CONTINUE":
         case "CLASS":
         case "FUN":
         case "VAR":

@@ -34,6 +34,7 @@ export type TokenType =
   // Keywords.
   | "AND"
   | "BREAK"
+  | "CONTINUE"
   | "CLASS"
   | "ELSE"
   | "FALSE"

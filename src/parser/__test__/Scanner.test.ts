@@ -86,6 +86,7 @@ describe("Scanner tokens", () => {
     const charTypes: { char: string; type: TokenType }[] = [
       { char: "and", type: "AND" },
       { char: "break", type: "BREAK" },
+      { char: "continue", type: "CONTINUE" },
       { char: "class", type: "CLASS" },
       { char: "else", type: "ELSE" },
       { char: "for", type: "FOR" },
