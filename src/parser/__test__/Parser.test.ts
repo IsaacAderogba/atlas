@@ -434,7 +434,7 @@ describe("Parser errors", () => {
       "var x = null",
       "while(true) break",
       "while(true) continue",
-      "return 4",
+      "fun hi() { return 4 }",
     ];
 
     expressions.forEach(expr => {
@@ -472,14 +472,29 @@ describe("Parser errors", () => {
     );
   });
 
-  it("errors with expected loop", () => {
+  it("errors with expected loop context", () => {
     const expressions = ["break;", "continue;"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLoop());
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedLoopContext()
+      );
+    });
+  });
+
+  it("errors with expected function context", () => {
+    const expressions = ["return;"];
+
+    expressions.forEach(expr => {
+      const { parser } = setupTests(expr);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedFunctionContext()
+      );
     });
   });
 });

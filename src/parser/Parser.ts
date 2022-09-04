@@ -35,6 +35,7 @@ export class Parser {
   private errors: SyntaxError[] = [];
   private current = 0;
   private loopDepth = 0;
+  private functionDepth = 0;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -75,7 +76,13 @@ export class Parser {
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
-    return new FunctionStmt(name, parameters, this.blockStatement());
+    try {
+      this.functionDepth++;
+      const body = this.blockStatement();
+      return new FunctionStmt(name, parameters, body);
+    } finally {
+      this.functionDepth--;
+    }
   }
 
   private varDeclaration(): VarStmt {
@@ -100,6 +107,9 @@ export class Parser {
 
   private returnStatement(): ReturnStmt {
     const keyword = this.previous();
+    if (this.functionDepth === 0) {
+      this.error(keyword, SyntaxErrors.expectedFunctionContext());
+    }
     const value = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
 
@@ -134,14 +144,18 @@ export class Parser {
 
   private breakStatement(): BreakStmt {
     const token = this.previous();
-    if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
+    if (this.loopDepth === 0) {
+      this.error(token, SyntaxErrors.expectedLoopContext());
+    }
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new BreakStmt(token);
   }
 
   private continueStatement(): ContinueStmt {
     const token = this.previous();
-    if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
+    if (this.loopDepth === 0) {
+      this.error(token, SyntaxErrors.expectedLoopContext());
+    }
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ContinueStmt(token);
   }

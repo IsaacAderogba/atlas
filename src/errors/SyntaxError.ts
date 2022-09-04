@@ -35,10 +35,17 @@ export class SyntaxErrors {
   }
 
   //
-  static expectedLoop(): SourceMessage {
+  static expectedLoopContext(): SourceMessage {
     return this.formatError({
-      title: "expected loop",
+      title: "expected loop context",
       body: "statement was used outside of the context of a loop",
+    });
+  }
+
+  static expectedFunctionContext(): SourceMessage {
+    return this.formatError({
+      title: "expected function context",
+      body: "statement was used outside of the context of a function",
     });
   }
 
