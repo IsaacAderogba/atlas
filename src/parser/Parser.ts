@@ -68,7 +68,7 @@ export class Parser {
     }
   }
 
-  private funDeclaration(): Stmt {
+  private funDeclaration(): FunctionStmt {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const parameters = this.parameters();
@@ -78,7 +78,7 @@ export class Parser {
     return new FunctionStmt(name, parameters, this.blockStatement());
   }
 
-  private varDeclaration(): Stmt {
+  private varDeclaration(): VarStmt {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
@@ -98,7 +98,7 @@ export class Parser {
     return this.expressionStatement();
   }
 
-  private returnStatement(): Stmt {
+  private returnStatement(): ReturnStmt {
     const keyword = this.previous();
     const value = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
@@ -106,7 +106,7 @@ export class Parser {
     return new ReturnStmt(keyword, value);
   }
 
-  private whileStatement(): Stmt {
+  private whileStatement(): WhileStmt {
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
     const increment = this.match("SEMICOLON") ? this.expression() : undefined;
@@ -121,7 +121,7 @@ export class Parser {
     }
   }
 
-  private ifStatement(): Stmt {
+  private ifStatement(): IfStmt {
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
@@ -132,14 +132,14 @@ export class Parser {
     return new IfStmt(condition, thenBranch, elseBranch);
   }
 
-  private breakStatement(): Stmt {
+  private breakStatement(): BreakStmt {
     const token = this.previous();
     if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new BreakStmt(token);
   }
 
-  private continueStatement(): Stmt {
+  private continueStatement(): ContinueStmt {
     const token = this.previous();
     if (this.loopDepth === 0) this.error(token, SyntaxErrors.expectedLoop());
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
@@ -157,7 +157,7 @@ export class Parser {
     return new BlockStmt(statements);
   }
 
-  private expressionStatement(): Stmt {
+  private expressionStatement(): ExpressionStmt {
     const value = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ExpressionStmt(value);
@@ -317,7 +317,7 @@ export class Parser {
     return this.errorExpression();
   }
 
-  private errorStatement(err: SyntaxError): Stmt {
+  private errorStatement(err: SyntaxError): ErrorStmt {
     this.advance();
 
     while (!this.isAtEnd()) {
@@ -342,7 +342,7 @@ export class Parser {
     return new ErrorStmt(err);
   }
 
-  private errorExpression(): Expr {
+  private errorExpression(): ErrorExpr {
     const leftOperandErrs: [TokenType[], () => Expr][] = [
       [["OR"], this.or.bind(this)],
       [["AND"], this.and.bind(this)],

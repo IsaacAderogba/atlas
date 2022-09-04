@@ -1,13 +1,6 @@
-fun makeCounter() {
-  var i = 0;
-  fun count() {
-    i = i + 1;
-    print(i);
-  }
-
-  return count;
+fun scope(a) {
+  a = "local";
+  print(a);
 }
 
-var counter = makeCounter();
-counter(); // "1".
-counter(); // "2".
+scope("2");
