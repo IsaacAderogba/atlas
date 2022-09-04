@@ -11,6 +11,14 @@ export class Environment {
     this.enclosing = enclosing;
   }
 
+  static fromGlobals(obj: { [name: string]: AtlasValue }): Environment {
+    const environment = new Environment();
+    for (const [name, value] of Object.entries(obj)) {
+      environment.define(name, value);
+    }
+    return environment;
+  }
+
   get(token: Token): AtlasValue {
     const value = this.values.get(token.lexeme);
 

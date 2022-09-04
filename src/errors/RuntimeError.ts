@@ -22,11 +22,24 @@ export class RuntimeErrors {
 
   //
   static prohibitedZeroDivision(): SourceMessage {
-    return this.formatError({ title: "prohibited division by zero", body: "prohibited attempt to divide by zero" });
+    return this.formatError({
+      title: "prohibited division by zero",
+      body: "prohibited attempt to divide by zero",
+    });
   }
 
   static prohibitedRedeclaration(): SourceMessage {
-    return this.formatError({ title: "prohibited variable redeclaration", body: "existing variable cannot be redeclared" });
+    return this.formatError({
+      title: "prohibited variable redeclaration",
+      body: "existing variable cannot be redeclared",
+    });
+  }
+
+  static mismatchedArity(expected: number, actual: number): SourceMessage {
+    return this.formatError({
+      title: "mismatched arity",
+      body: `expected ${expected} arguments but got ${actual}`,
+    });
   }
 
   //
@@ -44,10 +57,23 @@ export class RuntimeErrors {
 
   //
   static expectedNumber(): SourceMessage {
-    return this.formatError({ title: "expected number", body: "a number was expected" });
+    return this.formatError({
+      title: "expected number",
+      body: "a number was expected",
+    });
   }
 
   static expectedBoolean(): SourceMessage {
-    return this.formatError({ title: "expected boolean", body: "a boolean was expected" });
+    return this.formatError({
+      title: "expected boolean",
+      body: "a boolean was expected",
+    });
+  }
+
+  static expectedCallable(): SourceMessage {
+    return this.formatError({
+      title: "expected callable",
+      body: "a function or class was expected",
+    });
   }
 }

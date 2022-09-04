@@ -49,6 +49,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedParameter(): SourceMessage {
+    return this.formatError({
+      title: "expected parameter",
+      body: "a parameter name was expected",
+    });
+  }
+
   static expectedAssignment(): SourceMessage {
     return this.formatError({
       title: "expected assignment",
@@ -74,6 +81,13 @@ export class SyntaxErrors {
     return this.formatError({
       title: "expected left parenthesis",
       body: 'a left parenthesis "(" was expected',
+    });
+  }
+
+  static expectedLeftBrace(): SourceMessage {
+    return this.formatError({
+      title: "expected left brace",
+      body: 'a left brace "{" was expected',
     });
   }
 

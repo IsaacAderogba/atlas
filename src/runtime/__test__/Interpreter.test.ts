@@ -65,6 +65,24 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "NUMBER", value: 4 });
   });
 
+  it("interprets function statements", () => {
+    const { interpreter, interpret } = setupTests("fun sayHi() {}");
+    interpret();
+
+    const { tokens } = new Scanner("sayHi").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({
+      declaration: {
+        body: { statements: [] },
+        name: { lexeme: "sayHi", type: "IDENTIFIER" },
+        params: [],
+      },
+      type: "FUNCTION",
+    });
+  });
+
   it("interprets expression statements", () => {
     const { interpreter, interpret } = setupTests(
       'var x = true ? "hello" : "goodbye";'
@@ -179,6 +197,23 @@ describe("Interpreter statements", () => {
 });
 
 describe("Interpreter evaluations", () => {
+  it("executes call expressions", () => {
+    const { interpreter, interpret } = setupTests(`
+      var x = 1; 
+      fun sayHi() { 
+        x = 2;
+      }
+      sayHi();
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+  });
+
   it("evaluates assignment expressions", () => {
     const { interpreter, interpret } = setupTests("var x = 4;");
     interpret();
@@ -319,6 +354,38 @@ describe("Interpreter errors", () => {
       expect(errors[0].message).toMatchObject(
         RuntimeErrors.prohibitedZeroDivision()
       );
+    });
+  });
+
+  it("errors with mismatched arity", () => {
+    const sources = [
+      `
+      var x = 1; 
+      fun sayHi(a, b) { 
+        x = 2;
+      }
+      sayHi("a", "b", "c");
+    `,
+    ];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toMatchObject(
+        RuntimeErrors.mismatchedArity(2, 3)
+      );
+    });
+  });
+
+  it("errors with expected callable", () => {
+    const sources = [`"hi"();`];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedCallable());
     });
   });
 });

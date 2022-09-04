@@ -1,6 +1,7 @@
 import {
   AssignExpr,
   BinaryExpr,
+  CallExpr,
   Expr,
   ExprVisitor,
   GroupingExpr,
@@ -22,6 +23,7 @@ import {
   BreakStmt,
   ContinueStmt,
   ExpressionStmt,
+  FunctionStmt,
   IfStmt,
   PrintStmt,
   Stmt,
@@ -31,13 +33,17 @@ import {
 } from "../ast/Stmt";
 import { Reporter } from "../reporter/Reporter";
 import { Environment } from "./Environment";
+import { AtlasCallable } from "./AtlasCallable";
+import { globals } from "./globals";
+import { AtlasFunction } from "./AtlasFunction";
 
 interface InterpreterProps {
   reporter: Reporter;
 }
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
-  private environment = new Environment();
+  readonly globals: Environment = Environment.fromGlobals(globals);
+  private environment = this.globals;
   private reporter: Reporter;
 
   constructor({ reporter }: InterpreterProps) {
@@ -86,6 +92,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
+  }
+
+  visitFunctionStmt(stmt: FunctionStmt): void {
+    const func = new AtlasFunction(stmt);
+    this.environment.define(stmt.name.lexeme, func);
   }
 
   visitPrintStmt(stmt: PrintStmt): void {
@@ -231,6 +242,20 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
   }
 
+  visitCallExpr(expr: CallExpr): AtlasValue {
+    const callee = this.getCallable(expr.callee, this.evaluate(expr.callee));
+    const args = expr.args.map(arg => this.evaluate(arg));
+
+    if (callee.arity() !== args.length) {
+      throw this.error(
+        expr.closingParen,
+        RuntimeErrors.mismatchedArity(callee.arity(), args.length)
+      );
+    }
+
+    return callee.call(this, args);
+  }
+
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
     return expr.value;
   }
@@ -270,6 +295,15 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     if (operand.type === "TRUE") return operand.value;
     if (operand.type === "FALSE") return operand.value;
     throw this.error(source, RuntimeErrors.expectedBoolean());
+  }
+
+  private getCallable(
+    source: SourceRangeable,
+    operand: AtlasValue
+  ): AtlasCallable {
+    if (operand.type === "FUNCTION") return operand;
+    if (operand.type === "NATIVE_FUNCTION") return operand;
+    throw this.error(source, RuntimeErrors.expectedCallable());
   }
 
   private error(source: SourceRangeable, message: SourceMessage): RuntimeError {

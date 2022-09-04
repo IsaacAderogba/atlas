@@ -11,6 +11,17 @@ const setupTests = (source: string): { parser: Parser } => {
 };
 
 describe("Parser statements", () => {
+  it("parses function declaration statements", () => {
+    const { parser } = setupTests("fun sayHi() {}");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      body: { statements: [] },
+      name: { lexeme: "sayHi", type: "IDENTIFIER" },
+      params: [],
+    });
+  });
+
   it("parses variable declaration statements", () => {
     const { parser } = setupTests("var x = 4;");
 
@@ -251,6 +262,32 @@ describe("Parser expressions", () => {
     });
   });
 
+  it("parses call expressions", () => {
+    const { parser } = setupTests("sayHi()");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      args: [],
+      callee: {
+        name: { lexeme: "sayHi", type: "IDENTIFIER" },
+      },
+      closingParen: { lexeme: ")", type: "RIGHT_PAREN" },
+    });
+  });
+
+  it("parses parameter expressions", () => {
+    const { parser } = setupTests("sayHi(param)");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      args: [
+        {
+          name: { lexeme: "param", type: "IDENTIFIER" },
+        },
+      ],
+    });
+  });
+
   it("parses primary expressions", () => {
     const { parser } = setupTests("'passes'");
 
@@ -283,7 +320,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if", "while"];
+    const expressions = ["if", "while", "fun hi"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -300,6 +337,7 @@ describe("Parser errors", () => {
       "while (4 == 4",
       "while (4 == 4; 4;",
       "while (4 == 4; true ? true : false",
+      "fun hi(param",
     ];
 
     expressions.forEach(expr => {
@@ -350,11 +388,26 @@ describe("Parser errors", () => {
     });
   });
 
-  it("errors with expected identifier", () => {
-    const { parser } = setupTests("var ");
+  it("errors with expected parameter", () => {
+    const tests = ["fun func("];
+    tests.forEach(test => {
+      const { parser } = setupTests(test);
 
-    const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedIdentifier());
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedParameter());
+    });
+  });
+
+  it("errors with expected identifier", () => {
+    const tests = ["var", "fun"];
+    tests.forEach(test => {
+      const { parser } = setupTests(test);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedIdentifier()
+      );
+    });
   });
 
   it("errors with expected assignment", () => {
@@ -376,6 +429,17 @@ describe("Parser errors", () => {
 
       const { errors } = parser.parse();
       expect(errors[0].message).toMatchObject(SyntaxErrors.expectedSemiColon());
+    });
+  });
+
+  it("errors with expected left brace", () => {
+    const tests = ["fun sayHi()"];
+
+    tests.forEach(test => {
+      const { parser } = setupTests(test);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftBrace());
     });
   });
 

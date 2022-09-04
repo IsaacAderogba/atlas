@@ -9,6 +9,7 @@ import {
   VariableExpr,
   AssignExpr,
   LogicalExpr,
+  CallExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -16,6 +17,7 @@ import {
   ContinueStmt,
   ErrorStmt,
   ExpressionStmt,
+  FunctionStmt,
   IfStmt,
   PrintStmt,
   Stmt,
@@ -26,6 +28,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
+import { Parameter } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -55,6 +58,7 @@ export class Parser {
 
   private declaration(): Stmt {
     try {
+      if (this.match("FUN")) return this.funDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -62,6 +66,16 @@ export class Parser {
       if (error instanceof SyntaxError) throw this.errorStatement(error);
       throw error;
     }
+  }
+
+  private funDeclaration(): Stmt {
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+    const parameters = this.parameters();
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+
+    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+    return new FunctionStmt(name, parameters, this.blockStatement());
   }
 
   private varDeclaration(): Stmt {
@@ -130,7 +144,7 @@ export class Parser {
     return new PrintStmt(value);
   }
 
-  private blockStatement(): Stmt {
+  private blockStatement(): BlockStmt {
     const statements: Stmt[] = [];
 
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
@@ -259,7 +273,27 @@ export class Parser {
       return new UnaryExpr(operator, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  private call(): Expr {
+    let expr = this.primary();
+
+    while (true) {
+      if (this.match("LEFT_PAREN")) {
+        const args = this.arguments();
+        const paren = this.consume(
+          "RIGHT_PAREN",
+          SyntaxErrors.expectedRightParen()
+        );
+
+        expr = new CallExpr(expr, args, paren);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
   }
 
   private primary(): Expr {
@@ -331,6 +365,35 @@ export class Parser {
     }
 
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
+  }
+
+  private arguments(): Expr[] {
+    const args: Expr[] = [];
+
+    if (!this.check("RIGHT_PAREN")) {
+      do {
+        args.push(this.expression());
+      } while (this.match("COMMA"));
+    }
+
+    return args;
+  }
+
+  private parameters(): Parameter[] {
+    const params: Parameter[] = [];
+
+    if (!this.check("RIGHT_PAREN")) {
+      do {
+        params.push(this.parameter());
+      } while (this.match("COMMA"));
+    }
+
+    return params;
+  }
+
+  private parameter(): Parameter {
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedParameter());
+    return new Parameter(name);
   }
 
   private match(...types: TokenType[]): boolean {

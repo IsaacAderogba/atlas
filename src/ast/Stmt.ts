@@ -1,5 +1,6 @@
 import { SyntaxError } from "../errors/SyntaxError";
 import { Expr } from "./Expr";
+import { Parameter } from "./Node";
 import { Token } from "./Token";
 
 interface BaseStmt {
@@ -46,6 +47,18 @@ export class ExpressionStmt implements BaseStmt {
   }
 }
 
+export class FunctionStmt {
+  constructor(
+    readonly name: Token,
+    readonly params: Parameter[],
+    readonly body: BlockStmt
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitFunctionStmt(this);
+  }
+}
+
 export class PrintStmt implements BaseStmt {
   constructor(readonly expression: Expr) {}
 
@@ -78,7 +91,7 @@ export class WhileStmt {
   constructor(
     readonly condition: Expr,
     readonly body: Stmt,
-    readonly increment: Expr | undefined,
+    readonly increment: Expr | undefined
   ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
@@ -91,6 +104,7 @@ export type Stmt =
   | BreakStmt
   | ContinueStmt
   | ErrorStmt
+  | FunctionStmt
   | IfStmt
   | VarStmt
   | WhileStmt
@@ -103,6 +117,7 @@ export interface StmtVisitor<T> {
   visitContinueStmt(stmt: ContinueStmt): T;
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
+  visitFunctionStmt(stmt: FunctionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitVarStmt(stmt: VarStmt): T;

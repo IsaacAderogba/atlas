@@ -58,6 +58,24 @@ export class BinaryExpr implements BaseExpr {
   }
 }
 
+export class CallExpr implements BaseExpr {
+  constructor(
+    readonly callee: Expr,
+    readonly args: Expr[],
+    readonly closingParen: Token
+  ) {}
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitCallExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.callee.sourceRange().start;
+    const end = this.closingParen.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class GroupingExpr implements BaseExpr {
   constructor(readonly expression: Expr) {}
 
@@ -154,6 +172,7 @@ export type Expr =
   | AssignExpr
   | TernaryExpr
   | BinaryExpr
+  | CallExpr
   | GroupingExpr
   | LiteralExpr
   | LogicalExpr
@@ -163,8 +182,9 @@ export type Expr =
 
 export interface ExprVisitor<T> {
   visitAssignExpr(expr: AssignExpr): T;
-  visitTernaryExpr(expr: TernaryExpr): T;
   visitBinaryExpr(expr: BinaryExpr): T;
+  visitCallExpr(expr: CallExpr): T;
+  visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
