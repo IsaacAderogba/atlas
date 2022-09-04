@@ -19,6 +19,7 @@ import {
   ExpressionStmt,
   FunctionStmt,
   IfStmt,
+  ReturnStmt,
   Stmt,
   VarStmt,
   WhileStmt,
@@ -87,6 +88,7 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("RETURN")) return this.returnStatement();
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
@@ -94,6 +96,14 @@ export class Parser {
     if (this.match("CONTINUE")) return this.continueStatement();
 
     return this.expressionStatement();
+  }
+
+  private returnStatement(): Stmt {
+    const keyword = this.previous();
+    const value = this.expression();
+    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+
+    return new ReturnStmt(keyword, value);
   }
 
   private whileStatement(): Stmt {

@@ -34,6 +34,18 @@ describe("Parser statements", () => {
     });
   });
 
+  it("parses return statements", () => {
+    const { parser } = setupTests("return 4;");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      keyword: { lexeme: "return", type: "RETURN" },
+      value: {
+        token: { lexeme: "4", type: "NUMBER" },
+      },
+    });
+  });
+
   it("parses while condition statements", () => {
     const { parser } = setupTests("while (4 + 4) 4;");
 
@@ -422,6 +434,7 @@ describe("Parser errors", () => {
       "var x = null",
       "while(true) break",
       "while(true) continue",
+      "return 4",
     ];
 
     expressions.forEach(expr => {

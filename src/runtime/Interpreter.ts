@@ -20,11 +20,10 @@ import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
-  BreakStmt,
-  ContinueStmt,
   ExpressionStmt,
   FunctionStmt,
   IfStmt,
+  ReturnStmt,
   Stmt,
   StmtVisitor,
   VarStmt,
@@ -34,6 +33,7 @@ import { Environment } from "./Environment";
 import { AtlasCallable } from "./AtlasCallable";
 import { globals } from "./globals";
 import { AtlasFunction } from "./AtlasFunction";
+import { Break, Continue, Return } from "./Throws";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -101,14 +101,19 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(stmt.body);
         if (stmt.increment) this.evaluate(stmt.increment);
       } catch (err) {
-        if (err instanceof BreakStmt) break;
-        if (err instanceof ContinueStmt) {
+        if (err instanceof Break) break;
+        if (err instanceof Continue) {
           if (stmt.increment) this.evaluate(stmt.increment);
           continue;
         }
         throw err;
       }
     }
+  }
+
+  visitReturnStmt(stmt: ReturnStmt): void {
+    const value = this.evaluate(stmt.value);
+    throw new Return(value);
   }
 
   visitIfStmt(stmt: IfStmt): void {
@@ -119,12 +124,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
   }
 
-  visitBreakStmt(stmt: BreakStmt): void {
-    throw stmt;
+  visitBreakStmt(): void {
+    throw new Break();
   }
 
-  visitContinueStmt(stmt: ContinueStmt): void {
-    throw stmt;
+  visitContinueStmt(): void {
+    throw new Continue();
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {

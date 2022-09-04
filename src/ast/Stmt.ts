@@ -71,6 +71,15 @@ export class IfStmt implements BaseStmt {
   }
 }
 
+export class ReturnStmt {
+  constructor(readonly keyword: Token, readonly value: Expr) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitReturnStmt(this);
+  }
+}
+
+
 export class VarStmt implements BaseStmt {
   constructor(readonly name: Token, readonly initializer: Expr) {}
 
@@ -91,6 +100,7 @@ export class WhileStmt {
   }
 }
 
+
 export type Stmt =
   | BlockStmt
   | BreakStmt
@@ -98,6 +108,7 @@ export type Stmt =
   | ErrorStmt
   | FunctionStmt
   | IfStmt
+  | ReturnStmt
   | VarStmt
   | WhileStmt
   | ExpressionStmt;
@@ -110,6 +121,7 @@ export interface StmtVisitor<T> {
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitFunctionStmt(stmt: FunctionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
+  visitReturnStmt(stmt: ReturnStmt): T;
   visitVarStmt(stmt: VarStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;
 }

@@ -6,12 +6,14 @@ funDecl        -> "fun" function ;
 varDecl        -> "var" IDENTIFIER "=" expression ";" ;
 statement      -> exprStmt
                 | ifStmt
+                | returnStmt
                 | whileStmt
                 | breakStmt
                 | continueStmt
                 | block ;
 exprStmt       -> expression ";" ;
 ifStmt         -> "if" "(" expression ")" statement ( "else" statement )? ;
+returnStmt     -> "return" expression ";" ;
 whileStmt      -> "while" "(" expression ( ";" expression )? ")" statement ;
 breakStmt      -> "break" ";" ;
 continueStmt   -> "continue" ";" ;

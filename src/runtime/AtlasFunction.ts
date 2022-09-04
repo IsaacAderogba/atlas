@@ -5,6 +5,7 @@ import { AtlasValue } from "./AtlasValue";
 import { Environment } from "./Environment";
 import { Interpreter } from "./Interpreter";
 import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
+import { Return } from "./Throws";
 
 class AtlasFunction implements AtlasCallable {
   readonly type = "FUNCTION";
@@ -23,7 +24,13 @@ class AtlasFunction implements AtlasCallable {
       environment.define(param.name.lexeme, args[i]);
     }
 
-    interpreter.executeBlock(this.declaration.body.statements, environment);
+    try {
+      interpreter.executeBlock(this.declaration.body.statements, environment);
+    } catch (err) {
+      if (err instanceof Return) return err.value;
+      throw err;
+    }
+
     return new AtlasNull();
   }
 

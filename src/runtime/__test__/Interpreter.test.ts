@@ -2,7 +2,6 @@ import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
-import { ConsoleReporter } from "../../reporter/ConsoleReporter";
 import { Interpreter } from "../Interpreter";
 
 interface SetupTests {
@@ -21,7 +20,7 @@ const setupTests = (source: string): SetupTests => {
   }
 
   const parser = new Parser(tokens);
-  const interpreter = new Interpreter({ reporter: new ConsoleReporter() });
+  const interpreter = new Interpreter();
 
   const setup: SetupTests = {
     interpreter,
@@ -43,6 +42,22 @@ const setupTests = (source: string): SetupTests => {
 };
 
 describe("Interpreter statements", () => {
+  it("interprets return statements", () => {
+    const { interpreter, interpret } = setupTests(`
+      fun sayHi() { 
+        return 3;
+      }
+      var x = sayHi();
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "NUMBER", value: 3 });
+  });
+
   it("interprets block statements", () => {
     const { interpreter, interpret } = setupTests("var x = 4; { x = 2; }");
     interpret();
