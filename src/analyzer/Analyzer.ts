@@ -69,10 +69,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       this.declare(param.name);
       this.define(param.name);
     }
-
-    for (const statement of func.body.statements) {
-      this.analyzeStmt(statement);
-    }
+    this.executeBlock(func.body.statements);
 
     this.endScope();
     this.currentFunction = enclosingFunction;
@@ -86,11 +83,15 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  visitBlockStmt(stmt: BlockStmt): void {
-    this.beginScope();
-    for (const statement of stmt.statements) {
+  executeBlock(statements: Stmt[]): void {
+    for (const statement of statements) {
       this.analyzeStmt(statement);
     }
+  }
+
+  visitBlockStmt(stmt: BlockStmt): void {
+    this.beginScope();
+    this.executeBlock(stmt.statements);
     this.endScope();
   }
 
