@@ -1,6 +1,10 @@
 export class Stack<T> implements Iterable<T> {
   private storage: T[] = [];
 
+  constructor(...items: T[]) {
+    items.forEach(item => this.push(item));
+  }
+
   push(item: T): void {
     this.storage.push(item);
   }

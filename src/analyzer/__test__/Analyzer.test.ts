@@ -47,4 +47,15 @@ describe("Analyzer errors", () => {
       expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedReturn());
     });
   });
+
+  it("errors with prohibited redeclaration", () => {
+    const expressions = ["var x = 4; var print = 4;"];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedRedeclaration());
+    });
+  });
 });

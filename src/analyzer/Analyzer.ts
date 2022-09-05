@@ -26,12 +26,14 @@ import {
 import { Token } from "../ast/Token";
 import { SemanticError, SemanticErrors } from "../errors/SemanticError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
+import { AtlasValue } from "../interpreter/AtlasValue";
+import { globals } from "../interpreter/globals";
 import { Interpreter } from "../interpreter/Interpreter";
 import { Stack } from "../utils/Stack";
 import { FunctionType } from "./Enums";
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
-  private readonly scopes: Stack<Map<string, boolean>> = new Stack();
+  private readonly scopes = new Stack(Scope.fromGlobals(globals));
   private currentFunction = FunctionType.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
@@ -192,7 +194,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private beginScope(): void {
-    this.scopes.push(new Map());
+    this.scopes.push(new Scope());
   }
 
   private endScope(): void {
@@ -222,5 +224,29 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     const error = new SemanticError(message, source.sourceRange());
     this.errors.push(error);
     return error;
+  }
+}
+
+class Scope {
+  private storage = new Map<string, boolean>();
+
+  static fromGlobals(obj: { [name: string]: AtlasValue }): Scope {
+    const scope = new Scope();
+    for (const name of Object.keys(obj)) {
+      scope.storage.set(name, true);
+    }
+    return scope;
+  }
+
+  has(key: string): boolean {
+    return this.storage.has(key);
+  }
+
+  get(key: string): boolean | undefined {
+    return this.storage.get(key);
+  }
+
+  set(key: string, value: boolean): void {
+    this.storage.set(key, value);
   }
 }
