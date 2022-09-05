@@ -35,13 +35,6 @@ export class RuntimeErrors {
     });
   }
 
-  static prohibitedRedeclaration(): SourceMessage {
-    return this.formatError({
-      title: "prohibited variable redeclaration",
-      body: "existing variable cannot be redeclared",
-    });
-  }
-
   static mismatchedArity(expected: number, actual: number): SourceMessage {
     return this.formatError({
       title: "mismatched arity",

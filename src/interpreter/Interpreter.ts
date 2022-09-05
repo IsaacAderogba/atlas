@@ -97,7 +97,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitVarStmt(stmt: VarStmt): void {
     const value = this.evaluate(stmt.initializer);
-    this.environment.define(stmt.name.lexeme, value, stmt.name);
+    this.environment.define(stmt.name.lexeme, value);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {

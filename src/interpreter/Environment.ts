@@ -54,11 +54,7 @@ export class Environment {
     this.ancestor(distance).values.set(name.lexeme, value);
   }
 
-  define(name: string, value: AtlasValue, token?: Token): void {
-    if (this.values.has(name) && token) {
-      throw this.error(token, RuntimeErrors.prohibitedRedeclaration());
-    }
-
+  define(name: string, value: AtlasValue): void {
     this.values.set(name, value);
   }
 
