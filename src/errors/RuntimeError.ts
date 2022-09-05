@@ -56,6 +56,13 @@ export class RuntimeErrors {
   }
 
   //
+  static expectedString(): SourceMessage {
+    return this.formatError({
+      title: "expected string",
+      body: "a string was expected",
+    });
+  }
+
   static expectedNumber(): SourceMessage {
     return this.formatError({
       title: "expected number",

@@ -34,6 +34,7 @@ import { AtlasCallable } from "./AtlasCallable";
 import { globals } from "./globals";
 import { AtlasFunction } from "./AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
+import { AtlasString } from "./AtlasString";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -153,6 +154,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     const right = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
+      case "HASH":
+        return new AtlasString(
+          this.getStringValue(leftSource, left) +
+            this.getStringValue(rightSource, right)
+        );
       case "PLUS":
         return new AtlasNumber(
           this.getNumberValue(leftSource, left) +
@@ -270,6 +276,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {
     return this.environment.get(expr.name);
+  }
+
+  private getStringValue(source: SourceRangeable, operand: AtlasValue): string {
+    if (operand.type === "STRING") return operand.value;
+    throw this.error(source, RuntimeErrors.expectedString());
   }
 
   private getNumberValue(source: SourceRangeable, operand: AtlasValue): number {

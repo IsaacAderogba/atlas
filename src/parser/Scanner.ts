@@ -82,6 +82,9 @@ export class Scanner {
       case "?":
         this.addToken("QUESTION");
         break;
+      case "#":
+        this.addToken("HASH");
+        break;
       case ":":
         this.addToken("COLON");
         break;

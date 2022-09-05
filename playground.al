@@ -1,6 +1,5 @@
-fun scope(a) {
-  a = "local";
-  print(a);
+fun sayHi(first, last) {
+  print("Hi, " # first # last # "!");
 }
 
-scope("2");
+sayHi("Dear", "Reader");

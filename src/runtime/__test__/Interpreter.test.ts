@@ -276,6 +276,7 @@ describe("Interpreter evaluations", () => {
       { source: "4 <= 4", object: { value: true } },
       { source: "4 != 4", object: { value: false } },
       { source: "4 == 4", object: { value: true } },
+      { source: "'4' # '4'", object: { value: "44" } },
     ];
 
     tests.forEach(({ object, source }) => {
@@ -327,6 +328,17 @@ describe("Interpreter evaluations", () => {
 });
 
 describe("Interpreter errors", () => {
+  it("errors with expected string", () => {
+    const sources = ["4 # '4';"];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedString());
+    });
+  });
+
   it("errors with expected number", () => {
     const sources = [
       "-'4';",

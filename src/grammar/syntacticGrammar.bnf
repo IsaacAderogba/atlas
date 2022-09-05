@@ -26,7 +26,7 @@ logic_or       -> logic_and ( "or" logic_and )* ;
 logic_and      -> equality ( "and" equality )* ;
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-term           -> factor ( ( "-" | "+" ) factor )* ;
+term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
 call           -> primary ( "(" arguments? ")" )*;
@@ -36,7 +36,7 @@ error          -> ( "or" ) logic_or
                 | ( "and" ) logic_and
                 | ( "!=" | "==" ) equality
                 | ( ">" | ">=" | "<" | "<=" ) comparison
-                | ( "+" ) term
+                | ( "+" | "#" ) term
                 | ( "/" | "*" ) factor ;
 errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "return" | ";";
 

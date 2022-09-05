@@ -261,7 +261,7 @@ export class Parser {
   private term(): Expr {
     let expr = this.factor();
 
-    while (this.match("MINUS", "PLUS")) {
+    while (this.match("MINUS", "PLUS", "HASH")) {
       const operator = this.previous();
       const right = this.factor();
       expr = new BinaryExpr(expr, operator, right);
@@ -365,7 +365,7 @@ export class Parser {
         ["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"],
         this.comparison.bind(this),
       ],
-      [["PLUS"], this.term.bind(this)],
+      [["PLUS", "HASH"], this.term.bind(this)],
       [["SLASH", "STAR"], this.comparison.bind(this)],
     ];
 
