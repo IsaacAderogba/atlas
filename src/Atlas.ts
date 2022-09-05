@@ -41,7 +41,7 @@ export class Atlas {
 
     if (scanErrs.length) {
       this.reportErrors(source, scanErrs);
-      return { status: AtlasStatus.SYNTAX_ERROR, statements: [] };
+      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     const parser = new Parser(tokens);
@@ -49,14 +49,14 @@ export class Atlas {
 
     if (parseErrs.length) {
       this.reportErrors(source, parseErrs);
-      return { status: AtlasStatus.SYNTAX_ERROR, statements: [] };
+      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     const analyzer = new Analyzer(this.interpreter, statements);
     const { errors: analyzeErrs } = analyzer.analyze();
     if (analyzeErrs.length) {
       this.reportErrors(source, analyzeErrs);
-      return { status: AtlasStatus.SEMANTIC_ERROR, statements: [] };
+      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     return { status: AtlasStatus.VALID, statements };

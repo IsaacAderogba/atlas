@@ -30,9 +30,7 @@ function runFile(path: string): void {
   const status = atlas.run(source);
 
   switch (status) {
-    case AtlasStatus.SYNTAX_ERROR:
-    case AtlasStatus.SEMANTIC_ERROR:
-    case AtlasStatus.TYPE_ERROR:
+    case AtlasStatus.STATIC_ERROR:
       return process.exit(65);
     case AtlasStatus.RUNTIME_ERROR:
       return process.exit(70);
