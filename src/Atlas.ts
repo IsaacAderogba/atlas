@@ -2,7 +2,7 @@ import { Stmt } from "./ast/Stmt";
 import { Parser } from "./parser/Parser";
 import { Scanner } from "./parser/Scanner";
 import { Reporter } from "./reporter/Reporter";
-import { Interpreter } from "./runtime/Interpreter";
+import { Interpreter } from "./interpreter/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 
 interface AtlasProps {

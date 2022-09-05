@@ -1,10 +1,10 @@
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
-import { AtlasFalse } from "../../runtime/AtlasFalse";
-import { AtlasNull } from "../../runtime/AtlasNull";
-import { AtlasNumber } from "../../runtime/AtlasNumber";
-import { AtlasString } from "../../runtime/AtlasString";
-import { AtlasTrue } from "../../runtime/AtlasTrue";
+import { AtlasFalse } from "../../interpreter/AtlasFalse";
+import { AtlasNull } from "../../interpreter/AtlasNull";
+import { AtlasNumber } from "../../interpreter/AtlasNumber";
+import { AtlasString } from "../../interpreter/AtlasString";
+import { AtlasTrue } from "../../interpreter/AtlasTrue";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { scanner: Scanner } => {

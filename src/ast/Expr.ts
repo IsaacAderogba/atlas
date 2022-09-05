@@ -1,5 +1,5 @@
 import { SyntaxError } from "../errors/SyntaxError";
-import { AtlasValue } from "../runtime/AtlasValue";
+import { AtlasValue } from "../interpreter/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
 

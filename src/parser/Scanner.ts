@@ -1,15 +1,15 @@
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
-import { AtlasValue } from "../runtime/AtlasValue";
+import { AtlasValue } from "../interpreter/AtlasValue";
 import { SourceMessage, SourceRange } from "../errors/SourceError";
 import { Keywords } from "./Keywords";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
-import { AtlasString } from "../runtime/AtlasString";
-import { AtlasNumber } from "../runtime/AtlasNumber";
-import { AtlasNull } from "../runtime/AtlasNull";
-import { AtlasTrue } from "../runtime/AtlasTrue";
-import { AtlasFalse } from "../runtime/AtlasFalse";
+import { AtlasString } from "../interpreter/AtlasString";
+import { AtlasNumber } from "../interpreter/AtlasNumber";
+import { AtlasNull } from "../interpreter/AtlasNull";
+import { AtlasTrue } from "../interpreter/AtlasTrue";
+import { AtlasFalse } from "../interpreter/AtlasFalse";
 
 export class Scanner {
   private readonly source: string;

@@ -1,5 +1,5 @@
-fun sayHi(first, last) {
-  print("Hi, " # first # last # "!");
+var a = "outer";
+{
+  var a = "inner";
+  print(a);
 }
-
-sayHi("Dear", "Reader");
