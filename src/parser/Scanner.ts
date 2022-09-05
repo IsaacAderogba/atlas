@@ -166,7 +166,9 @@ export class Scanner {
       this.advance();
     }
 
-    if (this.isAtEnd()) return this.error(SyntaxErrors.unterminatedString());
+    if (this.isAtEnd()) {
+      return this.error(SyntaxErrors.unterminatedString());
+    }
 
     // The closing " | '.
     this.advance();
