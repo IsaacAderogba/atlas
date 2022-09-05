@@ -34,4 +34,5 @@ export interface SourceLocation {
 export interface SourceMessage {
   title: string;
   body: string;
+  type: "error" | "warning"
 }

@@ -1,3 +1,4 @@
+import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
 export class SyntaxError implements SourceError {
@@ -8,8 +9,12 @@ export class SyntaxError implements SourceError {
 }
 
 export class SyntaxErrors {
-  static formatError({ title, body }: SourceMessage): SourceMessage {
-    return { title: "syntax error: " + title, body };
+  static formatError({
+    title,
+    body = "",
+    type = "error",
+  }: RequiredKeys<SourceMessage, "title">): SourceMessage {
+    return { title: "syntax error: " + title, body, type };
   }
 
   //

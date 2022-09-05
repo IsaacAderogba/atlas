@@ -10,7 +10,7 @@ export class ConsoleReporter implements Reporter {
   rangeError(
     source: string,
     range: SourceRange,
-    { title, body }: SourceMessage
+    { title, body, type }: SourceMessage
   ): void {
     const indent = 6;
 
@@ -24,10 +24,11 @@ export class ConsoleReporter implements Reporter {
 
     const lineColumn = chalk.red(`${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
-    const errMessage = chalk.red(title);
+
+    const errorChalk = type === "error" ? chalk.red : chalk.yellow;
 
     const report =
-      `\n${lineColumn}${errMessage}\n\n` +
+      `\n${lineColumn}${errorChalk(title)}\n\n` +
       `${startLine}${sourceLine}\n` +
       chalk.blue(`${underline} ${body}`);
 

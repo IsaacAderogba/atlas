@@ -1,3 +1,4 @@
+import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
 export class SemanticError implements SourceError {
@@ -8,8 +9,12 @@ export class SemanticError implements SourceError {
 }
 
 export class SemanticErrors {
-  static formatError({ title, body }: SourceMessage): SourceMessage {
-    return { title: "semantic error: " + title, body };
+  static formatError({
+    title,
+    body = "",
+    type = "error",
+  }: RequiredKeys<SourceMessage, "title">): SourceMessage {
+    return { title: "semantic error: " + title, body, type };
   }
 
   //
