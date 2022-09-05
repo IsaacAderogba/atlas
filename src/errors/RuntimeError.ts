@@ -20,6 +20,13 @@ export class RuntimeErrors {
     });
   }
 
+  static unresolvedVariable(name: string, distance: number): SourceMessage {
+    return this.formatError({
+      title: "unresolved variable",
+      body: `unable to find variable "${name}" at environment distance ${distance}`,
+    });
+  }
+
   //
   static prohibitedZeroDivision(): SourceMessage {
     return this.formatError({

@@ -4,6 +4,8 @@ import { Scanner } from "./parser/Scanner";
 import { Reporter } from "./reporter/Reporter";
 import { Interpreter } from "./interpreter/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
+import { Analyzer } from "./analyzer/Analyzer";
+import { SourceError } from "./errors/SourceError";
 
 interface AtlasProps {
   reporter: Reporter;
@@ -38,9 +40,7 @@ export class Atlas {
     const { tokens, errors: scanErrs } = scanner.scan();
 
     if (scanErrs.length) {
-      scanErrs.forEach(e =>
-        this.reporter.rangeError(source, e.sourceRange, e.message)
-      );
+      this.reportErrors(source, scanErrs);
       return { status: AtlasStatus.SYNTAX_ERROR, statements: [] };
     }
 
@@ -48,12 +48,23 @@ export class Atlas {
     const { statements, errors: parseErrs } = parser.parse();
 
     if (parseErrs.length) {
-      parseErrs.forEach(e =>
-        this.reporter.rangeError(source, e.sourceRange, e.message)
-      );
+      this.reportErrors(source, parseErrs);
       return { status: AtlasStatus.SYNTAX_ERROR, statements: [] };
     }
 
+    const analyzer = new Analyzer(this.interpreter, statements);
+    const { errors: analyzeErrs } = analyzer.analyze();
+    if (analyzeErrs.length) {
+      this.reportErrors(source, analyzeErrs);
+      return { status: AtlasStatus.SEMANTIC_ERROR, statements: [] };
+    }
+
     return { status: AtlasStatus.VALID, statements };
+  }
+
+  private reportErrors(source: string, errors: SourceError[]): void {
+    errors.forEach(e =>
+      this.reporter.rangeError(source, e.sourceRange, e.message)
+    );
   }
 }

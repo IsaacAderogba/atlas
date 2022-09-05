@@ -28,6 +28,18 @@ export class Environment {
     throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
   }
 
+  getAt(name: string, distance: number, token?: Token): AtlasValue {
+    const value = this.ancestor(distance).values.get(name);
+
+    if (value === undefined) {
+      const err = RuntimeErrors.unresolvedVariable(name, distance);
+      if (!token) throw new Error(`${err.title}: ${err.body}`);
+      throw this.error(token, err);
+    }
+
+    return value;
+  }
+
   assign(token: Token, value: AtlasValue): void {
     if (this.values.has(token.lexeme)) {
       this.values.set(token.lexeme, value);
@@ -38,12 +50,26 @@ export class Environment {
     }
   }
 
+  assignAt(distance: number, name: Token, value: AtlasValue): void {
+    this.ancestor(distance).values.set(name.lexeme, value);
+  }
+
   define(name: string, value: AtlasValue, token?: Token): void {
     if (this.values.has(name) && token) {
       throw this.error(token, RuntimeErrors.prohibitedRedeclaration());
     }
 
     this.values.set(name, value);
+  }
+
+  ancestor(distance: number): Environment {
+    let environment = this as Environment;
+
+    for (let i = 0; i < distance && environment.enclosing; i++) {
+      environment = environment.enclosing;
+    }
+
+    return environment;
   }
 
   private error(source: SourceRangeable, message: SourceMessage): RuntimeError {

@@ -35,10 +35,12 @@ import { globals } from "./globals";
 import { AtlasFunction } from "./AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
 import { AtlasString } from "./AtlasString";
+import { Token } from "../ast/Token";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
   private environment = this.globals;
+  private readonly locals: Map<Expr, number> = new Map();
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {
@@ -59,8 +61,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     return expr.accept(this);
   }
 
-  private execute(stmt: Stmt): void {
+  execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  resolve(expr: Expr, depth: number): void {
+    this.locals.set(expr, depth);
   }
 
   executeBlock(statements: Stmt[], environment: Environment): void {
@@ -135,7 +141,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
     const value = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+
+    const distance = this.locals.get(expr);
+    if (distance !== undefined) {
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      this.globals.assign(expr.name, value);
+    }
+
     return value;
   }
 
@@ -275,7 +288,15 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {
-    return this.environment.get(expr.name);
+    return this.lookupVariable(expr.name, expr);
+  }
+
+  private lookupVariable(name: Token, expr: Expr): AtlasValue {
+    const distance = this.locals.get(expr);
+    if (distance !== undefined) {
+      return this.environment.getAt(name.lexeme, distance, name);
+    }
+    return this.globals.get(name);
   }
 
   private getStringValue(source: SourceRangeable, operand: AtlasValue): string {

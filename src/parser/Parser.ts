@@ -34,8 +34,6 @@ export class Parser {
   private tokens: Token[];
   private errors: SyntaxError[] = [];
   private current = 0;
-  private loopDepth = 0;
-  private functionDepth = 0;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -76,13 +74,9 @@ export class Parser {
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
-    try {
-      this.functionDepth++;
-      const body = this.blockStatement();
-      return new FunctionStmt(name, parameters, body);
-    } finally {
-      this.functionDepth--;
-    }
+
+    const body = this.blockStatement();
+    return new FunctionStmt(name, parameters, body);
   }
 
   private varDeclaration(): VarStmt {
@@ -107,9 +101,6 @@ export class Parser {
 
   private returnStatement(): ReturnStmt {
     const keyword = this.previous();
-    if (this.functionDepth === 0) {
-      this.error(keyword, SyntaxErrors.expectedFunctionContext());
-    }
     const value = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
 
@@ -122,13 +113,8 @@ export class Parser {
     const increment = this.match("SEMICOLON") ? this.expression() : undefined;
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
-    try {
-      this.loopDepth++;
-      const body = this.statement();
-      return new WhileStmt(condition, body, increment);
-    } finally {
-      this.loopDepth--;
-    }
+    const body = this.statement();
+    return new WhileStmt(condition, body, increment);
   }
 
   private ifStatement(): IfStmt {
@@ -144,18 +130,12 @@ export class Parser {
 
   private breakStatement(): BreakStmt {
     const token = this.previous();
-    if (this.loopDepth === 0) {
-      this.error(token, SyntaxErrors.expectedLoopContext());
-    }
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new BreakStmt(token);
   }
 
   private continueStatement(): ContinueStmt {
     const token = this.previous();
-    if (this.loopDepth === 0) {
-      this.error(token, SyntaxErrors.expectedLoopContext());
-    }
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ContinueStmt(token);
   }

@@ -472,30 +472,4 @@ describe("Parser errors", () => {
       SyntaxErrors.invalidAssignmentTarget()
     );
   });
-
-  it("errors with expected loop context", () => {
-    const expressions = ["break;", "continue;"];
-
-    expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
-
-      const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
-        SyntaxErrors.expectedLoopContext()
-      );
-    });
-  });
-
-  it("errors with expected function context", () => {
-    const expressions = ["return;"];
-
-    expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
-
-      const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
-        SyntaxErrors.expectedFunctionContext()
-      );
-    });
-  });
 });
