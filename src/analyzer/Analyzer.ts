@@ -69,7 +69,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       this.declare(param.name);
       this.define(param.name);
     }
-    this.executeBlock(func.body.statements);
+    this.analyzeBlock(func.body.statements);
 
     this.endScope();
     this.currentFunction = enclosingFunction;
@@ -83,7 +83,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  executeBlock(statements: Stmt[]): void {
+  analyzeBlock(statements: Stmt[]): void {
     for (const statement of statements) {
       this.analyzeStmt(statement);
     }
@@ -91,7 +91,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitBlockStmt(stmt: BlockStmt): void {
     this.beginScope();
-    this.executeBlock(stmt.statements);
+    this.analyzeBlock(stmt.statements);
     this.endScope();
   }
 
@@ -105,6 +105,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     if (this.loopDepth === 0) {
       this.error(stmt.token, SemanticErrors.prohibitedContinue());
     }
+  }
+
+  visitExpressionStmt(stmt: ExpressionStmt): void {
+    this.analyzeExpr(stmt.expression);
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
@@ -126,10 +130,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(stmt.value);
   }
 
-  visitExpressionStmt(stmt: ExpressionStmt): void {
-    this.analyzeExpr(stmt.expression);
-  }
-
   visitVarStmt(stmt: VarStmt): void {
     this.declare(stmt.name);
     this.analyzeExpr(stmt.initializer);
@@ -139,6 +139,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   visitWhileStmt(stmt: WhileStmt): void {
     this.analyzeExpr(stmt.condition);
     if (stmt.increment) this.analyzeExpr(stmt.increment);
+
     this.loopDepth++;
     this.analyzeStmt(stmt.body);
     this.loopDepth--;

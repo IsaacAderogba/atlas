@@ -28,7 +28,7 @@ class AtlasFunction implements AtlasCallable {
     }
 
     try {
-      interpreter.executeBlock(this.declaration.body.statements, environment);
+      interpreter.interpretBlock(this.declaration.body.statements, environment);
     } catch (err) {
       if (err instanceof Return) return err.value;
       throw err;

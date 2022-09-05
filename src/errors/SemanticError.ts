@@ -16,7 +16,7 @@ export class SemanticErrors {
   static prohibitedVariableInitializer(): SourceMessage {
     return this.formatError({
       title: "prohbited variable initializer",
-      body: "a variable initializer cannot reference the variable being initialized",
+      body: "variable cannot reference the variable being initialized",
     });
   }
 

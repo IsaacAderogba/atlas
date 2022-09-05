@@ -69,7 +69,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.locals.set(expr, depth);
   }
 
-  executeBlock(statements: Stmt[], environment: Environment): void {
+  interpretBlock(statements: Stmt[], environment: Environment): void {
     const previous = this.environment;
 
     try {
@@ -83,7 +83,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    this.executeBlock(stmt.statements, new Environment(this.environment));
+    this.interpretBlock(stmt.statements, new Environment(this.environment));
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
