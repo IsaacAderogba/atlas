@@ -38,33 +38,32 @@ export class Atlas {
   check(source: string): { status: AtlasStatus; statements: Stmt[] } {
     const scanner = new Scanner(source);
     const { tokens, errors: scanErrs } = scanner.scan();
-
-    if (scanErrs.length) {
-      this.reportErrors(source, scanErrs);
+    if (this.reportErrors(source, scanErrs)) {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     const parser = new Parser(tokens);
     const { statements, errors: parseErrs } = parser.parse();
-
-    if (parseErrs.length) {
-      this.reportErrors(source, parseErrs);
+    if (this.reportErrors(source, parseErrs)) {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     const analyzer = new Analyzer(this.interpreter, statements);
     const { errors: analyzeErrs } = analyzer.analyze();
-    if (analyzeErrs.length) {
-      this.reportErrors(source, analyzeErrs);
+    if (this.reportErrors(source, analyzeErrs)) {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
     return { status: AtlasStatus.VALID, statements };
   }
 
-  private reportErrors(source: string, errors: SourceError[]): void {
-    errors.forEach(e =>
-      this.reporter.rangeError(source, e.sourceRange, e.message)
-    );
+  private reportErrors(source: string, errors: SourceError[]): boolean {
+    let hasError = false;
+    errors.forEach(({ message, sourceRange }) => {
+      if (message.type === "error") hasError = true;
+      this.reporter.rangeError(source, sourceRange, message);
+    });
+
+    return hasError;
   }
 }
