@@ -13,6 +13,7 @@ export class ConsoleReporter implements Reporter {
     { title, body, type }: SourceMessage
   ): void {
     const indent = 6;
+    const errorChalk = type === "error" ? chalk.red : chalk.yellow;
 
     const { start } = range;
     const sourceLine = source.split("\n")[start.line - 1].replace(/\t/g, " ");
@@ -22,15 +23,14 @@ export class ConsoleReporter implements Reporter {
         .fill(" ")
         .join("") + Array(range.length()).fill("^").join("");
 
-    const lineColumn = chalk.red(`${start.line}:${start.column} | `);
+    const lineColumn = errorChalk(`${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
 
-    const errorChalk = type === "error" ? chalk.red : chalk.yellow;
 
     const report =
-      `\n${lineColumn}${errorChalk(title)}\n\n` +
+      `${lineColumn}${errorChalk(title)}\n\n` +
       `${startLine}${sourceLine}\n` +
-      chalk.blue(`${underline} ${body}`);
+      chalk.blue(`${underline} ${body}\n`);
 
     this.error(report);
   }

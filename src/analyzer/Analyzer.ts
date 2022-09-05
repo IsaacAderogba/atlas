@@ -30,10 +30,12 @@ import { globals } from "../interpreter/globals";
 import { Interpreter } from "../interpreter/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
-import { FunctionType } from "./Enums";
+import { FunctionType, VariableState } from "./Enums";
+
+type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
-  private readonly scopes = new Stack(Scope.fromGlobals(globals, () => true));
+  private readonly scopes: Stack<AnalyzerScope> = new Stack();
   private currentFunction = FunctionType.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
@@ -44,9 +46,13 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   ) {}
 
   analyze(): { errors: SemanticError[] } {
+    this.beginScope(
+      Scope.fromGlobals(globals, () => ({ state: VariableState.DEFINED }))
+    );
     for (const statement of this.statements) {
       this.analyzeStmt(statement);
     }
+    this.endScope();
 
     return { errors: this.errors };
   }
@@ -75,9 +81,12 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.currentFunction = enclosingFunction;
   }
 
-  private analyzeLocal(expr: Expr, name: Token): void {
+  private analyzeLocal(expr: Expr, name: Token, isRead: boolean): void {
     for (let i = this.scopes.size - 1; i >= 0; i--) {
-      if (this.scopes.get(i)?.has(name.lexeme)) {
+      const scope = this.scopes.get(i);
+      if (scope && scope.has(name.lexeme)) {
+        const entry = scope.get(name.lexeme);
+        if (isRead && entry) entry.state = VariableState.READ;
         return this.interpreter.resolve(expr, this.scopes.size - 1 - i);
       }
     }
@@ -147,7 +156,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): void {
     this.analyzeExpr(expr.value);
-    this.analyzeLocal(expr, expr.name);
+    this.analyzeLocal(expr, expr.name, false);
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {
@@ -188,19 +197,30 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitVariableExpr(expr: VariableExpr): void {
     const scope = this.scopes.peek();
-    if (scope && scope.get(expr.name.lexeme) === false) {
+    if (
+      scope &&
+      scope.get(expr.name.lexeme)?.state === VariableState.DECLARED
+    ) {
       this.error(expr, SemanticErrors.prohibitedVariableInitializer());
     }
 
-    this.analyzeLocal(expr, expr.name);
+    this.analyzeLocal(expr, expr.name, true);
   }
 
-  private beginScope(): void {
-    this.scopes.push(new Scope());
+  private beginScope(scope: AnalyzerScope = new Scope()): void {
+    this.scopes.push(scope);
   }
 
   private endScope(): void {
-    this.scopes.pop();
+    const scope = this.scopes.pop();
+
+    if (scope) {
+      for (const { state, source } of scope.values()) {
+        if (state === VariableState.DEFINED && source) {
+          this.error(source, SemanticErrors.unusedVariable());
+        }
+      }
+    }
   }
 
   private declare(name: Token): void {
@@ -210,13 +230,13 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       this.error(name, SemanticErrors.prohibitedRedeclaration());
     }
 
-    scope.set(name.lexeme, false);
+    scope.set(name.lexeme, { state: VariableState.DECLARED, source: name });
   }
 
   private define(name: Token): void {
     const scope = this.scopes.peek();
     if (!scope) return;
-    scope.set(name.lexeme, true);
+    scope.set(name.lexeme, { state: VariableState.DEFINED, source: name });
   }
 
   private error(

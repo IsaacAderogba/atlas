@@ -14,7 +14,16 @@ export class SemanticErrors {
     body = "",
     type = "error",
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
-    return { title: "semantic error: " + title, body, type };
+    return { title: `semantic ${type}: ` + title, body, type };
+  }
+
+  //
+  static unusedVariable(): SourceMessage {
+    return this.formatError({
+      title: "unused variable",
+      body: "variable was defined but never used",
+      type: "warning",
+    });
   }
 
   //

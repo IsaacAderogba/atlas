@@ -14,7 +14,7 @@ export class RuntimeErrors {
     body = "",
     type = "error",
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
-    return { title: "runtime error: " + title, body, type };
+    return { title: `runtime ${type}: ` + title, body, type };
   }
 
   //

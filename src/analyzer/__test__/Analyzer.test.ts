@@ -14,6 +14,19 @@ const setupTests = (source: string): { analyzer: Analyzer } => {
   return { analyzer };
 };
 
+describe("Analyzer warnings", () => {
+  it("warns with unused variable", () => {
+    const expressions = ["var a = 'hello';"];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(SemanticErrors.unusedVariable());
+    });
+  });
+});
+
 describe("Analyzer errors", () => {
   it("errors with prohibited break", () => {
     const expressions = ["break;"];
@@ -33,7 +46,9 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedContinue());
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedContinue()
+      );
     });
   });
 
@@ -44,7 +59,9 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedReturn());
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedReturn()
+      );
     });
   });
 
@@ -55,7 +72,9 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedRedeclaration());
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedRedeclaration()
+      );
     });
   });
 });

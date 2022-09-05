@@ -27,4 +27,8 @@ export class Scope<T> {
   set(key: string, value: T): void {
     this.storage.set(key, value);
   }
+
+  values(): IterableIterator<T> {
+    return this.storage.values();
+  }
 }

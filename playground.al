@@ -1,1 +1,3 @@
-var a = a;
+var a = "hello";
+
+print(a);

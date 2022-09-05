@@ -1,4 +1,10 @@
 export enum FunctionType {
-  NONE,
-  FUNCTION,
+  NONE="NONE",
+  FUNCTION="FUNCTION",
+}
+
+export enum VariableState {
+  DECLARED = "DECLARED",
+  DEFINED = "DEFINED",
+  READ = "READ",
 }

@@ -14,7 +14,7 @@ export class SyntaxErrors {
     body = "",
     type = "error",
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
-    return { title: "syntax error: " + title, body, type };
+    return { title: `syntax ${type}: ` + title, body, type };
   }
 
   //
