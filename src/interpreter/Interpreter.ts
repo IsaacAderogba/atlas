@@ -256,7 +256,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
     if (callee.arity() !== args.length) {
       throw this.error(
-        expr.closingParen,
+        expr.close,
         RuntimeErrors.mismatchedArity(callee.arity(), args.length)
       );
     }

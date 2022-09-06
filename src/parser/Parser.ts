@@ -277,13 +277,14 @@ export class Parser {
 
     while (true) {
       if (this.match("LEFT_PAREN")) {
+        const open = this.previous();
         const args = this.arguments();
-        const paren = this.consume(
+        const close = this.consume(
           "RIGHT_PAREN",
           SyntaxErrors.expectedRightParen()
         );
 
-        expr = new CallExpr(expr, args, paren);
+        expr = new CallExpr(open, expr, args, close);
       } else {
         break;
       }
@@ -295,7 +296,7 @@ export class Parser {
   private primary(): Expr {
     if (this.match("NUMBER", "STRING", "FALSE", "TRUE", "NULL")) {
       const token = this.previous();
-      return new LiteralExpr(token.literal!, token);
+      return new LiteralExpr(token, token.literal!);
     }
 
     if (this.match("IDENTIFIER")) {
@@ -303,9 +304,13 @@ export class Parser {
     }
 
     if (this.match("LEFT_PAREN")) {
+      const open = this.previous();
       const expr = this.expression();
-      this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
-      return new GroupingExpr(expr);
+      const close = this.consume(
+        "RIGHT_PAREN",
+        SyntaxErrors.expectedRightParen()
+      );
+      return new GroupingExpr(open, expr, close);
     }
 
     return this.errorExpression();
@@ -352,8 +357,8 @@ export class Parser {
     for (const [types, expr] of leftOperandErrs) {
       if (this.match(...types)) {
         return new ErrorExpr(
-          this.error(this.previous(), SyntaxErrors.expectedLeftOperand()),
           this.previous(),
+          this.error(this.previous(), SyntaxErrors.expectedLeftOperand()),
           expr()
         );
       }

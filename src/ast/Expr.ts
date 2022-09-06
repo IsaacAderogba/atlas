@@ -60,9 +60,10 @@ export class BinaryExpr implements BaseExpr {
 
 export class CallExpr implements BaseExpr {
   constructor(
+    readonly open: Token,
     readonly callee: Expr,
     readonly args: Expr[],
-    readonly closingParen: Token
+    readonly close: Token
   ) {}
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -70,22 +71,26 @@ export class CallExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.callee.sourceRange().start;
-    const end = this.closingParen.sourceRange().end;
+    const start = this.open.sourceRange().start;
+    const end = this.close.sourceRange().end;
     return new SourceRange(start, end);
   }
 }
 
 export class GroupingExpr implements BaseExpr {
-  constructor(readonly expression: Expr) {}
+  constructor(
+    readonly open: Token,
+    readonly expression: Expr,
+    readonly close: Token
+  ) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitGroupingExpr(this);
   }
 
   sourceRange(): SourceRange {
-    const start = this.expression.sourceRange().start;
-    const end = this.expression.sourceRange().end;
+    const start = this.open.sourceRange().start;
+    const end = this.close.sourceRange().end;
     return new SourceRange(start, end);
   }
 }
@@ -105,7 +110,7 @@ export class UnaryExpr implements BaseExpr {
 }
 
 export class LiteralExpr implements BaseExpr {
-  constructor(readonly value: AtlasValue, readonly token: Token) {}
+  constructor(readonly token: Token, readonly value: AtlasValue) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitLiteralExpr(this);
@@ -138,8 +143,8 @@ export class LogicalExpr implements BaseExpr {
 
 export class ErrorExpr implements BaseExpr {
   constructor(
-    readonly error: SyntaxError,
     readonly token: Token,
+    readonly error: SyntaxError,
     readonly expression: Expr
   ) {}
 

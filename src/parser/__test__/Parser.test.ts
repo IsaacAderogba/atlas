@@ -283,7 +283,27 @@ describe("Parser expressions", () => {
       callee: {
         name: { lexeme: "sayHi", type: "IDENTIFIER" },
       },
-      closingParen: { lexeme: ")", type: "RIGHT_PAREN" },
+      open: { lexeme: "(", type: "LEFT_PAREN" },
+      close: { lexeme: ")", type: "RIGHT_PAREN" },
+    });
+  });
+
+  it("parses grouping expressions", () => {
+    const { parser } = setupTests("(4 + 4)");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      open: { lexeme: "(", type: "LEFT_PAREN" },
+      expression: {
+        left: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+        operator: { lexeme: "+", type: "PLUS" },
+        right: {
+          token: { lexeme: "4", type: "NUMBER" },
+        },
+      },
+      close: { lexeme: ")", type: "RIGHT_PAREN" },
     });
   });
 
