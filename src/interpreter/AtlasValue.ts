@@ -1,6 +1,7 @@
 import { AtlasClass } from "./AtlasClass";
 import { AtlasFalse } from "./AtlasFalse";
 import { AtlasFunction } from "./AtlasFunction";
+import { AtlasInstance } from "./AtlasInstance";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasNumber } from "./AtlasNumber";
 import { AtlasString } from "./AtlasString";
@@ -15,4 +16,5 @@ export type AtlasValue =
   | AtlasString
   | AtlasFunction
   | AtlasClass
+  | AtlasInstance
   | NativeFunction;

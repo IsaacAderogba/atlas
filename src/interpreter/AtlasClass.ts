@@ -1,4 +1,5 @@
 import { AtlasCallable } from "./AtlasCallable";
+import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import { NativeType } from "./NativeType";
 
@@ -15,7 +16,8 @@ export class AtlasClass extends NativeType implements AtlasCallable {
   }
 
   call(): AtlasValue {
-    throw new Error("");
+    const instance = new AtlasInstance(this);
+    return instance;
   }
 
   toString(): string {

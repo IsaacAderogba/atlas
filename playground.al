@@ -1,7 +1,3 @@
-class DevonshireCream {
-  serveOn = f() {
-    return "Scones";
-  }
-}
-
-print(DevonshireCream);
+class Foo {}
+var foo = Foo();
+var x = print(foo);

@@ -86,6 +86,21 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "STRING", value: "Foo" });
   });
 
+  it("interprets class instances", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {}
+      var foo = Foo();
+      var x = print(foo);
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "Foo instance" });
+  });
+
   it("interprets var statements", () => {
     const { interpreter, interpret } = setupTests("var x = 4;");
     interpret();
