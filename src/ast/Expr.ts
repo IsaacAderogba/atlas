@@ -2,6 +2,8 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../interpreter/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
+import { Parameter } from "./Node";
+import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
   accept<T>(visitor: ExprVisitor<T>): T;
@@ -72,6 +74,24 @@ export class CallExpr implements BaseExpr {
   sourceRange(): SourceRange {
     const start = this.open.sourceRange().start;
     const end = this.close.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class FunctionExpr implements BaseExpr {
+  constructor(
+    readonly keyword: Token,
+    readonly params: Parameter[],
+    readonly body: BlockStmt
+  ) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitFunctionExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.body.sourceRange();
     return new SourceRange(start, end);
   }
 }
@@ -171,6 +191,7 @@ export type Expr =
   | TernaryExpr
   | BinaryExpr
   | CallExpr
+  | FunctionExpr
   | GroupingExpr
   | LiteralExpr
   | LogicalExpr
@@ -182,6 +203,7 @@ export interface ExprVisitor<T> {
   visitAssignExpr(expr: AssignExpr): T;
   visitBinaryExpr(expr: BinaryExpr): T;
   visitCallExpr(expr: CallExpr): T;
+  visitFunctionExpr(expr: FunctionExpr): T;
   visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;

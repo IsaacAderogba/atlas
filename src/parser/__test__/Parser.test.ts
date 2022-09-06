@@ -10,20 +10,7 @@ const setupTests = (source: string): { parser: Parser } => {
   return { parser };
 };
 
-// break and continue
 describe("Parser statements", () => {
-  it("parses function declaration statements", () => {
-    const { parser } = setupTests("fun sayHi() {}");
-
-    const { statements } = parser.parse();
-    expect(statements[0]).toMatchObject({
-      keyword: { lexeme: "fun", type: "FUN" },
-      body: { statements: [] },
-      name: { lexeme: "sayHi", type: "IDENTIFIER" },
-      params: [],
-    });
-  });
-
   it("parses variable declaration statements", () => {
     const { parser } = setupTests("var x = 4;");
 
@@ -355,6 +342,17 @@ describe("Parser expressions", () => {
     });
   });
 
+  it("parses function expressions", () => {
+    const { parser } = setupTests("fun() {}");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      keyword: { lexeme: "fun", type: "FUN" },
+      body: { statements: [] },
+      params: [],
+    });
+  });
+
   it("parses error expressions", () => {
     const { parser } = setupTests("+ 4");
 
@@ -377,7 +375,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if", "while", "fun hi"];
+    const expressions = ["if", "while", "fun"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -394,7 +392,7 @@ describe("Parser errors", () => {
       "while (4 == 4",
       "while (4 == 4; 4;",
       "while (4 == 4; true ? true : false",
-      "fun hi(param",
+      "fun (param",
     ];
 
     expressions.forEach(expr => {
@@ -447,7 +445,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected parameter", () => {
-    const tests = ["fun func("];
+    const tests = ["fun ("];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 
@@ -457,7 +455,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected identifier", () => {
-    const tests = ["var", "fun"];
+    const tests = ["var"];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 
@@ -480,7 +478,7 @@ describe("Parser errors", () => {
       "var x = null",
       "while(true) break",
       "while(true) continue",
-      "fun hi() { return 4 }",
+      "fun() { return 4 }",
     ];
 
     expressions.forEach(expr => {
@@ -492,7 +490,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left brace", () => {
-    const tests = ["fun sayHi()"];
+    const tests = ["fun()"];
 
     tests.forEach(test => {
       const { parser } = setupTests(test);

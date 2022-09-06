@@ -1,7 +1,6 @@
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { SyntaxError } from "../errors/SyntaxError";
-import { Expr } from "./Expr";
-import { Parameter } from "./Node";
+import type { Expr } from "./Expr";
 import { Token } from "./Token";
 
 interface BaseStmt extends SourceRangeable {
@@ -74,25 +73,6 @@ export class ExpressionStmt implements BaseStmt {
   }
 }
 
-export class FunctionStmt implements BaseStmt {
-  constructor(
-    readonly keyword: Token,
-    readonly name: Token,
-    readonly params: Parameter[],
-    readonly body: BlockStmt
-  ) {}
-
-  accept<T>(visitor: StmtVisitor<T>): T {
-    return visitor.visitFunctionStmt(this);
-  }
-
-  sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
-    const { end } = this.body.sourceRange();
-    return new SourceRange(start, end);
-  }
-}
-
 export class IfStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
@@ -153,7 +133,7 @@ export class WhileStmt implements BaseStmt {
     readonly keyword: Token,
     readonly condition: Expr,
     readonly increment: Expr | undefined,
-    readonly body: Stmt,
+    readonly body: Stmt
   ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
@@ -172,7 +152,6 @@ export type Stmt =
   | BreakStmt
   | ContinueStmt
   | ErrorStmt
-  | FunctionStmt
   | IfStmt
   | ReturnStmt
   | VarStmt
@@ -185,7 +164,6 @@ export interface StmtVisitor<T> {
   visitContinueStmt(stmt: ContinueStmt): T;
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
-  visitFunctionStmt(stmt: FunctionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
   visitVarStmt(stmt: VarStmt): T;

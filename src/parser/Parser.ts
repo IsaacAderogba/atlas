@@ -10,6 +10,7 @@ import {
   AssignExpr,
   LogicalExpr,
   CallExpr,
+  FunctionExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -17,7 +18,6 @@ import {
   ContinueStmt,
   ErrorStmt,
   ExpressionStmt,
-  FunctionStmt,
   IfStmt,
   ReturnStmt,
   Stmt,
@@ -57,7 +57,6 @@ export class Parser {
 
   private declaration(): Stmt {
     try {
-      if (this.match("FUN")) return this.funDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -67,25 +66,16 @@ export class Parser {
     }
   }
 
-  private funDeclaration(): FunctionStmt {
-    const keyword = this.previous();
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
-    const parameters = this.parameters();
-    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
-
-    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
-
-    const body = this.blockStatement();
-    return new FunctionStmt(keyword, name, parameters, body);
-  }
-
   private varDeclaration(): VarStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+
+    const isFunc = initializer instanceof FunctionExpr;
+    if (!isFunc) {
+      this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+    }
 
     return new VarStmt(keyword, name, initializer);
   }
@@ -311,6 +301,10 @@ export class Parser {
       return new VariableExpr(this.previous());
     }
 
+    if (this.match("FUN")) {
+      return this.func();
+    }
+
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();
       const expr = this.expression();
@@ -324,6 +318,18 @@ export class Parser {
     return this.errorExpression();
   }
 
+  private func(): FunctionExpr {
+    const keyword = this.previous();
+    this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+    const parameters = this.parameters();
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+
+    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+
+    const body = this.blockStatement();
+    return new FunctionExpr(keyword, parameters, body);
+  }
+
   private errorStatement(err: SyntaxError): ErrorStmt {
     this.advance();
 
@@ -334,7 +340,6 @@ export class Parser {
         case "BREAK":
         case "CONTINUE":
         case "CLASS":
-        case "FUN":
         case "VAR":
         case "FOR":
         case "IF":

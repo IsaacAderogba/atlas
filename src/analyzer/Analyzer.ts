@@ -4,6 +4,7 @@ import {
   CallExpr,
   Expr,
   ExprVisitor,
+  FunctionExpr,
   GroupingExpr,
   LogicalExpr,
   TernaryExpr,
@@ -15,7 +16,6 @@ import {
   BreakStmt,
   ContinueStmt,
   ExpressionStmt,
-  FunctionStmt,
   IfStmt,
   ReturnStmt,
   Stmt,
@@ -65,7 +65,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     expression.accept(this);
   }
 
-  private analyzeFunction(func: FunctionStmt, type: FunctionType): void {
+  private analyzeFunction(func: FunctionExpr, type: FunctionType): void {
     const enclosingFunction = this.currentFunction;
     this.currentFunction = type;
 
@@ -120,11 +120,11 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(stmt.expression);
   }
 
-  visitFunctionStmt(stmt: FunctionStmt): void {
-    this.declare(stmt.name);
-    this.define(stmt.name);
-    this.analyzeFunction(stmt, FunctionType.FUNCTION);
-  }
+  // visitFunctionStmt(stmt: FunctionStmt): void {
+  //   this.declare(stmt.name);
+  //   this.define(stmt.name);
+  //   this.analyzeFunction(stmt, FunctionType.FUNCTION);
+  // }
 
   visitIfStmt(stmt: IfStmt): void {
     this.analyzeExpr(stmt.condition);
@@ -140,15 +140,15 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    // if (stmt.initializer instanceof FunctionExpr) {
-    //   this.declare(stmt.name);
-    //   this.define(stmt.name);
-    //   this.analyzeFunction(stmt.initializer, FunctionType.FUNCTION);
-    // } else {
-    this.declare(stmt.name);
-    this.analyzeExpr(stmt.initializer);
-    this.define(stmt.name);
-    // }
+    if (stmt.initializer instanceof FunctionExpr) {
+      this.declare(stmt.name);
+      this.define(stmt.name);
+      this.analyzeFunction(stmt.initializer, FunctionType.FUNCTION);
+    } else {
+      this.declare(stmt.name);
+      this.analyzeExpr(stmt.initializer);
+      this.define(stmt.name);
+    }
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -180,6 +180,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitGroupingExpr(expr: GroupingExpr): void {
     this.analyzeExpr(expr.expression);
+  }
+
+  visitFunctionExpr(expr: FunctionExpr): void {
+    this.analyzeFunction(expr, FunctionType.FUNCTION);
   }
 
   visitLiteralExpr(): void {

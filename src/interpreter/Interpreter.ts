@@ -4,6 +4,7 @@ import {
   CallExpr,
   Expr,
   ExprVisitor,
+  FunctionExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
@@ -21,7 +22,6 @@ import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
   ExpressionStmt,
-  FunctionStmt,
   IfStmt,
   ReturnStmt,
   Stmt,
@@ -88,11 +88,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
-  }
-
-  visitFunctionStmt(stmt: FunctionStmt): void {
-    const func = new AtlasFunction(stmt, this.environment);
-    this.environment.define(stmt.name.lexeme, func);
   }
 
   visitVarStmt(stmt: VarStmt): void {
@@ -262,6 +257,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
 
     return callee.call(this, args);
+  }
+
+  visitFunctionExpr(expr: FunctionExpr): AtlasFunction {
+    return new AtlasFunction(expr, this.environment);
   }
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
