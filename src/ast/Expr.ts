@@ -5,7 +5,6 @@ import { Token } from "./Token";
 
 interface BaseExpr extends SourceRangeable {
   accept<T>(visitor: ExprVisitor<T>): T;
-  sourceRange(): SourceRange;
 }
 
 export class AssignExpr implements BaseExpr {

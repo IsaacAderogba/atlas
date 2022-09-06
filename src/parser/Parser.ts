@@ -117,7 +117,7 @@ export class Parser {
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     const body = this.statement();
-    return new WhileStmt(keyword, condition, body, increment);
+    return new WhileStmt(keyword, condition, increment, body);
   }
 
   private ifStatement(): IfStmt {
