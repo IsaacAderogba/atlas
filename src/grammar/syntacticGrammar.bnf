@@ -1,8 +1,10 @@
 program        -> statement* EOF ;
-declaration    -> varDecl
+declaration    -> classDecl
+                | varDecl
                 | statement
                 | errorStmt ;
-varDecl        -> "var" var ;
+classDecl      -> "class" IDENTIFIER "{" field* "}" ;
+varDecl        -> "var" field ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -30,6 +32,7 @@ factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
 call           -> primary ( "(" arguments? ")" )*;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | function | "(" expression ")" | error ;
+function       -> "f" "(" parameters? ")" block ;
 arguments      -> expression ( "," expression )* ;
 error          -> ( "or" ) logic_or
                 | ( "and" ) logic_and
@@ -39,7 +42,6 @@ error          -> ( "or" ) logic_or
                 | ( "/" | "*" ) factor ;
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
-var            -> IDENTIFIER "=" expression ";"? ;
-function       -> "f" "(" parameters? ")" block ;
+field          -> IDENTIFIER "=" expression ";"? ;
 parameters     -> parameter ( "," parameter )* ;
 parameter      -> IDENTIFIER ;

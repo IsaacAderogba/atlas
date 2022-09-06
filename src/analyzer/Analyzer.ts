@@ -140,14 +140,14 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    if (stmt.initializer instanceof FunctionExpr) {
-      this.declare(stmt.name);
-      this.define(stmt.name);
-      this.analyzeFunction(stmt.initializer, FunctionType.FUNCTION);
+    if (stmt.field.initializer instanceof FunctionExpr) {
+      this.declare(stmt.field.name);
+      this.define(stmt.field.name);
+      this.analyzeFunction(stmt.field.initializer, FunctionType.FUNCTION);
     } else {
-      this.declare(stmt.name);
-      this.analyzeExpr(stmt.initializer);
-      this.define(stmt.name);
+      this.declare(stmt.field.name);
+      this.analyzeExpr(stmt.field.initializer);
+      this.define(stmt.field.name);
     }
   }
 

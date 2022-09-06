@@ -28,7 +28,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Parameter } from "../ast/Node";
+import { Field, Parameter } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -68,16 +68,9 @@ export class Parser {
 
   private varDeclaration(): VarStmt {
     const keyword = this.previous();
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
-    const initializer = this.expression();
+    const field = this.field();
 
-    const isFunc = initializer instanceof FunctionExpr;
-    if (!isFunc) {
-      this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    }
-
-    return new VarStmt(keyword, name, initializer);
+    return new VarStmt(keyword, field);
   }
 
   private statement(): Stmt {
@@ -394,7 +387,6 @@ export class Parser {
 
   private parameters(): Parameter[] {
     const params: Parameter[] = [];
-
     if (!this.check("RIGHT_PAREN")) {
       do {
         params.push(this.parameter());
@@ -407,6 +399,19 @@ export class Parser {
   private parameter(): Parameter {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedParameter());
     return new Parameter(name);
+  }
+
+  private field(): Field {
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
+    const initializer = this.expression();
+
+    const isFunc = initializer instanceof FunctionExpr;
+    if (!isFunc) {
+      this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+    }
+
+    return new Field(name, initializer);
   }
 
   private match(...types: TokenType[]): boolean {
