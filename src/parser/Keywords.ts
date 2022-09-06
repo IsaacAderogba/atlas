@@ -7,7 +7,7 @@ export const Keywords = new Map<string, TokenType>([
   ["class", "CLASS"],
   ["else", "ELSE"],
   ["for", "FOR"],
-  ["fun", "FUN"],
+  ["f", "FUNCTION"],
   ["if", "IF"],
   ["or", "OR"],
   ["return", "RETURN"],

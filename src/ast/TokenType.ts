@@ -39,7 +39,7 @@ export type TokenType =
   | "CLASS"
   | "ELSE"
   | "FALSE"
-  | "FUN"
+  | "FUNCTION"
   | "FOR"
   | "IF"
   | "NULL"

@@ -2,8 +2,7 @@ program        -> statement* EOF ;
 declaration    -> varDecl
                 | statement
                 | errorStmt ;
-funDecl        -> "fun" function ;
-varDecl        -> "var" IDENTIFIER "=" expression ";" ;
+varDecl        -> "var" var ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -30,7 +29,7 @@ term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
 call           -> primary ( "(" arguments? ")" )*;
-primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | "(" expression ")" | error ;
+primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | function | "(" expression ")" | error ;
 arguments      -> expression ( "," expression )* ;
 error          -> ( "or" ) logic_or
                 | ( "and" ) logic_and
@@ -38,8 +37,9 @@ error          -> ( "or" ) logic_or
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" | "#" ) term
                 | ( "/" | "*" ) factor ;
-errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "return" | ";";
+errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
-function       -> IDENTIFIER "(" parameters? ")" block ;
+var            -> IDENTIFIER "=" expression ";"? ;
+function       -> "f" "(" parameters? ")" block ;
 parameters     -> parameter ( "," parameter )* ;
 parameter      -> IDENTIFIER ;

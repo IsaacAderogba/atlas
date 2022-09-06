@@ -2,10 +2,11 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../interpreter/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
+import { Parameter } from "./Node";
+import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
   accept<T>(visitor: ExprVisitor<T>): T;
-  sourceRange(): SourceRange;
 }
 
 export class AssignExpr implements BaseExpr {
@@ -60,9 +61,10 @@ export class BinaryExpr implements BaseExpr {
 
 export class CallExpr implements BaseExpr {
   constructor(
+    readonly open: Token,
     readonly callee: Expr,
     readonly args: Expr[],
-    readonly closingParen: Token
+    readonly close: Token
   ) {}
 
   accept<R>(visitor: ExprVisitor<R>): R {
@@ -70,22 +72,44 @@ export class CallExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.callee.sourceRange().start;
-    const end = this.closingParen.sourceRange().end;
+    const start = this.open.sourceRange().start;
+    const end = this.close.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class FunctionExpr implements BaseExpr {
+  constructor(
+    readonly keyword: Token,
+    readonly params: Parameter[],
+    readonly body: BlockStmt
+  ) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitFunctionExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.body.sourceRange();
     return new SourceRange(start, end);
   }
 }
 
 export class GroupingExpr implements BaseExpr {
-  constructor(readonly expression: Expr) {}
+  constructor(
+    readonly open: Token,
+    readonly expression: Expr,
+    readonly close: Token
+  ) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitGroupingExpr(this);
   }
 
   sourceRange(): SourceRange {
-    const start = this.expression.sourceRange().start;
-    const end = this.expression.sourceRange().end;
+    const start = this.open.sourceRange().start;
+    const end = this.close.sourceRange().end;
     return new SourceRange(start, end);
   }
 }
@@ -105,7 +129,7 @@ export class UnaryExpr implements BaseExpr {
 }
 
 export class LiteralExpr implements BaseExpr {
-  constructor(readonly value: AtlasValue, readonly token: Token) {}
+  constructor(readonly token: Token, readonly value: AtlasValue) {}
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitLiteralExpr(this);
@@ -137,20 +161,14 @@ export class LogicalExpr implements BaseExpr {
 }
 
 export class ErrorExpr implements BaseExpr {
-  constructor(
-    readonly error: SyntaxError,
-    readonly token: Token,
-    readonly expression: Expr
-  ) {}
+  constructor(readonly error: SyntaxError) {}
 
   accept<T>(): T {
     throw new Error("ErrorExpr should not be evaluated.");
   }
 
   sourceRange(): SourceRange {
-    const start = this.token.sourceRange().start;
-    const end = this.expression.sourceRange().end;
-    return new SourceRange(start, end);
+    return this.error.sourceRange;
   }
 }
 
@@ -173,6 +191,7 @@ export type Expr =
   | TernaryExpr
   | BinaryExpr
   | CallExpr
+  | FunctionExpr
   | GroupingExpr
   | LiteralExpr
   | LogicalExpr
@@ -184,6 +203,7 @@ export interface ExprVisitor<T> {
   visitAssignExpr(expr: AssignExpr): T;
   visitBinaryExpr(expr: BinaryExpr): T;
   visitCallExpr(expr: CallExpr): T;
+  visitFunctionExpr(expr: FunctionExpr): T;
   visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;

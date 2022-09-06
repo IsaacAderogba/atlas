@@ -1,4 +1,4 @@
-import { FunctionStmt } from "../ast/Stmt";
+import { FunctionExpr } from "../ast/Expr";
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
@@ -12,23 +12,23 @@ class AtlasFunction implements AtlasCallable {
   static readonly atlasClassName = "Function";
 
   constructor(
-    private readonly declaration: FunctionStmt,
+    private readonly expression: FunctionExpr,
     private readonly closure: Environment
   ) {}
 
   arity(): number {
-    return this.declaration.params.length;
+    return this.expression.params.length;
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
     const environment = new Environment(this.closure);
 
-    for (const [i, param] of this.declaration.params.entries()) {
+    for (const [i, param] of this.expression.params.entries()) {
       environment.define(param.name.lexeme, args[i]);
     }
 
     try {
-      interpreter.interpretBlock(this.declaration.body.statements, environment);
+      interpreter.interpretBlock(this.expression.body.statements, environment);
     } catch (err) {
       if (err instanceof Return) return err.value;
       throw err;
@@ -38,7 +38,7 @@ class AtlasFunction implements AtlasCallable {
   }
 
   toString(): string {
-    return `<fn ${this.declaration.name.lexeme}>`;
+    return `<fn>`;
   }
 }
 

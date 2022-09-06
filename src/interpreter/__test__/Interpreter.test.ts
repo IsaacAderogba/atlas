@@ -44,7 +44,7 @@ const setupTests = (source: string): SetupTests => {
 describe("Interpreter statements", () => {
   it("interprets return statements", () => {
     const { interpreter, interpret } = setupTests(`
-      fun sayHi() { 
+      var sayHi = f() { 
         return 3;
       }
       var x = sayHi();
@@ -78,24 +78,6 @@ describe("Interpreter statements", () => {
     const result = interpreter.visitVariableExpr(expression);
 
     expect(result).toMatchObject({ type: "NUMBER", value: 4 });
-  });
-
-  it("interprets function statements", () => {
-    const { interpreter, interpret } = setupTests("fun sayHi() {}");
-    interpret();
-
-    const { tokens } = new Scanner("sayHi").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({
-      declaration: {
-        body: { statements: [] },
-        name: { lexeme: "sayHi", type: "IDENTIFIER" },
-        params: [],
-      },
-      type: "FUNCTION",
-    });
   });
 
   it("interprets expression statements", () => {
@@ -215,7 +197,7 @@ describe("Interpreter evaluations", () => {
   it("executes call expressions", () => {
     const { interpreter, interpret } = setupTests(`
       var x = 1; 
-      fun sayHi() { 
+      var sayHi = f() { 
         x = 2;
       }
       sayHi();
@@ -388,7 +370,7 @@ describe("Interpreter errors", () => {
     const sources = [
       `
       var x = 1; 
-      fun sayHi(a, b) { 
+      var sayHi = f(a, b) { 
         x = 2;
       }
       sayHi("a", "b", "c");
