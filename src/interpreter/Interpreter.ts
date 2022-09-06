@@ -21,6 +21,7 @@ import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
+  ClassStmt,
   ExpressionStmt,
   IfStmt,
   ReturnStmt,
@@ -36,6 +37,8 @@ import { AtlasFunction } from "./AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
 import { AtlasString } from "./AtlasString";
 import { Token } from "../ast/Token";
+import { AtlasNull } from "./AtlasNull";
+import { AtlasClass } from "./AtlasClass";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -86,6 +89,20 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.interpretBlock(stmt.statements, new Environment(this.environment));
   }
 
+  visitClassStmt(stmt: ClassStmt): void {
+    this.environment.define(stmt.name.lexeme, new AtlasNull());
+    const atlasClass = new AtlasClass(stmt.name.lexeme);
+    this.environment.assign(stmt.name, atlasClass);
+  }
+
+  visitBreakStmt(): void {
+    throw new Break();
+  }
+
+  visitContinueStmt(): void {
+    throw new Continue();
+  }
+
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
   }
@@ -124,14 +141,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     } else if (stmt.elseBranch) {
       this.execute(stmt.elseBranch);
     }
-  }
-
-  visitBreakStmt(): void {
-    throw new Break();
-  }
-
-  visitContinueStmt(): void {
-    throw new Continue();
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
@@ -321,6 +330,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     source: SourceRangeable,
     operand: AtlasValue
   ): AtlasCallable {
+    if (operand.type === "CLASS") return operand;
     if (operand.type === "FUNCTION") return operand;
     if (operand.type === "NATIVE_FUNCTION") return operand;
     throw this.error(source, RuntimeErrors.expectedCallable());

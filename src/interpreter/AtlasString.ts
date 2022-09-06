@@ -1,17 +1,14 @@
-import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
+import { NativeType } from "./NativeType";
 
-class AtlasString {
+export class AtlasString extends NativeType {
   readonly type = "STRING";
   static readonly atlasClassName = "String";
 
-  constructor(readonly value: string) {}
+  constructor(readonly value: string) {
+    super();
+  }
 
   toString(): string {
     return this.value;
   }
 }
-
-interface AtlasString extends NativeTypeMixin {}
-applyMixin(AtlasString, NativeTypeMixin);
-
-export { AtlasString };

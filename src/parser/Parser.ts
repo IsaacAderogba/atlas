@@ -15,6 +15,7 @@ import {
 import {
   BlockStmt,
   BreakStmt,
+  ClassStmt,
   ContinueStmt,
   ErrorStmt,
   ExpressionStmt,
@@ -57,6 +58,7 @@ export class Parser {
 
   private declaration(): Stmt {
     try {
+      if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -64,6 +66,24 @@ export class Parser {
       if (error instanceof SyntaxError) throw this.errorStatement(error);
       throw error;
     }
+  }
+
+  private classDeclaration(): ClassStmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+
+    const fields: Field[] = [];
+    while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
+      fields.push(this.field());
+    }
+
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+
+    return new ClassStmt(keyword, name, open, fields, close);
   }
 
   private varDeclaration(): VarStmt {

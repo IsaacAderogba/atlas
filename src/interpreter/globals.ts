@@ -1,5 +1,5 @@
-import { AtlasNull } from "./AtlasNull";
 import { AtlasNumber } from "./AtlasNumber";
+import { AtlasString } from "./AtlasString";
 import { NativeFunction } from "./NativeFunction";
 
 export const clock = new NativeFunction(
@@ -7,8 +7,9 @@ export const clock = new NativeFunction(
 );
 
 export const print = new NativeFunction(value => {
-  console.log(value.toString());
-  return new AtlasNull();
+  const str = value.toString();
+  console.log(str);
+  return new AtlasString(str);
 });
 
 export const globals = {

@@ -38,6 +38,26 @@ export class BreakStmt implements BaseStmt {
   }
 }
 
+export class ClassStmt implements BaseStmt {
+  constructor(
+      readonly keyword: Token,
+      readonly name: Token,
+      readonly open: Token,
+      readonly fields: Field[],
+      readonly close: Token,
+  ) {}
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+      return visitor.visitClassStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
 export class ContinueStmt implements BaseStmt {
   constructor(readonly keyword: Token) {}
 
@@ -147,6 +167,7 @@ export class WhileStmt implements BaseStmt {
 export type Stmt =
   | BlockStmt
   | BreakStmt
+  | ClassStmt
   | ContinueStmt
   | ErrorStmt
   | IfStmt
@@ -158,6 +179,7 @@ export type Stmt =
 export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
   visitBreakStmt(stmt: BreakStmt): T;
+  visitClassStmt(stmt: ClassStmt): T;
   visitContinueStmt(stmt: ContinueStmt): T;
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;

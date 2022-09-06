@@ -69,6 +69,23 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "NUMBER", value: 2 });
   });
 
+  it("interprets class statements", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {
+
+      }
+      
+      var x = print(Foo);
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "Foo" });
+  });
+
   it("interprets var statements", () => {
     const { interpreter, interpret } = setupTests("var x = 4;");
     interpret();

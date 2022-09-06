@@ -1,15 +1,17 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { Interpreter } from "./Interpreter";
-import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
+import { NativeType } from "./NativeType";
 
-class NativeFunction implements AtlasCallable {
+export class NativeFunction extends NativeType implements AtlasCallable {
   readonly type = "NATIVE_FUNCTION";
-  static readonly loxClassName = "Function";
+  static readonly atlasClassName = "Function";
 
   constructor(
     private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue
-  ) {}
+  ) {
+    super();
+  }
 
   arity(): number {
     return this.jsFunction.length;
@@ -23,8 +25,3 @@ class NativeFunction implements AtlasCallable {
     return "<native fn>";
   }
 }
-
-interface NativeFunction extends NativeTypeMixin {}
-applyMixin(NativeFunction, NativeTypeMixin);
-
-export { NativeFunction };

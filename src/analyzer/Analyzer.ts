@@ -11,9 +11,11 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
+import { Field } from "../ast/Node";
 import {
   BlockStmt,
   BreakStmt,
+  ClassStmt,
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
@@ -81,6 +83,18 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.currentFunction = enclosingFunction;
   }
 
+  private analyzeField(field: Field): void {
+    if (field.initializer instanceof FunctionExpr) {
+      this.declare(field.name);
+      this.define(field.name);
+      this.analyzeFunction(field.initializer, FunctionType.FUNCTION);
+    } else {
+      this.declare(field.name);
+      this.analyzeExpr(field.initializer);
+      this.define(field.name);
+    }
+  }
+
   private analyzeLocal(expr: Expr, name: Token, isRead: boolean): void {
     for (let i = this.scopes.size - 1; i >= 0; i--) {
       const scope = this.scopes.get(i);
@@ -104,6 +118,11 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.endScope();
   }
 
+  visitClassStmt(stmt: ClassStmt): void {
+    this.declare(stmt.name);
+    this.define(stmt.name);
+  }
+
   visitBreakStmt(stmt: BreakStmt): void {
     if (this.loopDepth === 0) {
       this.error(stmt.keyword, SemanticErrors.prohibitedBreak());
@@ -120,12 +139,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(stmt.expression);
   }
 
-  // visitFunctionStmt(stmt: FunctionStmt): void {
-  //   this.declare(stmt.name);
-  //   this.define(stmt.name);
-  //   this.analyzeFunction(stmt, FunctionType.FUNCTION);
-  // }
-
   visitIfStmt(stmt: IfStmt): void {
     this.analyzeExpr(stmt.condition);
     this.analyzeStmt(stmt.thenBranch);
@@ -140,15 +153,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    if (stmt.field.initializer instanceof FunctionExpr) {
-      this.declare(stmt.field.name);
-      this.define(stmt.field.name);
-      this.analyzeFunction(stmt.field.initializer, FunctionType.FUNCTION);
-    } else {
-      this.declare(stmt.field.name);
-      this.analyzeExpr(stmt.field.initializer);
-      this.define(stmt.field.name);
-    }
+    this.analyzeField(stmt.field);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {

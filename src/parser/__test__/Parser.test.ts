@@ -11,6 +11,19 @@ const setupTests = (source: string): { parser: Parser } => {
 };
 
 describe("Parser statements", () => {
+  it("parses class declaration statements", () => {
+    const { parser } = setupTests("class Foo {}");
+
+    const { statements } = parser.parse();
+    expect(statements[0]).toMatchObject({
+      close: { lexeme: "}", type: "RIGHT_BRACE" },
+      fields: [],
+      keyword: { lexeme: "class", type: "CLASS" },
+      name: { lexeme: "Foo", type: "IDENTIFIER" },
+      open: { lexeme: "{", type: "LEFT_BRACE" },
+    });
+  });
+
   it("parses variable declaration statements", () => {
     const { parser } = setupTests("var x = 4;");
 
@@ -455,7 +468,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected identifier", () => {
-    const tests = ["var"];
+    const tests = ["var", "class"];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 
@@ -490,7 +503,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left brace", () => {
-    const tests = ["f()"];
+    const tests = ["f()", "class Foo "];
 
     tests.forEach(test => {
       const { parser } = setupTests(test);
@@ -501,10 +514,16 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected right brace", () => {
-    const { parser } = setupTests("{ var x = 5; ");
+    const tests = ["{ var x = 5; ", "class Foo {"];
 
-    const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedRightBrace());
+    tests.forEach(test => {
+      const { parser } = setupTests(test);
+
+      const { errors } = parser.parse();
+      expect(errors[0].message).toMatchObject(
+        SyntaxErrors.expectedRightBrace()
+      );
+    });
   });
 
   it("errors with invalid assignment target", () => {
