@@ -106,13 +106,13 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitBreakStmt(stmt: BreakStmt): void {
     if (this.loopDepth === 0) {
-      this.error(stmt.token, SemanticErrors.prohibitedBreak());
+      this.error(stmt.keyword, SemanticErrors.prohibitedBreak());
     }
   }
 
   visitContinueStmt(stmt: ContinueStmt): void {
     if (this.loopDepth === 0) {
-      this.error(stmt.token, SemanticErrors.prohibitedContinue());
+      this.error(stmt.keyword, SemanticErrors.prohibitedContinue());
     }
   }
 

@@ -142,20 +142,14 @@ export class LogicalExpr implements BaseExpr {
 }
 
 export class ErrorExpr implements BaseExpr {
-  constructor(
-    readonly token: Token,
-    readonly error: SyntaxError,
-    readonly expression: Expr
-  ) {}
+  constructor(readonly error: SyntaxError) {}
 
   accept<T>(): T {
     throw new Error("ErrorExpr should not be evaluated.");
   }
 
   sourceRange(): SourceRange {
-    const start = this.token.sourceRange().start;
-    const end = this.expression.sourceRange().end;
-    return new SourceRange(start, end);
+    return this.error.sourceRange;
   }
 }
 

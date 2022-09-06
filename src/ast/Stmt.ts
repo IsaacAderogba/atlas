@@ -8,7 +8,11 @@ interface BaseStmt {
 }
 
 export class BlockStmt implements BaseStmt {
-  constructor(readonly statements: Stmt[]) {}
+  constructor(
+    readonly open: Token,
+    readonly statements: Stmt[],
+    readonly close: Token
+  ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitBlockStmt(this);
@@ -16,7 +20,7 @@ export class BlockStmt implements BaseStmt {
 }
 
 export class BreakStmt implements BaseStmt {
-  constructor(readonly token: Token) {}
+  constructor(readonly keyword: Token) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitBreakStmt(this);
@@ -24,7 +28,7 @@ export class BreakStmt implements BaseStmt {
 }
 
 export class ContinueStmt implements BaseStmt {
-  constructor(readonly token: Token) {}
+  constructor(readonly keyword: Token) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitContinueStmt(this);
@@ -49,6 +53,7 @@ export class ExpressionStmt implements BaseStmt {
 
 export class FunctionStmt {
   constructor(
+    readonly keyword: Token,
     readonly name: Token,
     readonly params: Parameter[],
     readonly body: BlockStmt
@@ -61,6 +66,7 @@ export class FunctionStmt {
 
 export class IfStmt implements BaseStmt {
   constructor(
+    readonly keyword: Token,
     readonly condition: Expr,
     readonly thenBranch: Stmt,
     readonly elseBranch?: Stmt
@@ -79,9 +85,12 @@ export class ReturnStmt {
   }
 }
 
-
 export class VarStmt implements BaseStmt {
-  constructor(readonly name: Token, readonly initializer: Expr) {}
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly initializer: Expr
+  ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitVarStmt(this);
@@ -90,6 +99,7 @@ export class VarStmt implements BaseStmt {
 
 export class WhileStmt {
   constructor(
+    readonly keyword: Token,
     readonly condition: Expr,
     readonly body: Stmt,
     readonly increment: Expr | undefined
@@ -99,7 +109,6 @@ export class WhileStmt {
     return visitor.visitWhileStmt(this);
   }
 }
-
 
 export type Stmt =
   | BlockStmt

@@ -68,6 +68,7 @@ export class Parser {
   }
 
   private funDeclaration(): FunctionStmt {
+    const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const parameters = this.parameters();
@@ -76,16 +77,17 @@ export class Parser {
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const body = this.blockStatement();
-    return new FunctionStmt(name, parameters, body);
+    return new FunctionStmt(keyword, name, parameters, body);
   }
 
   private varDeclaration(): VarStmt {
+    const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
     this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
 
-    return new VarStmt(name, initializer);
+    return new VarStmt(keyword, name, initializer);
   }
 
   private statement(): Stmt {
@@ -108,16 +110,18 @@ export class Parser {
   }
 
   private whileStatement(): WhileStmt {
+    const keyword = this.previous();
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
     const increment = this.match("SEMICOLON") ? this.expression() : undefined;
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     const body = this.statement();
-    return new WhileStmt(condition, body, increment);
+    return new WhileStmt(keyword, condition, body, increment);
   }
 
   private ifStatement(): IfStmt {
+    const keyword = this.previous();
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
@@ -125,7 +129,7 @@ export class Parser {
     const thenBranch = this.statement();
     const elseBranch = this.match("ELSE") ? this.statement() : undefined;
 
-    return new IfStmt(condition, thenBranch, elseBranch);
+    return new IfStmt(keyword, condition, thenBranch, elseBranch);
   }
 
   private breakStatement(): BreakStmt {
@@ -141,14 +145,18 @@ export class Parser {
   }
 
   private blockStatement(): BlockStmt {
+    const open = this.previous();
     const statements: Stmt[] = [];
 
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
       statements.push(this.declaration());
     }
 
-    this.consume("RIGHT_BRACE", SyntaxErrors.expectedRightBrace());
-    return new BlockStmt(statements);
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+    return new BlockStmt(open, statements, close);
   }
 
   private expressionStatement(): ExpressionStmt {
@@ -356,11 +364,11 @@ export class Parser {
 
     for (const [types, expr] of leftOperandErrs) {
       if (this.match(...types)) {
-        return new ErrorExpr(
-          this.previous(),
-          this.error(this.previous(), SyntaxErrors.expectedLeftOperand()),
-          expr()
+        const error = new ErrorExpr(
+          this.error(this.previous(), SyntaxErrors.expectedLeftOperand())
         );
+        expr();
+        return error;
       }
     }
 
