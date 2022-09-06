@@ -301,7 +301,7 @@ export class Parser {
       return new VariableExpr(this.previous());
     }
 
-    if (this.match("FUN")) {
+    if (this.match("FUNCTION")) {
       return this.func();
     }
 

@@ -91,7 +91,7 @@ describe("Scanner tokens", () => {
       { char: "class", type: "CLASS" },
       { char: "else", type: "ELSE" },
       { char: "for", type: "FOR" },
-      { char: "fun", type: "FUN" },
+      { char: "f", type: "FUNCTION" },
       { char: "if", type: "IF" },
       { char: "or", type: "OR" },
       { char: "return", type: "RETURN" },

@@ -343,11 +343,11 @@ describe("Parser expressions", () => {
   });
 
   it("parses function expressions", () => {
-    const { parser } = setupTests("fun() {}");
+    const { parser } = setupTests("f() {}");
 
     const expression = parser.expression();
     expect(expression).toMatchObject({
-      keyword: { lexeme: "fun", type: "FUN" },
+      keyword: { lexeme: "f", type: "FUNCTION" },
       body: { statements: [] },
       params: [],
     });
@@ -375,7 +375,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left paren", () => {
-    const expressions = ["if", "while", "fun"];
+    const expressions = ["if", "while", "f"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -392,7 +392,7 @@ describe("Parser errors", () => {
       "while (4 == 4",
       "while (4 == 4; 4;",
       "while (4 == 4; true ? true : false",
-      "fun (param",
+      "f (param",
     ];
 
     expressions.forEach(expr => {
@@ -445,7 +445,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected parameter", () => {
-    const tests = ["fun ("];
+    const tests = ["f ("];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 
@@ -478,7 +478,7 @@ describe("Parser errors", () => {
       "var x = null",
       "while(true) break",
       "while(true) continue",
-      "fun() { return 4 }",
+      "f() { return 4 }",
     ];
 
     expressions.forEach(expr => {
@@ -490,7 +490,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected left brace", () => {
-    const tests = ["fun()"];
+    const tests = ["f()"];
 
     tests.forEach(test => {
       const { parser } = setupTests(test);

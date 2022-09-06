@@ -37,7 +37,7 @@ error          -> ( "or" ) logic_or
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" | "#" ) term
                 | ( "/" | "*" ) factor ;
-errorStmt      -> "class" | "fun" | "var" | "for" | "if" | "while" | "return" | ";";
+errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
 var            -> IDENTIFIER "=" expression ";"? ;
 function       -> "f" "(" parameters? ")" block ;

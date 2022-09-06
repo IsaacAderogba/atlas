@@ -44,7 +44,7 @@ const setupTests = (source: string): SetupTests => {
 describe("Interpreter statements", () => {
   it("interprets return statements", () => {
     const { interpreter, interpret } = setupTests(`
-      var sayHi = fun() { 
+      var sayHi = f() { 
         return 3;
       }
       var x = sayHi();
@@ -197,7 +197,7 @@ describe("Interpreter evaluations", () => {
   it("executes call expressions", () => {
     const { interpreter, interpret } = setupTests(`
       var x = 1; 
-      var sayHi = fun() { 
+      var sayHi = f() { 
         x = 2;
       }
       sayHi();
@@ -370,7 +370,7 @@ describe("Interpreter errors", () => {
     const sources = [
       `
       var x = 1; 
-      var sayHi = fun(a, b) { 
+      var sayHi = f(a, b) { 
         x = 2;
       }
       sayHi("a", "b", "c");
