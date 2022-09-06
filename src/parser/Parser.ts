@@ -11,6 +11,8 @@ import {
   LogicalExpr,
   CallExpr,
   FunctionExpr,
+  GetExpr,
+  SetExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -180,7 +182,9 @@ export class Parser {
 
       if (expr instanceof VariableExpr) {
         return new AssignExpr(expr.name, value);
-      }
+      } else if (expr instanceof GetExpr) {
+        return new SetExpr(expr.object, expr.name, value);
+    }
 
       this.error(expr, SyntaxErrors.invalidAssignmentTarget());
     }
@@ -296,6 +300,12 @@ export class Parser {
         );
 
         expr = new CallExpr(open, expr, args, close);
+      } else if (this.match("DOT")) {
+        const name = this.consume(
+          "IDENTIFIER",
+          SyntaxErrors.expectedIdentifier()
+        );
+        expr = new GetExpr(expr, name);
       } else {
         break;
       }

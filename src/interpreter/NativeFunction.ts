@@ -5,7 +5,7 @@ import { NativeType } from "./NativeType";
 
 export class NativeFunction extends NativeType implements AtlasCallable {
   readonly type = "NATIVE_FUNCTION";
-  static readonly atlasClassName = "Function";
+  readonly className = "NativeFunction";
 
   constructor(
     private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue

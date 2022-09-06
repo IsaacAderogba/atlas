@@ -5,7 +5,6 @@ import { NativeType } from "./NativeType";
 
 export class AtlasClass extends NativeType implements AtlasCallable {
   readonly type = "CLASS";
-  static readonly atlasClassName = "Class";
 
   constructor(readonly name: string) {
     super();

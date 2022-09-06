@@ -96,6 +96,20 @@ export class FunctionExpr implements BaseExpr {
   }
 }
 
+export class GetExpr implements BaseExpr {
+  constructor(readonly object: Expr, readonly name: Token) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitGetExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.object.sourceRange().start;
+    const end = this.name.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class GroupingExpr implements BaseExpr {
   constructor(
     readonly open: Token,
@@ -110,6 +124,24 @@ export class GroupingExpr implements BaseExpr {
   sourceRange(): SourceRange {
     const start = this.open.sourceRange().start;
     const end = this.close.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class SetExpr {
+  constructor(
+    readonly object: Expr,
+    readonly name: Token,
+    readonly value: Expr
+  ) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitSetExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.object.sourceRange().start;
+    const end = this.value.sourceRange().end;
     return new SourceRange(start, end);
   }
 }
@@ -191,12 +223,14 @@ export type Expr =
   | TernaryExpr
   | BinaryExpr
   | CallExpr
+  | ErrorExpr
   | FunctionExpr
+  | GetExpr
   | GroupingExpr
   | LiteralExpr
   | LogicalExpr
+  | SetExpr
   | UnaryExpr
-  | ErrorExpr
   | VariableExpr;
 
 export interface ExprVisitor<T> {
@@ -204,10 +238,12 @@ export interface ExprVisitor<T> {
   visitBinaryExpr(expr: BinaryExpr): T;
   visitCallExpr(expr: CallExpr): T;
   visitFunctionExpr(expr: FunctionExpr): T;
+  visitGetExpr(expr: GetExpr): T;
   visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
+  visitSetExpr(expr: SetExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
   visitVariableExpr(expr: VariableExpr): T;
 }

@@ -181,6 +181,33 @@ describe("Parser expressions", () => {
     });
   });
 
+  it("parses get expressions", () => {
+    const { parser } = setupTests("foo.y;");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      name: { lexeme: "y", type: "IDENTIFIER" },
+      object: {
+        name: { lexeme: "foo", type: "IDENTIFIER" },
+      },
+    });
+  });
+
+  it("parses set expressions", () => {
+    const { parser } = setupTests('foo.y = "hi";');
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      name: { lexeme: "y", type: "IDENTIFIER" },
+      object: {
+        name: { lexeme: "foo", type: "IDENTIFIER" },
+      },
+      value: {
+        token: { lexeme: '"hi"', type: "STRING" },
+      },
+    });
+  });
+
   it("parses ternary expressions", () => {
     const { parser } = setupTests("true ? 4 : 3");
 
@@ -468,7 +495,7 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected identifier", () => {
-    const tests = ["var", "class"];
+    const tests = ["var", "class", "foo."];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 

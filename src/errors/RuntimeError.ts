@@ -88,4 +88,18 @@ export class RuntimeErrors {
       body: "a function or class was expected",
     });
   }
+
+  static undefinedProperty(name: string): SourceMessage {
+    return this.formatError({
+      title: "undefined property",
+      body: `property ${name} is undefined`,
+    });
+  }
+
+  static unassignablePropertyTarget(name: string): SourceMessage {
+    return this.formatError({
+      title: "unassignable property target",
+      body: `unable to assign properties to "${name}"`,
+    });
+  }
 }

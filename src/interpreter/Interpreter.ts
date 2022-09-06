@@ -5,9 +5,11 @@ import {
   Expr,
   ExprVisitor,
   FunctionExpr,
+  GetExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
+  SetExpr,
   TernaryExpr,
   UnaryExpr,
   VariableExpr,
@@ -268,6 +270,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     return callee.call(this, args);
   }
 
+  visitGetExpr(expr: GetExpr): AtlasValue {
+    const object = this.evaluate(expr.object);
+    return object.get(expr.name);
+  }
+
   visitFunctionExpr(expr: FunctionExpr): AtlasFunction {
     return new AtlasFunction(expr, this.environment);
   }
@@ -293,6 +300,18 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         );
     }
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: SetExpr): AtlasValue {
+    const object = this.evaluate(expr.object);
+
+    // if (!(object instanceof LoxInstance)) {
+    //   throw new RuntimeError("Only instances have mutable fields.", expr.name);
+    // }
+
+    const value = this.evaluate(expr.value);
+    object.set(expr.name, value);
+    return value;
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {

@@ -71,9 +71,7 @@ describe("Interpreter statements", () => {
 
   it("interprets class statements", () => {
     const { interpreter, interpret } = setupTests(`
-      class Foo {
-
-      }
+      class Foo {}
       
       var x = print(Foo);
     `);
@@ -84,6 +82,22 @@ describe("Interpreter statements", () => {
     const result = interpreter.visitVariableExpr(expression);
 
     expect(result).toMatchObject({ type: "STRING", value: "Foo" });
+  });
+
+  it("interprets get and set expressions", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {}
+      var foo = Foo();
+      foo.y = "hi";
+      var x = print(foo.y);
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "hi" });
   });
 
   it("interprets class instances", () => {
@@ -427,6 +441,38 @@ describe("Interpreter errors", () => {
 
       const { errors } = interpret();
       expect(errors[0].message).toMatchObject(RuntimeErrors.expectedCallable());
+    });
+  });
+
+  it("errors with undefined property", () => {
+    const sources = [
+      `
+      class Foo {}
+      var foo = Foo();
+      foo.y;
+    `,
+    ];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toMatchObject(
+        RuntimeErrors.undefinedProperty("y")
+      );
+    });
+  });
+
+  it("errors with unassignable property target", () => {
+    const sources = ["print.y = 4;"];
+
+    sources.forEach(source => {
+      const { interpret } = setupTests(source);
+
+      const { errors } = interpret();
+      expect(errors[0].message).toMatchObject(
+        RuntimeErrors.unassignablePropertyTarget("<native fn>")
+      );
     });
   });
 });

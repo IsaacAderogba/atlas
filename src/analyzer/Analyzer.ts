@@ -5,8 +5,10 @@ import {
   Expr,
   ExprVisitor,
   FunctionExpr,
+  GetExpr,
   GroupingExpr,
   LogicalExpr,
+  SetExpr,
   TernaryExpr,
   UnaryExpr,
   VariableExpr,
@@ -183,6 +185,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
+  visitGetExpr(expr: GetExpr): void {
+    this.analyzeExpr(expr.object);
+  }
+
   visitGroupingExpr(expr: GroupingExpr): void {
     this.analyzeExpr(expr.expression);
   }
@@ -198,6 +204,11 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   visitLogicalExpr(expr: LogicalExpr): void {
     this.analyzeExpr(expr.left);
     this.analyzeExpr(expr.right);
+  }
+
+  visitSetExpr(expr: SetExpr): void {
+    this.analyzeExpr(expr.value);
+    this.analyzeExpr(expr.object);
   }
 
   visitTernaryExpr(expr: TernaryExpr): void {

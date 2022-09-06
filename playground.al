@@ -1,3 +1,4 @@
 class Foo {}
 var foo = Foo();
-var x = print(foo);
+foo.y = "hi";
+var x = print(foo.y);

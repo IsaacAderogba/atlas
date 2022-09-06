@@ -20,7 +20,7 @@ breakStmt      -> "break" ";" ;
 continueStmt   -> "continue" ";" ;
 block          -> "{" declaration* "}" ;
 expression     -> assignment ;
-assignment     -> IDENTIFIER "=" assignment
+assignment     -> ( call "." )? IDENTIFIER "=" assignment
                 | ternary ;
 ternary        -> logic_or ( "?" ternary ":" ternary )? ;
 logic_or       -> logic_and ( "or" logic_and )* ;
@@ -30,7 +30,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( "(" arguments? ")" )*;
+call           -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | function | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 arguments      -> expression ( "," expression )* ;

@@ -9,7 +9,6 @@ import { Return } from "./Throws";
 
 export class AtlasFunction extends NativeType implements AtlasCallable {
   readonly type = "FUNCTION";
-  static readonly atlasClassName = "Function";
 
   constructor(
     private readonly expression: FunctionExpr,
