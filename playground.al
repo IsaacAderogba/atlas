@@ -1,4 +1,8 @@
 class Emitter {
+  init = f() {
+    return null
+  }
+
   subscribe = f(name) {
     print("Subscribed" # name)
 
@@ -16,4 +20,4 @@ var emitter = Emitter()
 
 var unsubscribe = emitter.subscribe("Adam")
 
-unsubscribe();
+unsubscribe()
