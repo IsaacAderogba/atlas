@@ -98,9 +98,9 @@ export class Parser {
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
-    if (this.match("BREAK")) return this.breakStatement();
-    if (this.match("CONTINUE")) return this.continueStatement();
-
+    if (this.match("BREAK")) return new BreakStmt(this.previous());
+    if (this.match("CONTINUE")) return new ContinueStmt(this.previous());
+    
     return this.expressionStatement();
   }
 
@@ -131,14 +131,6 @@ export class Parser {
     const elseBranch = this.match("ELSE") ? this.statement() : undefined;
 
     return new IfStmt(keyword, condition, thenBranch, elseBranch);
-  }
-
-  private breakStatement(): BreakStmt {
-    return new BreakStmt(this.previous());
-  }
-
-  private continueStatement(): ContinueStmt {
-    return new ContinueStmt(this.previous());
   }
 
   private blockStatement(): BlockStmt {
