@@ -17,7 +17,7 @@ describe("Parser statements", () => {
     const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       close: { lexeme: "}", type: "RIGHT_BRACE" },
-      fields: [],
+      properties: [],
       keyword: { lexeme: "class", type: "CLASS" },
       name: { lexeme: "Foo", type: "IDENTIFIER" },
       open: { lexeme: "{", type: "LEFT_BRACE" },
@@ -30,7 +30,7 @@ describe("Parser statements", () => {
     const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "var", type: "VAR" },
-      field: {
+      property: {
         initializer: {
           token: { lexeme: "4", type: "NUMBER" },
         },
@@ -138,7 +138,7 @@ describe("Parser statements", () => {
       statements: [
         {
           keyword: {},
-          field: {},
+          property: {},
         },
       ],
       close: { lexeme: "}", type: "RIGHT_BRACE" },

@@ -13,7 +13,7 @@ export class Parameter implements BaseNode {
   }
 }
 
-export class Field implements BaseNode {
+export class Property implements BaseNode {
   constructor(readonly name: Token, readonly initializer: Expr) {}
 
   sourceRange(): SourceRange {

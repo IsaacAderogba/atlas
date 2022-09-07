@@ -31,7 +31,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Field, Parameter } from "../ast/Node";
+import { Property, Parameter } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -75,9 +75,9 @@ export class Parser {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
-    const fields: Field[] = [];
+    const props: Property[] = [];
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      fields.push(this.field());
+      props.push(this.property());
     }
 
     const close = this.consume(
@@ -85,14 +85,11 @@ export class Parser {
       SyntaxErrors.expectedRightBrace()
     );
 
-    return new ClassStmt(keyword, name, open, fields, close);
+    return new ClassStmt(keyword, name, open, props, close);
   }
 
   private varDeclaration(): VarStmt {
-    const keyword = this.previous();
-    const field = this.field();
-
-    return new VarStmt(keyword, field);
+    return new VarStmt(this.previous(), this.property());
   }
 
   private statement(): Stmt {
@@ -184,7 +181,7 @@ export class Parser {
         return new AssignExpr(expr.name, value);
       } else if (expr instanceof GetExpr) {
         return new SetExpr(expr.object, expr.name, value);
-    }
+      }
 
       this.error(expr, SyntaxErrors.invalidAssignmentTarget());
     }
@@ -431,7 +428,7 @@ export class Parser {
     return new Parameter(name);
   }
 
-  private field(): Field {
+  private property(): Property {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
@@ -441,7 +438,7 @@ export class Parser {
       this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     }
 
-    return new Field(name, initializer);
+    return new Property(name, initializer);
   }
 
   private match(...types: TokenType[]): boolean {
@@ -457,7 +454,7 @@ export class Parser {
 
   private consume(type: TokenType, message: SourceMessage): Token {
     if (this.check(type)) return this.advance();
-    throw this.error(this.previous() || this.peek(), message);
+    throw this.error(this.peek(), message);
   }
 
   private check(type: TokenType): boolean {

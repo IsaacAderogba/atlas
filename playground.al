@@ -1,4 +1,7 @@
-class Foo {}
-var foo = Foo();
-foo.y = "hi";
-var x = print(foo.y);
+class Bacon {
+  eat = f() {
+    print("Crunch crunch crunch!");
+  }
+}
+
+Bacon().eat(); // Prints "Crunch crunch crunch!".

@@ -8,11 +8,6 @@ export abstract class NativeType {
   abstract toString(): string;
 
   get(name: Token): AtlasValue {
-    // const method = this.findMethod(name.lexeme);
-    // if (method !== undefined) {
-    //   return method.bind(this);
-    // }
-
     throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 

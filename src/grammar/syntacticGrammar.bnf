@@ -3,8 +3,8 @@ declaration    -> classDecl
                 | varDecl
                 | statement
                 | errorStmt ;
-classDecl      -> "class" IDENTIFIER "{" field* "}" ;
-varDecl        -> "var" field ;
+classDecl      -> "class" IDENTIFIER "{" property* "}" ;
+varDecl        -> "var" property ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -30,7 +30,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+call           -> primary ( "(" arguments? ")" | "." accessor )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | function | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 arguments      -> expression ( "," expression )* ;
@@ -42,6 +42,6 @@ error          -> ( "or" ) logic_or
                 | ( "/" | "*" ) factor ;
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
-field          -> IDENTIFIER "=" expression ";"? ;
+property       -> IDENTIFIER "=" expression ";"? ;
 parameters     -> parameter ( "," parameter )* ;
 parameter      -> IDENTIFIER ;

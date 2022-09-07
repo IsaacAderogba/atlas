@@ -13,7 +13,7 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { Field } from "../ast/Node";
+import { Property } from "../ast/Node";
 import {
   BlockStmt,
   BreakStmt,
@@ -51,7 +51,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   analyze(): { errors: SemanticError[] } {
     this.beginScope(
-      Scope.fromGlobals(globals, () => ({ state: VariableState.DEFINED }))
+      Scope.fromGlobals(globals, () => ({ state: VariableState.SETTLED }))
     );
     for (const statement of this.statements) {
       this.analyzeStmt(statement);
@@ -85,24 +85,24 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.currentFunction = enclosingFunction;
   }
 
-  private analyzeField(field: Field): void {
-    if (field.initializer instanceof FunctionExpr) {
-      this.declare(field.name);
-      this.define(field.name);
-      this.analyzeFunction(field.initializer, FunctionType.FUNCTION);
+  private analyzeProperty(prop: Property, type: FunctionType): void {
+    if (prop.initializer instanceof FunctionExpr) {
+      this.declare(prop.name);
+      this.define(prop.name);
+      this.analyzeFunction(prop.initializer, type);
     } else {
-      this.declare(field.name);
-      this.analyzeExpr(field.initializer);
-      this.define(field.name);
+      this.declare(prop.name);
+      this.analyzeExpr(prop.initializer);
+      this.define(prop.name);
     }
   }
 
-  private analyzeLocal(expr: Expr, name: Token, isRead: boolean): void {
+  private analyzeLocal(expr: Expr, name: Token, isSettled: boolean): void {
     for (let i = this.scopes.size - 1; i >= 0; i--) {
       const scope = this.scopes.get(i);
       if (scope && scope.has(name.lexeme)) {
         const entry = scope.get(name.lexeme);
-        if (isRead && entry) entry.state = VariableState.READ;
+        if (isSettled && entry) entry.state = VariableState.SETTLED;
         return this.interpreter.resolve(expr, this.scopes.size - 1 - i);
       }
     }
@@ -122,6 +122,12 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitClassStmt(stmt: ClassStmt): void {
     this.declare(stmt.name);
+
+    for (const prop of stmt.properties) {
+      const method = FunctionType.METHOD;
+      this.analyzeProperty(prop, method);
+    }
+
     this.define(stmt.name);
   }
 
@@ -155,7 +161,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    this.analyzeField(stmt.field);
+    this.analyzeProperty(stmt.property, FunctionType.FUNCTION);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {

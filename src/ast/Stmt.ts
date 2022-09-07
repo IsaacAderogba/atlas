@@ -1,7 +1,7 @@
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { SyntaxError } from "../errors/SyntaxError";
 import type { Expr } from "./Expr";
-import type { Field } from "./Node";
+import type { Property } from "./Node";
 import { Token } from "./Token";
 
 interface BaseStmt extends SourceRangeable {
@@ -40,15 +40,15 @@ export class BreakStmt implements BaseStmt {
 
 export class ClassStmt implements BaseStmt {
   constructor(
-      readonly keyword: Token,
-      readonly name: Token,
-      readonly open: Token,
-      readonly fields: Field[],
-      readonly close: Token,
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly open: Token,
+    readonly properties: Property[],
+    readonly close: Token
   ) {}
 
   accept<R>(visitor: StmtVisitor<R>): R {
-      return visitor.visitClassStmt(this);
+    return visitor.visitClassStmt(this);
   }
 
   sourceRange(): SourceRange {
@@ -132,7 +132,7 @@ export class ReturnStmt implements BaseStmt {
 }
 
 export class VarStmt implements BaseStmt {
-  constructor(readonly keyword: Token, readonly field: Field) {}
+  constructor(readonly keyword: Token, readonly property: Property) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitVarStmt(this);
@@ -140,7 +140,7 @@ export class VarStmt implements BaseStmt {
 
   sourceRange(): SourceRange {
     const { start } = this.keyword.sourceRange();
-    const { end } = this.field.sourceRange();
+    const { end } = this.property.sourceRange();
     return new SourceRange(start, end);
   }
 }

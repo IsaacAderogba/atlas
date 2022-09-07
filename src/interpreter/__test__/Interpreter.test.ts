@@ -89,7 +89,25 @@ describe("Interpreter statements", () => {
       class Foo {}
       var foo = Foo();
       foo.y = "hi";
-      var x = print(foo.y);
+      var x = foo.y;
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "hi" });
+  });
+
+  it("interprets method calls", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {
+        bar = f() {
+          return "hi";
+        }
+      }
+      var x = Foo().bar();
     `);
     interpret();
 
