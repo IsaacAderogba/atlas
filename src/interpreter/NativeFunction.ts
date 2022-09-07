@@ -29,3 +29,17 @@ export class NativeFunction extends AtlasObject implements AtlasCallable {
     return "<native fn>";
   }
 }
+
+type ConvertedFunctions = { [key: string]: AtlasCallable & AtlasValue };
+
+export const toNativeFunctions = (funcs: {
+  [name: string]: NativeFunction["jsFunction"];
+}): ConvertedFunctions => {
+  const convertedFuncs: ConvertedFunctions = {};
+
+  for (const [name, func] of Object.entries(funcs)) {
+    convertedFuncs[name] = new NativeFunction(func);
+  }
+
+  return convertedFuncs;
+};

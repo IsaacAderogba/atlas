@@ -4,7 +4,7 @@ export class AtlasNumber extends AtlasObject {
   readonly type = "NUMBER";
 
   constructor(readonly value: number) {
-    super();
+    super({});
   }
 
   toString(): string {

@@ -4,14 +4,14 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject } from "./AtlasObject";
 
 export class AtlasInstance extends AtlasObject {
-  readonly type = "INSTANCE";
   static readonly atlasClass: AtlasClass;
+  readonly type = "INSTANCE";
 
   constructor(
     readonly atlasClass: AtlasClass,
     readonly fields: Map<string, AtlasValue>
   ) {
-    super();
+    super({});
   }
 
   get(name: Token): AtlasValue {

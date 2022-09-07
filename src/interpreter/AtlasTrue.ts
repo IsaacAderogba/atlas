@@ -4,7 +4,7 @@ export class AtlasTrue extends AtlasObject {
   readonly type = "TRUE";
 
   constructor(readonly value: true = true) {
-    super();
+    super({});
   }
 
   toString(): string {

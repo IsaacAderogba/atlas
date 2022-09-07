@@ -15,7 +15,7 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
     private readonly closure: Environment,
     private readonly isInitializer: boolean
   ) {
-    super();
+    super({});
   }
 
   arity(): number {

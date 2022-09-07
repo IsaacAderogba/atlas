@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "jest",
-    "debug": "ts-node src/main.ts ./playground.al"
+    "debug": "ts-node src/index.ts ./playground.al",
+    "build": "tsup src/index.ts --format esm,cjs --dts --minify"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "jest": "^28.1.3",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.8",
+    "tsup": "^6.2.3",
     "typescript": "^4.7.4"
   },
   "dependencies": {

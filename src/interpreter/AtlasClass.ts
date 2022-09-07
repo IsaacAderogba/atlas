@@ -1,28 +1,14 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject } from "./AtlasObject";
+import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
 import { Interpreter } from "./Interpreter";
 
-type Method = AtlasCallable & AtlasValue;
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "CLASS";
-  readonly methods = new Map<string, Method>();
-  readonly fields = new Map<string, AtlasValue>();
 
-  constructor(
-    readonly name: string,
-    properties = new Map<string, AtlasValue>()
-  ) {
-    super();
-
-    for (const [name, value] of properties) {
-      if (value.type === "FUNCTION" || value.type === "NATIVE_FUNCTION") {
-        this.methods.set(name, value);
-      } else {
-        this.fields.set(name, value);
-      }
-    }
+  constructor(readonly name: string, properties: AtlasObjectProps = {}) {
+    super({ ...properties });
   }
 
   arity(): number {
@@ -39,7 +25,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return instance;
   }
 
-  findMethod(name: string): Method | undefined {
+  findMethod(name: string): (AtlasCallable & AtlasValue) | undefined {
     return this.methods.get(name);
   }
 
