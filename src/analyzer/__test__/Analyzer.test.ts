@@ -65,6 +65,19 @@ describe("Analyzer errors", () => {
     });
   });
 
+  it("errors with prohibited return", () => {
+    const expressions = ["this;"];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedThis()
+      );
+    });
+  });
+
   it("errors with prohibited redeclaration", () => {
     const expressions = ["var x = 4; var print = 4;"];
 

@@ -4,6 +4,11 @@ export enum FunctionType {
   METHOD="METHOD",
 }
 
+export enum ClassType {
+  NONE="NONE",
+  CLASS="CLASS",
+}
+
 export enum VariableState {
   DECLARED = "DECLARED",
   DEFINED = "DEFINED",

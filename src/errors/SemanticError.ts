@@ -61,4 +61,11 @@ export class SemanticErrors {
       body: "continue statement was used outside of the context of a loop",
     });
   }
+
+  static prohibitedThis(): SourceMessage {
+    return this.formatError({
+      title: "prohibited this",
+      body: "this expression was used outside of the context of a class",
+    });
+  }
 }

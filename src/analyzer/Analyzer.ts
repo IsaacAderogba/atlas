@@ -35,13 +35,14 @@ import { globals } from "../interpreter/globals";
 import { Interpreter } from "../interpreter/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
-import { FunctionType, VariableState } from "./Enums";
+import { ClassType, FunctionType, VariableState } from "./Enums";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly scopes: Stack<AnalyzerScope> = new Stack();
   private currentFunction = FunctionType.NONE;
+  private currentClass = ClassType.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
 
@@ -122,6 +123,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.CLASS;
+
     this.declare(stmt.name);
     this.define(stmt.name);
 
@@ -134,6 +138,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+    this.currentClass = enclosingClass;
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
@@ -223,6 +228,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: ThisExpr): void {
+    if (this.currentClass === ClassType.NONE) {
+      this.error(expr.keyword, SemanticErrors.prohibitedThis());
+    }
     this.analyzeLocal(expr, expr.keyword, true);
   }
 
