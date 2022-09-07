@@ -1,2 +1,3 @@
-print(Boolean(true));
-print(true == Boolean(true));
+var x = Number("");
+
+print(x);

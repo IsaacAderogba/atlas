@@ -33,6 +33,13 @@ export class RuntimeErrors {
   }
 
   //
+  static prohibitedInitializer(): SourceMessage {
+    return this.formatError({
+      title: "prohibited initializer",
+      body: "it is not possible to create this object through the initializer",
+    });
+  }
+
   static prohibitedZeroDivision(): SourceMessage {
     return this.formatError({
       title: "prohibited division by zero",

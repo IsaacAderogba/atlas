@@ -42,6 +42,7 @@ import { AtlasString } from "./AtlasString";
 import { Token } from "../ast/Token";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasClass } from "./AtlasClass";
+import { NativeError } from "../errors/NativeError";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -279,7 +280,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       );
     }
 
-    return callee.call(this, args);
+    try {
+      return callee.call(this, args);
+    } catch (err) {
+      if (err instanceof NativeError) throw this.error(expr, err.message);
+      throw err;
+    }
   }
 
   visitGetExpr(expr: GetExpr): AtlasValue {
@@ -367,7 +373,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     throw this.error(source, RuntimeErrors.expectedCallable());
   }
 
-  private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
+  error(source: SourceRangeable, message: SourceMessage): RuntimeError {
     return new RuntimeError(message, source.sourceRange());
   }
 }
