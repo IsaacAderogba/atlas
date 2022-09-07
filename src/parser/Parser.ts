@@ -13,6 +13,7 @@ import {
   FunctionExpr,
   GetExpr,
   SetExpr,
+  ThisExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -317,13 +318,9 @@ export class Parser {
       return new LiteralExpr(token, token.literal!);
     }
 
-    if (this.match("IDENTIFIER")) {
-      return new VariableExpr(this.previous());
-    }
-
-    if (this.match("FUNCTION")) {
-      return this.func();
-    }
+    if (this.match("THIS")) return new ThisExpr(this.previous());
+    if (this.match("IDENTIFIER")) return new VariableExpr(this.previous());
+    if (this.match("FUNCTION")) return this.func();
 
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();

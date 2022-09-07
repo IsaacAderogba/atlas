@@ -31,7 +31,7 @@ term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
 call           -> primary ( "(" arguments? ")" | "." accessor )* ;
-primary        -> NUMBER | STRING | "true" | "false" | "null" | IDENTIFIER | function | "(" expression ")" | error ;
+primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 arguments      -> expression ( "," expression )* ;
 error          -> ( "or" ) logic_or

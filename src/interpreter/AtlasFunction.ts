@@ -21,6 +21,12 @@ export class AtlasFunction extends NativeType implements AtlasCallable {
     return this.expression.params.length;
   }
 
+  bind(instance: AtlasValue): AtlasFunction {
+    const environment = new Environment(this.closure);
+    environment.define("this", instance);
+    return new AtlasFunction(this.expression, environment);
+  }
+
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
     const environment = new Environment(this.closure);
 

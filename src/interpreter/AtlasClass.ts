@@ -1,17 +1,18 @@
 import { AtlasCallable } from "./AtlasCallable";
-import { AtlasFunction } from "./AtlasFunction";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { NativeFunction } from "./NativeFunction";
 import { NativeType } from "./NativeType";
 
-type Method = AtlasFunction | NativeFunction;
+type Method = AtlasCallable & AtlasValue;
 export class AtlasClass extends NativeType implements AtlasCallable {
   readonly type = "CLASS";
   readonly methods = new Map<string, Method>();
   readonly fields = new Map<string, AtlasValue>();
 
-  constructor(readonly name: string, properties = new Map<string, AtlasValue>()) {
+  constructor(
+    readonly name: string,
+    properties = new Map<string, AtlasValue>()
+  ) {
     super();
 
     for (const [name, value] of properties) {
@@ -25,6 +26,10 @@ export class AtlasClass extends NativeType implements AtlasCallable {
 
   arity(): number {
     return 0;
+  }
+
+  bind(): AtlasClass {
+    return this;
   }
 
   call(): AtlasValue {

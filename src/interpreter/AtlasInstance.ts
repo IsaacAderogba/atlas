@@ -19,7 +19,7 @@ export class AtlasInstance extends NativeType {
     if (value) return value;
 
     const method = this.atlasClass.findMethod(name.lexeme);
-    if (method) return method;
+    if (method) return method.bind(this);
 
     return super.get(name);
   }

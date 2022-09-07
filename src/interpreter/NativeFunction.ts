@@ -17,6 +17,10 @@ export class NativeFunction extends NativeType implements AtlasCallable {
     return this.jsFunction.length;
   }
 
+  bind(instance: AtlasValue): NativeFunction {
+    return new NativeFunction(this.jsFunction.bind(instance));
+  }
+
   call(_: Interpreter, args: AtlasValue[]): AtlasValue {
     return this.jsFunction(...args);
   }

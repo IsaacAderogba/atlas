@@ -10,6 +10,7 @@ import {
   LogicalExpr,
   SetExpr,
   TernaryExpr,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
@@ -122,13 +123,17 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitClassStmt(stmt: ClassStmt): void {
     this.declare(stmt.name);
+    this.define(stmt.name);
+
+    this.beginScope();
+    this.getScope().set("this", { state: VariableState.SETTLED });
 
     for (const prop of stmt.properties) {
       const method = FunctionType.METHOD;
       this.analyzeProperty(prop, method);
     }
 
-    this.define(stmt.name);
+    this.endScope();
   }
 
   visitBreakStmt(stmt: BreakStmt): void {
@@ -217,6 +222,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(expr.object);
   }
 
+  visitThisExpr(expr: ThisExpr): void {
+    this.analyzeLocal(expr, expr.keyword, true);
+  }
+
   visitTernaryExpr(expr: TernaryExpr): void {
     this.analyzeExpr(expr.expression);
     this.analyzeExpr(expr.thenBranch);
@@ -256,8 +265,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private declare(name: Token): void {
-    const scope = this.scopes.peek();
-    if (!scope) return;
+    const scope = this.getScope();
     if (scope.has(name.lexeme)) {
       this.error(name, SemanticErrors.prohibitedRedeclaration());
     }
@@ -266,9 +274,14 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private define(name: Token): void {
-    const scope = this.scopes.peek();
-    if (!scope) return;
+    const scope = this.getScope();
     scope.set(name.lexeme, { state: VariableState.DEFINED, source: name });
+  }
+
+  private getScope(): AnalyzerScope {
+    const scope = this.scopes.peek();
+    if (!scope) throw new Error("Expected scope");
+    return scope;
   }
 
   private error(

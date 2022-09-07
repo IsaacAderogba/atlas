@@ -146,6 +146,20 @@ export class SetExpr {
   }
 }
 
+export class ThisExpr {
+  constructor(readonly keyword: Token) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitThisExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.keyword.sourceRange().start;
+    const end = this.keyword.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class UnaryExpr implements BaseExpr {
   constructor(readonly operator: Token, readonly right: Expr) {}
 
@@ -230,6 +244,7 @@ export type Expr =
   | LiteralExpr
   | LogicalExpr
   | SetExpr
+  | ThisExpr
   | UnaryExpr
   | VariableExpr;
 
@@ -244,6 +259,7 @@ export interface ExprVisitor<T> {
   visitLiteralExpr(expr: LiteralExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
   visitSetExpr(expr: SetExpr): T;
+  visitThisExpr(expr: ThisExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
   visitVariableExpr(expr: VariableExpr): T;
 }

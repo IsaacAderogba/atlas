@@ -373,6 +373,15 @@ describe("Parser expressions", () => {
     });
   });
 
+  it("parses this expressions", () => {
+    const { parser } = setupTests("this");
+
+    const expression = parser.expression();
+    expect(expression).toMatchObject({
+      keyword: { lexeme: "this", type: "THIS" },
+    });
+  });
+
   it("parses primary expressions", () => {
     const { parser } = setupTests("'passes'");
 

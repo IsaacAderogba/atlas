@@ -11,6 +11,7 @@ import {
   LogicalExpr,
   SetExpr,
   TernaryExpr,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
@@ -311,13 +312,13 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitSetExpr(expr: SetExpr): AtlasValue {
     const object = this.evaluate(expr.object);
 
-    // if (!(object instanceof LoxInstance)) {
-    //   throw new RuntimeError("Only instances have mutable fields.", expr.name);
-    // }
-
     const value = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  visitThisExpr(expr: ThisExpr): AtlasValue {
+    return this.lookupVariable(expr.keyword, expr);
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {

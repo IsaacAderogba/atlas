@@ -1,3 +1,4 @@
+import { Analyzer } from "../../analyzer/Analyzer";
 import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
@@ -26,11 +27,12 @@ const setupTests = (source: string): SetupTests => {
     interpreter,
     interpret: () => {
       const { statements, errors: parseErrs } = parser.parse();
-
       if (!statements || parseErrs.length) {
         console.log("Parse errors", parseErrs);
         throw new Error("Parse failed");
       }
+
+      new Analyzer(interpreter, statements).analyze();
       return interpreter.interpret(statements);
     },
     evaluate: () => {
@@ -116,6 +118,26 @@ describe("Interpreter statements", () => {
     const result = interpreter.visitVariableExpr(expression);
 
     expect(result).toMatchObject({ type: "STRING", value: "hi" });
+  });
+
+  it("interprets this expressions", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {
+        bar = f() {
+          return this.flavour;
+        }
+      }
+      var foo = Foo();
+      foo.flavour = "chocolate";
+      var x = foo.bar();
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "chocolate" });
   });
 
   it("interprets class instances", () => {
