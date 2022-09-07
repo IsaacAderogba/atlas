@@ -4,10 +4,10 @@ import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { Environment } from "./Environment";
 import { Interpreter } from "./Interpreter";
-import { NativeType } from "./NativeType";
+import { AtlasObject } from "./AtlasObject";
 import { Return } from "./Throws";
 
-export class AtlasFunction extends NativeType implements AtlasCallable {
+export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "FUNCTION";
 
   constructor(

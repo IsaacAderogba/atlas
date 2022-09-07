@@ -1,9 +1,9 @@
 import { Token } from "../ast/Token";
 import { AtlasClass } from "./AtlasClass";
 import { AtlasValue } from "./AtlasValue";
-import { NativeType } from "./NativeType";
+import { AtlasObject } from "./AtlasObject";
 
-export class AtlasInstance extends NativeType {
+export class AtlasInstance extends AtlasObject {
   readonly type = "INSTANCE";
   static readonly atlasClass: AtlasClass;
 

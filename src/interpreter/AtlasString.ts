@@ -1,6 +1,6 @@
-import { NativeType } from "./NativeType";
+import { AtlasObject } from "./AtlasObject";
 
-export class AtlasString extends NativeType {
+export class AtlasString extends AtlasObject {
   readonly type = "STRING";
 
   constructor(readonly value: string) {

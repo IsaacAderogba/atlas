@@ -1,10 +1,10 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { NativeType } from "./NativeType";
+import { AtlasObject } from "./AtlasObject";
 
 type Method = AtlasCallable & AtlasValue;
-export class AtlasClass extends NativeType implements AtlasCallable {
+export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "CLASS";
   readonly methods = new Map<string, Method>();
   readonly fields = new Map<string, AtlasValue>();

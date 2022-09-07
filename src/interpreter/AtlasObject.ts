@@ -3,7 +3,7 @@ import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { AtlasValue } from "./AtlasValue";
 
-export abstract class NativeType {
+export abstract class AtlasObject {
   abstract readonly type: string;
   abstract toString(): string;
 

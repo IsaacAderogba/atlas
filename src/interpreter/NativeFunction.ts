@@ -1,9 +1,9 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { Interpreter } from "./Interpreter";
-import { NativeType } from "./NativeType";
+import { AtlasObject } from "./AtlasObject";
 
-export class NativeFunction extends NativeType implements AtlasCallable {
+export class NativeFunction extends AtlasObject implements AtlasCallable {
   readonly type = "NATIVE_FUNCTION";
   readonly className = "NativeFunction";
 
