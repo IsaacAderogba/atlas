@@ -31,7 +31,7 @@ import {
 import { Token } from "../ast/Token";
 import { SemanticError, SemanticErrors } from "../errors/SemanticError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { globals } from "../interpreter/globals";
+import { globals } from "../globals";
 import { Interpreter } from "../interpreter/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";

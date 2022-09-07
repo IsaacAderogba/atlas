@@ -1,1 +1,2 @@
-print(print.toString());
+print(Boolean(true));
+print(true == Boolean(true));

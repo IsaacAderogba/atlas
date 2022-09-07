@@ -35,7 +35,7 @@ import {
 } from "../ast/Stmt";
 import { Environment } from "./Environment";
 import { AtlasCallable } from "./AtlasCallable";
-import { globals } from "./globals";
+import { globals } from "../globals";
 import { AtlasFunction } from "./AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
 import { AtlasString } from "./AtlasString";

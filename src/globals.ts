@@ -1,6 +1,7 @@
-import { AtlasNumber } from "./AtlasNumber";
-import { AtlasString } from "./AtlasString";
-import { NativeFunction } from "./NativeFunction";
+import { AtlasNumber } from "./interpreter/AtlasNumber";
+import { AtlasString } from "./interpreter/AtlasString";
+import { NativeFunction } from "./interpreter/NativeFunction";
+import { Boolean } from "./interpreter/AtlasValue";
 
 export const clock = new NativeFunction(
   () => new AtlasNumber(Date.now() / 1000)
@@ -15,4 +16,5 @@ export const print = new NativeFunction(value => {
 export const globals = {
   clock,
   print,
+  Boolean
 };

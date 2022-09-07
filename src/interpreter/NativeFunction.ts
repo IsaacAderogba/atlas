@@ -43,3 +43,7 @@ export const toNativeFunctions = (funcs: {
 
   return convertedFuncs;
 };
+
+export class NativeFunctionError {
+  constructor(readonly message: string) {}
+}
