@@ -1,4 +1,4 @@
-/*
+
 class Bacon {
   hi = "string";
 
@@ -9,8 +9,9 @@ class Bacon {
 
 var eat = Bacon().eat;
 eat();
-*/
 
+
+/*
 class Cake {
   taste = f() {
     var adjective = "delicious";
@@ -21,3 +22,4 @@ class Cake {
 var cake = Cake();
 cake.flavor = "German chocolate";
 cake.taste();
+/*
