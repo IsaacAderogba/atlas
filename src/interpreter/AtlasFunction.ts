@@ -12,7 +12,8 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
 
   constructor(
     private readonly expression: FunctionExpr,
-    private readonly closure: Environment
+    private readonly closure: Environment,
+    private readonly isInitializer: boolean
   ) {
     super();
   }
@@ -24,7 +25,7 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
   bind(instance: AtlasValue): AtlasFunction {
     const environment = new Environment(this.closure);
     environment.define("this", instance);
-    return new AtlasFunction(this.expression, environment);
+    return new AtlasFunction(this.expression, environment, this.isInitializer);
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
@@ -41,6 +42,7 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
       throw err;
     }
 
+    if (this.isInitializer) return this.closure.getAt("this", 0);
     return new AtlasNull();
   }
 

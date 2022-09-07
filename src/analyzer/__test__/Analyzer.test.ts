@@ -52,7 +52,7 @@ describe("Analyzer errors", () => {
     });
   });
 
-  it("errors with prohibited return", () => {
+  it("errors with prohibited function return", () => {
     const expressions = ["return 4;"];
 
     expressions.forEach(expr => {
@@ -60,21 +60,40 @@ describe("Analyzer errors", () => {
 
       const { errors } = analyzer.analyze();
       expect(errors[0].message).toMatchObject(
-        SemanticErrors.prohibitedReturn()
+        SemanticErrors.prohibitedFunctionReturn()
       );
     });
   });
 
-  it("errors with prohibited return", () => {
-    const expressions = ["this;"];
+  it("errors with prohibited init return", () => {
+    const expressions = [
+      `
+      class Foo {
+        init = f() {
+          return null;
+        }
+      }
+    `,
+    ];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
       expect(errors[0].message).toMatchObject(
-        SemanticErrors.prohibitedThis()
+        SemanticErrors.prohibitedInitReturn()
       );
+    });
+  });
+
+  it("errors with prohibited this", () => {
+    const expressions = ["this;"];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedThis());
     });
   });
 

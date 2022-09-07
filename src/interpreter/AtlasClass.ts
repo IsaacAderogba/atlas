@@ -2,6 +2,7 @@ import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject } from "./AtlasObject";
+import { Interpreter } from "./Interpreter";
 
 type Method = AtlasCallable & AtlasValue;
 export class AtlasClass extends AtlasObject implements AtlasCallable {
@@ -25,15 +26,16 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
   }
 
   arity(): number {
-    return 0;
+    return this.findMethod("init")?.arity() || 0;
   }
 
   bind(): AtlasClass {
     return this;
   }
 
-  call(): AtlasValue {
+  call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
     const instance = new AtlasInstance(this, this.fields);
+    this.findMethod("init")?.bind(instance).call(interpreter, args);
     return instance;
   }
 

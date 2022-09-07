@@ -133,7 +133,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.getScope().set("this", { state: VariableState.SETTLED });
 
     for (const prop of stmt.properties) {
-      const method = FunctionType.METHOD;
+      const isInit = prop.name.lexeme === "init";
+      const method = isInit ? FunctionType.INIT : FunctionType.METHOD;
+
       this.analyzeProperty(prop, method);
     }
 
@@ -164,9 +166,15 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
-    if (this.currentFunction === FunctionType.NONE) {
-      this.error(stmt.keyword, SemanticErrors.prohibitedReturn());
+    switch (this.currentFunction) {
+      case FunctionType.NONE:
+        this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
+        break;
+      case FunctionType.INIT:
+        this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
+        break;
     }
+
     this.analyzeExpr(stmt.value);
   }
 
