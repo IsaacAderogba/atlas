@@ -18,7 +18,7 @@ export class AtlasInstance extends AtlasObject {
     const value = this.fields.get(name.lexeme);
     if (value) return value;
 
-    const method = this.atlasClass.findMethod(name.lexeme);
+    const method = this.atlasClass.methods.get(name.lexeme);
     if (method) return method.bind(this);
 
     return super.get(name);

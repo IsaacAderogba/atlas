@@ -322,8 +322,8 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitSetExpr(expr: SetExpr): AtlasValue {
     const object = this.evaluate(expr.object);
-
     const value = this.evaluate(expr.value);
+
     object.set(expr.name, value);
     return value;
   }

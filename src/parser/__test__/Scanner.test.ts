@@ -163,7 +163,7 @@ describe("Scanner tokens", () => {
     expect(tokens.length).toEqual(2);
   });
 
-  it("tokenizes null", () => {
+  it.only("tokenizes null", () => {
     const { scanner } = setupTests("null");
     const { tokens } = scanner.scan();
 
