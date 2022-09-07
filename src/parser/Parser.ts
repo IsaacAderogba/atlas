@@ -11,10 +11,14 @@ import {
   LogicalExpr,
   CallExpr,
   FunctionExpr,
+  GetExpr,
+  SetExpr,
+  ThisExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
   BreakStmt,
+  ClassStmt,
   ContinueStmt,
   ErrorStmt,
   ExpressionStmt,
@@ -28,7 +32,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Parameter } from "../ast/Node";
+import { Property, Parameter } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -57,6 +61,7 @@ export class Parser {
 
   private declaration(): Stmt {
     try {
+      if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -66,18 +71,26 @@ export class Parser {
     }
   }
 
-  private varDeclaration(): VarStmt {
+  private classDeclaration(): ClassStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
-    const initializer = this.expression();
+    const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
-    const isFunc = initializer instanceof FunctionExpr;
-    if (!isFunc) {
-      this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
+    const props: Property[] = [];
+    while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
+      props.push(this.property());
     }
 
-    return new VarStmt(keyword, name, initializer);
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+
+    return new ClassStmt(keyword, name, open, props, close);
+  }
+
+  private varDeclaration(): VarStmt {
+    return new VarStmt(this.previous(), this.property());
   }
 
   private statement(): Stmt {
@@ -85,17 +98,15 @@ export class Parser {
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
     if (this.match("LEFT_BRACE")) return this.blockStatement();
-    if (this.match("BREAK")) return this.breakStatement();
-    if (this.match("CONTINUE")) return this.continueStatement();
-
+    if (this.match("BREAK")) return new BreakStmt(this.previous());
+    if (this.match("CONTINUE")) return new ContinueStmt(this.previous());
+    
     return this.expressionStatement();
   }
 
   private returnStatement(): ReturnStmt {
     const keyword = this.previous();
     const value = this.expression();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-
     return new ReturnStmt(keyword, value);
   }
 
@@ -122,18 +133,6 @@ export class Parser {
     return new IfStmt(keyword, condition, thenBranch, elseBranch);
   }
 
-  private breakStatement(): BreakStmt {
-    const token = this.previous();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    return new BreakStmt(token);
-  }
-
-  private continueStatement(): ContinueStmt {
-    const token = this.previous();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    return new ContinueStmt(token);
-  }
-
   private blockStatement(): BlockStmt {
     const open = this.previous();
     const statements: Stmt[] = [];
@@ -151,7 +150,6 @@ export class Parser {
 
   private expressionStatement(): ExpressionStmt {
     const value = this.expression();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ExpressionStmt(value);
   }
 
@@ -167,6 +165,8 @@ export class Parser {
 
       if (expr instanceof VariableExpr) {
         return new AssignExpr(expr.name, value);
+      } else if (expr instanceof GetExpr) {
+        return new SetExpr(expr.object, expr.name, value);
       }
 
       this.error(expr, SyntaxErrors.invalidAssignmentTarget());
@@ -283,6 +283,12 @@ export class Parser {
         );
 
         expr = new CallExpr(open, expr, args, close);
+      } else if (this.match("DOT")) {
+        const name = this.consume(
+          "IDENTIFIER",
+          SyntaxErrors.expectedIdentifier()
+        );
+        expr = new GetExpr(expr, name);
       } else {
         break;
       }
@@ -297,13 +303,9 @@ export class Parser {
       return new LiteralExpr(token, token.literal!);
     }
 
-    if (this.match("IDENTIFIER")) {
-      return new VariableExpr(this.previous());
-    }
-
-    if (this.match("FUNCTION")) {
-      return this.func();
-    }
+    if (this.match("THIS")) return new ThisExpr(this.previous());
+    if (this.match("IDENTIFIER")) return new VariableExpr(this.previous());
+    if (this.match("FUNCTION")) return this.func();
 
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();
@@ -334,8 +336,6 @@ export class Parser {
     this.advance();
 
     while (!this.isAtEnd()) {
-      // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
-
       switch (this.peek().type) {
         case "BREAK":
         case "CONTINUE":
@@ -377,6 +377,12 @@ export class Parser {
       }
     }
 
+    if (this.match("SEMICOLON")) {
+      return new ErrorExpr(
+        this.error(this.previous(), SyntaxErrors.invalidSemiColon())
+      );
+    }
+
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
@@ -394,7 +400,6 @@ export class Parser {
 
   private parameters(): Parameter[] {
     const params: Parameter[] = [];
-
     if (!this.check("RIGHT_PAREN")) {
       do {
         params.push(this.parameter());
@@ -407,6 +412,14 @@ export class Parser {
   private parameter(): Parameter {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedParameter());
     return new Parameter(name);
+  }
+
+  private property(): Property {
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
+    const initializer = this.expression();
+
+    return new Property(name, initializer);
   }
 
   private match(...types: TokenType[]): boolean {
@@ -422,7 +435,7 @@ export class Parser {
 
   private consume(type: TokenType, message: SourceMessage): Token {
     if (this.check(type)) return this.advance();
-    throw this.error(this.previous() || this.peek(), message);
+    throw this.error(this.peek(), message);
   }
 
   private check(type: TokenType): boolean {

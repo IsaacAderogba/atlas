@@ -1,9 +1,23 @@
-var fib = f(n) {
-  if (n <= 1) return n;
-  return fib(n - 2) + fib(n - 1);
+class Emitter {
+  init = f() {
+    return null
+  }
+
+  subscribe = f(name) {
+    print("Subscribed" # name)
+
+    return f() {
+      this.unsubscribe(name)
+    }
+  }
+
+  unsubscribe = f(name) {
+    print("Unsubscribed " # name)
+  }
 }
 
-var i = 0;
-while (i < 20; i = i + 1) {
-  print(fib(i));
-}
+var emitter = Emitter()
+
+var unsubscribe = emitter.subscribe("Adam")
+
+unsubscribe()

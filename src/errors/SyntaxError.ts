@@ -68,6 +68,13 @@ export class SyntaxErrors {
     });
   }
 
+  static invalidSemiColon(): SourceMessage {
+    return this.formatError({
+      title: "invalid semicolon",
+      body: 'this semicolon ";" usage is invalid',
+    });
+  }
+
   static expectedColon(): SourceMessage {
     return this.formatError({
       title: "expected colon",

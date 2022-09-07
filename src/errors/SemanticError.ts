@@ -41,10 +41,17 @@ export class SemanticErrors {
     });
   }
 
-  static prohibitedReturn(): SourceMessage {
+  static prohibitedFunctionReturn(): SourceMessage {
     return this.formatError({
-      title: "prohibited return",
-      body: "return statement was used outside of the context of a function",
+      title: "prohibited function return",
+      body: "return statement cannot be used outside of a function",
+    });
+  }
+
+  static prohibitedInitReturn(): SourceMessage {
+    return this.formatError({
+      title: "prohibited initializer return",
+      body: "return statement cannot be used inside of an init method",
     });
   }
 
@@ -59,6 +66,13 @@ export class SemanticErrors {
     return this.formatError({
       title: "prohibited continue",
       body: "continue statement was used outside of the context of a loop",
+    });
+  }
+
+  static prohibitedThis(): SourceMessage {
+    return this.formatError({
+      title: "prohibited this",
+      body: "this expression was used outside of the context of a class",
     });
   }
 }

@@ -1,6 +1,7 @@
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { SyntaxError } from "../errors/SyntaxError";
 import type { Expr } from "./Expr";
+import type { Property } from "./Node";
 import { Token } from "./Token";
 
 interface BaseStmt extends SourceRangeable {
@@ -34,6 +35,26 @@ export class BreakStmt implements BaseStmt {
 
   sourceRange(): SourceRange {
     return this.keyword.sourceRange();
+  }
+}
+
+export class ClassStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly open: Token,
+    readonly properties: Property[],
+    readonly close: Token
+  ) {}
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitClassStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
   }
 }
 
@@ -111,11 +132,7 @@ export class ReturnStmt implements BaseStmt {
 }
 
 export class VarStmt implements BaseStmt {
-  constructor(
-    readonly keyword: Token,
-    readonly name: Token,
-    readonly initializer: Expr
-  ) {}
+  constructor(readonly keyword: Token, readonly property: Property) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitVarStmt(this);
@@ -123,7 +140,7 @@ export class VarStmt implements BaseStmt {
 
   sourceRange(): SourceRange {
     const { start } = this.keyword.sourceRange();
-    const { end } = this.initializer.sourceRange();
+    const { end } = this.property.sourceRange();
     return new SourceRange(start, end);
   }
 }
@@ -150,6 +167,7 @@ export class WhileStmt implements BaseStmt {
 export type Stmt =
   | BlockStmt
   | BreakStmt
+  | ClassStmt
   | ContinueStmt
   | ErrorStmt
   | IfStmt
@@ -161,6 +179,7 @@ export type Stmt =
 export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
   visitBreakStmt(stmt: BreakStmt): T;
+  visitClassStmt(stmt: ClassStmt): T;
   visitContinueStmt(stmt: ContinueStmt): T;
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;

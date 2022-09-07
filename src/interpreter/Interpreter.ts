@@ -5,10 +5,13 @@ import {
   Expr,
   ExprVisitor,
   FunctionExpr,
+  GetExpr,
   GroupingExpr,
   LiteralExpr,
   LogicalExpr,
+  SetExpr,
   TernaryExpr,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
@@ -21,6 +24,7 @@ import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import {
   BlockStmt,
+  ClassStmt,
   ExpressionStmt,
   IfStmt,
   ReturnStmt,
@@ -31,11 +35,14 @@ import {
 } from "../ast/Stmt";
 import { Environment } from "./Environment";
 import { AtlasCallable } from "./AtlasCallable";
-import { globals } from "./globals";
+import { globals } from "../globals";
 import { AtlasFunction } from "./AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
 import { AtlasString } from "./AtlasString";
 import { Token } from "../ast/Token";
+import { AtlasNull } from "./AtlasNull";
+import { AtlasClass } from "./AtlasClass";
+import { NativeError } from "../errors/NativeError";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -86,13 +93,38 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.interpretBlock(stmt.statements, new Environment(this.environment));
   }
 
+  visitClassStmt(stmt: ClassStmt): void {
+    this.environment.define(stmt.name.lexeme, new AtlasNull());
+
+    const props: { [key: string]: AtlasValue } = {};
+    for (const { name, initializer: expr } of stmt.properties) {
+      const value =
+        expr instanceof FunctionExpr
+          ? new AtlasFunction(expr, this.environment, name.lexeme === "init")
+          : this.evaluate(expr);
+
+      props[name.lexeme] = value;
+    }
+    const atlasClass = new AtlasClass(stmt.name.lexeme, props);
+
+    this.environment.assign(stmt.name, atlasClass);
+  }
+
+  visitBreakStmt(): void {
+    throw new Break();
+  }
+
+  visitContinueStmt(): void {
+    throw new Continue();
+  }
+
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    const value = this.evaluate(stmt.initializer);
-    this.environment.define(stmt.name.lexeme, value);
+    const value = this.evaluate(stmt.property.initializer);
+    this.environment.define(stmt.property.name.lexeme, value);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -124,14 +156,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     } else if (stmt.elseBranch) {
       this.execute(stmt.elseBranch);
     }
-  }
-
-  visitBreakStmt(): void {
-    throw new Break();
-  }
-
-  visitContinueStmt(): void {
-    throw new Continue();
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
@@ -256,11 +280,21 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       );
     }
 
-    return callee.call(this, args);
+    try {
+      return callee.call(this, args);
+    } catch (err) {
+      if (err instanceof NativeError) throw this.error(expr, err.message);
+      throw err;
+    }
+  }
+
+  visitGetExpr(expr: GetExpr): AtlasValue {
+    const object = this.evaluate(expr.object);
+    return object.get(expr.name);
   }
 
   visitFunctionExpr(expr: FunctionExpr): AtlasFunction {
-    return new AtlasFunction(expr, this.environment);
+    return new AtlasFunction(expr, this.environment, false);
   }
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
@@ -284,6 +318,18 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         );
     }
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: SetExpr): AtlasValue {
+    const object = this.evaluate(expr.object);
+    const value = this.evaluate(expr.value);
+
+    object.set(expr.name, value);
+    return value;
+  }
+
+  visitThisExpr(expr: ThisExpr): AtlasValue {
+    return this.lookupVariable(expr.keyword, expr);
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {
@@ -321,12 +367,13 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     source: SourceRangeable,
     operand: AtlasValue
   ): AtlasCallable {
+    if (operand.type === "CLASS") return operand;
     if (operand.type === "FUNCTION") return operand;
     if (operand.type === "NATIVE_FUNCTION") return operand;
     throw this.error(source, RuntimeErrors.expectedCallable());
   }
 
-  private error(source: SourceRangeable, message: SourceMessage): RuntimeError {
+  error(source: SourceRangeable, message: SourceMessage): RuntimeError {
     return new RuntimeError(message, source.sourceRange());
   }
 }

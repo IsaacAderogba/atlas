@@ -4,20 +4,28 @@ import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { Environment } from "./Environment";
 import { Interpreter } from "./Interpreter";
-import { applyMixin, NativeTypeMixin } from "./NativeTypeMixin";
+import { AtlasObject } from "./AtlasObject";
 import { Return } from "./Throws";
 
-class AtlasFunction implements AtlasCallable {
+export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "FUNCTION";
-  static readonly atlasClassName = "Function";
 
   constructor(
     private readonly expression: FunctionExpr,
-    private readonly closure: Environment
-  ) {}
+    private readonly closure: Environment,
+    private readonly isInitializer: boolean
+  ) {
+    super({});
+  }
 
   arity(): number {
     return this.expression.params.length;
+  }
+
+  bind(instance: AtlasValue): AtlasFunction {
+    const environment = new Environment(this.closure);
+    environment.define("this", instance);
+    return new AtlasFunction(this.expression, environment, this.isInitializer);
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
@@ -34,6 +42,7 @@ class AtlasFunction implements AtlasCallable {
       throw err;
     }
 
+    if (this.isInitializer) return this.closure.getAt("this", 0);
     return new AtlasNull();
   }
 
@@ -41,8 +50,3 @@ class AtlasFunction implements AtlasCallable {
     return `<fn>`;
   }
 }
-
-interface AtlasFunction extends NativeTypeMixin {}
-applyMixin(AtlasFunction, NativeTypeMixin);
-
-export { AtlasFunction };

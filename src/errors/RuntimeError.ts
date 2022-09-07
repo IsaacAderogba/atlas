@@ -33,6 +33,13 @@ export class RuntimeErrors {
   }
 
   //
+  static prohibitedInitializer(): SourceMessage {
+    return this.formatError({
+      title: "prohibited initializer",
+      body: "it is not possible to create this object through the initializer",
+    });
+  }
+
   static prohibitedZeroDivision(): SourceMessage {
     return this.formatError({
       title: "prohibited division by zero",
@@ -86,6 +93,20 @@ export class RuntimeErrors {
     return this.formatError({
       title: "expected callable",
       body: "a function or class was expected",
+    });
+  }
+
+  static undefinedProperty(name: string): SourceMessage {
+    return this.formatError({
+      title: "undefined property",
+      body: `property ${name} is undefined`,
+    });
+  }
+
+  static unassignablePropertyTarget(name: string): SourceMessage {
+    return this.formatError({
+      title: "unassignable property target",
+      body: `unable to assign properties to "${name}"`,
     });
   }
 }
