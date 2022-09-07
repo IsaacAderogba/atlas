@@ -1,19 +1,19 @@
 class Emitter {
   subscribe = f(name) {
-    print("Subscribed" # name);
+    print("Subscribed" # name)
 
     return f() {
-      this.unsubscribe(name);
-    };
+      this.unsubscribe(name)
+    }
   }
 
   unsubscribe = f(name) {
-    print("Unsubscribed " # name);
+    print("Unsubscribed " # name)
   }
 }
 
-var emitter = Emitter();
+var emitter = Emitter()
 
-var unsubscribe = emitter.subscribe("Adam");
+var unsubscribe = emitter.subscribe("Adam")
 
 unsubscribe();

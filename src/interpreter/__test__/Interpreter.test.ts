@@ -47,9 +47,9 @@ describe("Interpreter statements", () => {
   it("interprets return statements", () => {
     const { interpreter, interpret } = setupTests(`
       var sayHi = f() { 
-        return 3;
+        return 3
       }
-      var x = sayHi();
+      var x = sayHi()
     `);
     interpret();
 
@@ -61,7 +61,7 @@ describe("Interpreter statements", () => {
   });
 
   it("interprets block statements", () => {
-    const { interpreter, interpret } = setupTests("var x = 4; { x = 2; }");
+    const { interpreter, interpret } = setupTests("var x = 4 { x = 2 }");
     interpret();
 
     const { tokens } = new Scanner("x").scan();
@@ -75,7 +75,7 @@ describe("Interpreter statements", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {}
       
-      var x = print(Foo);
+      var x = print(Foo)
     `);
     interpret();
 
@@ -89,9 +89,9 @@ describe("Interpreter statements", () => {
   it("interprets get and set expressions", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {}
-      var foo = Foo();
-      foo.y = "hi";
-      var x = foo.y;
+      var foo = Foo()
+      foo.y = "hi"
+      var x = foo.y
     `);
     interpret();
 
@@ -106,10 +106,10 @@ describe("Interpreter statements", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {
         bar = f() {
-          return "hi";
+          return "hi"
         }
       }
-      var x = Foo().bar();
+      var x = Foo().bar()
     `);
     interpret();
 
@@ -123,13 +123,13 @@ describe("Interpreter statements", () => {
   it("interprets init calls", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {
-        foo = "foo";
+        foo = "foo"
         init = f() {
-          this.bar = this.foo # "bar";
+          this.bar = this.foo # "bar"
         }
       }
       
-      var x = Foo().bar;
+      var x = Foo().bar
     `);
     interpret();
 
@@ -144,12 +144,12 @@ describe("Interpreter statements", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {
         bar = f() {
-          return this.flavour;
+          return this.flavour
         }
       }
-      var foo = Foo();
-      foo.flavour = "chocolate";
-      var x = foo.bar();
+      var foo = Foo()
+      foo.flavour = "chocolate"
+      var x = foo.bar()
     `);
     interpret();
 
@@ -163,8 +163,8 @@ describe("Interpreter statements", () => {
   it("interprets class instances", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {}
-      var foo = Foo();
-      var x = print(foo);
+      var foo = Foo()
+      var x = print(foo)
     `);
     interpret();
 
@@ -176,7 +176,7 @@ describe("Interpreter statements", () => {
   });
 
   it("interprets var statements", () => {
-    const { interpreter, interpret } = setupTests("var x = 4;");
+    const { interpreter, interpret } = setupTests("var x = 4");
     interpret();
 
     const { tokens } = new Scanner("x").scan();
@@ -188,7 +188,7 @@ describe("Interpreter statements", () => {
 
   it("interprets expression statements", () => {
     const { interpreter, interpret } = setupTests(
-      'var x = true ? "hello" : "goodbye";'
+      'var x = true ? "hello" : "goodbye"'
     );
     interpret();
 
@@ -201,8 +201,8 @@ describe("Interpreter statements", () => {
 
   it("interprets while statements", () => {
     const tests = [
-      "var x = 2; while (x < 5) x = x + 1;",
-      "var x = 2; while (x < 5; x = x + 1) {}",
+      "var x = 2 while (x < 5) x = x + 1",
+      "var x = 2 while (x < 5; x = x + 1) {}",
     ];
 
     tests.forEach(test => {
@@ -220,16 +220,16 @@ describe("Interpreter statements", () => {
   it("interprets while break statements", () => {
     const tests = [
       `
-    var x = 0;
+    var x = 0
     while (x < 5) {
-      break;
-      x = x + 1;
+      break
+      x = x + 1
     }
     `,
       `
-    var x = 0;
+    var x = 0
     while (x < 5; x = x + 1) {
-      break;
+      break
     }
     `,
     ];
@@ -249,20 +249,20 @@ describe("Interpreter statements", () => {
   it("interprets while continue statements", () => {
     const tests = [
       `
-    var x = 0;
-    var y = 0;
+    var x = 0
+    var y = 0
     while (x < 5) {
-      x = x + 1;
-      if (x == 2) continue;        
-      y = y + 1;
+      x = x + 1
+      if (x == 2) continue  
+      y = y + 1
     }
     `,
       `
-    var x = 0;
-    var y = 0;
+    var x = 0
+    var y = 0
     while (x < 5; x = x + 1) {
-      if (x == 2) continue;        
-      y = y + 1;
+      if (x == 2) continue      
+      y = y + 1
     }
     `,
     ];
@@ -287,7 +287,7 @@ describe("Interpreter statements", () => {
 
   it("interprets if statements", () => {
     const { interpreter, interpret } = setupTests(
-      "var x = 2; if (x == 2) x = 1;"
+      "var x = 2 if (x == 2) x = 1"
     );
     interpret();
 
@@ -302,11 +302,11 @@ describe("Interpreter statements", () => {
 describe("Interpreter evaluations", () => {
   it("executes call expressions", () => {
     const { interpreter, interpret } = setupTests(`
-      var x = 1; 
+      var x = 1
       var sayHi = f() { 
-        x = 2;
+        x = 2
       }
-      sayHi();
+      sayHi()
     `);
     interpret();
 
@@ -318,7 +318,7 @@ describe("Interpreter evaluations", () => {
   });
 
   it("evaluates assignment expressions", () => {
-    const { interpreter, interpret } = setupTests("var x = 4;");
+    const { interpreter, interpret } = setupTests("var x = 4");
     interpret();
 
     const { tokens } = new Scanner("x = 2").scan();
@@ -417,7 +417,7 @@ describe("Interpreter evaluations", () => {
 
 describe("Interpreter errors", () => {
   it("errors with expected string", () => {
-    const sources = ["4 # '4';"];
+    const sources = ["4 # '4'"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
@@ -429,15 +429,15 @@ describe("Interpreter errors", () => {
 
   it("errors with expected number", () => {
     const sources = [
-      "-'4';",
-      "4 + '4';",
-      "4 - '4';",
-      "4 / '4';",
-      "4 * '4';",
-      "4 > '4';",
-      "4 >= '4';",
-      "4 < '4';",
-      "4 <= '4';",
+      "-'4'",
+      "4 + '4'",
+      "4 - '4'",
+      "4 / '4'",
+      "4 * '4'",
+      "4 > '4'",
+      "4 >= '4'",
+      "4 < '4'",
+      "4 <= '4'",
     ];
 
     sources.forEach(source => {
@@ -449,7 +449,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with expected boolean", () => {
-    const sources = ["!'4';", "4 ? true : false;"];
+    const sources = ["!'4'", "4 ? true : false"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
@@ -460,7 +460,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with prohibited zero division", () => {
-    const sources = ["4 / 0;"];
+    const sources = ["4 / 0"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
@@ -475,11 +475,11 @@ describe("Interpreter errors", () => {
   it("errors with mismatched arity", () => {
     const sources = [
       `
-      var x = 1; 
+      var x = 1
       var sayHi = f(a, b) { 
-        x = 2;
+        x = 2
       }
-      sayHi("a", "b", "c");
+      sayHi("a", "b", "c")
     `,
     ];
 
@@ -494,7 +494,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with expected callable", () => {
-    const sources = [`"hi"();`];
+    const sources = [`"hi"()`];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);
@@ -508,8 +508,8 @@ describe("Interpreter errors", () => {
     const sources = [
       `
       class Foo {}
-      var foo = Foo();
-      foo.y;
+      var foo = Foo()
+      foo.y
     `,
     ];
 
@@ -524,7 +524,7 @@ describe("Interpreter errors", () => {
   });
 
   it("errors with unassignable property target", () => {
-    const sources = ["print.y = 4;"];
+    const sources = ["print.y = 4"];
 
     sources.forEach(source => {
       const { interpret } = setupTests(source);

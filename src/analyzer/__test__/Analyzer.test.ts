@@ -16,7 +16,7 @@ const setupTests = (source: string): { analyzer: Analyzer } => {
 
 describe("Analyzer warnings", () => {
   it("warns with unused variable", () => {
-    const expressions = ["var a = 'hello';"];
+    const expressions = ["var a = 'hello'"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
@@ -29,7 +29,7 @@ describe("Analyzer warnings", () => {
 
 describe("Analyzer errors", () => {
   it("errors with prohibited break", () => {
-    const expressions = ["break;"];
+    const expressions = ["break"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
@@ -40,7 +40,7 @@ describe("Analyzer errors", () => {
   });
 
   it("errors with prohibited continue", () => {
-    const expressions = ["continue;"];
+    const expressions = ["continue"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
@@ -53,7 +53,7 @@ describe("Analyzer errors", () => {
   });
 
   it("errors with prohibited function return", () => {
-    const expressions = ["return 4;"];
+    const expressions = ["return 4"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
@@ -70,7 +70,7 @@ describe("Analyzer errors", () => {
       `
       class Foo {
         init = f() {
-          return null;
+          return null
         }
       }
     `,
@@ -87,7 +87,7 @@ describe("Analyzer errors", () => {
   });
 
   it("errors with prohibited this", () => {
-    const expressions = ["this;"];
+    const expressions = ["this"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);
@@ -98,7 +98,7 @@ describe("Analyzer errors", () => {
   });
 
   it("errors with prohibited redeclaration", () => {
-    const expressions = ["var x = 4; var print = 4;"];
+    const expressions = ["var x = 4 var print = 4"];
 
     expressions.forEach(expr => {
       const { analyzer } = setupTests(expr);

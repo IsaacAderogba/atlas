@@ -12,12 +12,12 @@ statement      -> exprStmt
                 | breakStmt
                 | continueStmt
                 | block ;
-exprStmt       -> expression ";" ;
+exprStmt       -> expression ;
 ifStmt         -> "if" "(" expression ")" statement ( "else" statement )? ;
-returnStmt     -> "return" expression ";" ;
+returnStmt     -> "return" expression ;
 whileStmt      -> "while" "(" expression ( ";" expression )? ")" statement ;
-breakStmt      -> "break" ";" ;
-continueStmt   -> "continue" ";" ;
+breakStmt      -> "break" ;
+continueStmt   -> "continue" ;
 block          -> "{" declaration* "}" ;
 expression     -> assignment ;
 assignment     -> ( call "." )? IDENTIFIER "=" assignment
@@ -40,8 +40,9 @@ error          -> ( "or" ) logic_or
                 | ( ">" | ">=" | "<" | "<=" ) comparison
                 | ( "+" | "#" ) term
                 | ( "/" | "*" ) factor ;
+                | ( ";" ) ;
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
-property       -> IDENTIFIER "=" expression ";"? ;
+property       -> IDENTIFIER "=" expression ;
 parameters     -> parameter ( "," parameter )* ;
 parameter      -> IDENTIFIER ;

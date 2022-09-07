@@ -107,8 +107,6 @@ export class Parser {
   private returnStatement(): ReturnStmt {
     const keyword = this.previous();
     const value = this.expression();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-
     return new ReturnStmt(keyword, value);
   }
 
@@ -136,15 +134,11 @@ export class Parser {
   }
 
   private breakStatement(): BreakStmt {
-    const token = this.previous();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    return new BreakStmt(token);
+    return new BreakStmt(this.previous());
   }
 
   private continueStatement(): ContinueStmt {
-    const token = this.previous();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    return new ContinueStmt(token);
+    return new ContinueStmt(this.previous());
   }
 
   private blockStatement(): BlockStmt {
@@ -164,7 +158,6 @@ export class Parser {
 
   private expressionStatement(): ExpressionStmt {
     const value = this.expression();
-    this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
     return new ExpressionStmt(value);
   }
 
@@ -351,8 +344,6 @@ export class Parser {
     this.advance();
 
     while (!this.isAtEnd()) {
-      // if (this.previous().type === "SEMICOLON") return new ErrorStmt(err);
-
       switch (this.peek().type) {
         case "BREAK":
         case "CONTINUE":
@@ -394,6 +385,12 @@ export class Parser {
       }
     }
 
+    if (this.match("SEMICOLON")) {
+      return new ErrorExpr(
+        this.error(this.previous(), SyntaxErrors.invalidSemiColon())
+      );
+    }
+
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
@@ -429,11 +426,6 @@ export class Parser {
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
-
-    const isFunc = initializer instanceof FunctionExpr;
-    if (!isFunc) {
-      this.consume("SEMICOLON", SyntaxErrors.expectedSemiColon());
-    }
 
     return new Property(name, initializer);
   }
