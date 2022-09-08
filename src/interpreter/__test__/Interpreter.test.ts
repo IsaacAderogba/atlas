@@ -140,6 +140,25 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "STRING", value: "foobar" });
   });
 
+  it("interprets static calls", () => {
+    const { interpreter, interpret } = setupTests(`
+      class Foo {
+        static bar = f() {
+          return "bar"
+        }
+      }
+      
+      var x = Foo.bar()
+    `);
+    interpret();
+
+    const { tokens } = new Scanner("x").scan();
+    const expression = new Parser(tokens).expression() as VariableExpr;
+    const result = interpreter.visitVariableExpr(expression);
+
+    expect(result).toMatchObject({ type: "STRING", value: "bar" });
+  });
+
   it("interprets this expressions", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {
@@ -519,19 +538,6 @@ describe("Interpreter errors", () => {
       const { errors } = interpret();
       expect(errors[0].message).toMatchObject(
         RuntimeErrors.undefinedProperty("y")
-      );
-    });
-  });
-
-  it("errors with unassignable function", () => {
-    const sources = ["print.y = 4"];
-
-    sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
-        RuntimeErrors.unassignableFunction()
       );
     });
   });

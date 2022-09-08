@@ -43,12 +43,16 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
   }
 
   set(name: Token, value: AtlasValue): void {
-    if (this.staticClass && !isCallable(value)) {
-      this.staticClass.fields.set(name.lexeme, value);
+    if (this.staticClass) {
+      if (isCallable(value)) {
+        this.staticClass.methods.set(name.lexeme, value);
+      } else {
+        this.staticClass.fields.set(name.lexeme, value);
+      }
       return;
     }
 
-    throw this.error(name, RuntimeErrors.unassignableFunction());
+    throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {

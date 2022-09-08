@@ -1,18 +1,34 @@
+class Small {
+
+}
+
 class Big {
-  fn = f() {}
+  static small = Small
+  hi = "found"
 
-  foo = "hi"
+  init = f(hook) {
+    this.hook = hook
+  }
 
-  func = f() {
-  print("foo")
-}
-}
-
-var big = Big()
-
-big.func = f() {
-  print("foo")
+  exec = f() {
+    this.hook()
+    print("executed")
+  }
 }
 
-print(big.func())
-// print(big.fn())
+var big = Big(f() {
+  print("pre-hook")
+})
+
+big.exec()
+
+Big.exec = f() {
+  print("exec statically")
+}
+
+Big.exec()
+
+Big.small.exec = f() {
+  print("exec small")
+}
+Big.small.exec()

@@ -14,11 +14,7 @@ export abstract class AtlasObject {
 
   constructor(properties: AtlasObjectProps = {}) {
     for (const [name, value] of Object.entries(properties)) {
-      if (isCallable(value)) {
-        this.methods.set(name, value);
-      } else {
-        this.fields.set(name, value);
-      }
+      this.assign(name, value);
     }
   }
 
@@ -41,11 +37,7 @@ export abstract class AtlasObject {
   }
 
   set(name: Token, value: AtlasValue): void {
-    if (!isCallable(value)) {
-      this.fields.set(name.lexeme, value);
-    } else {
-      throw this.error(name, RuntimeErrors.unassignableFunction());
-    }
+    this.assign(name.lexeme, value);
   }
 
   protected error(

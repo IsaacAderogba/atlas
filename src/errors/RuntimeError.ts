@@ -102,11 +102,4 @@ export class RuntimeErrors {
       body: `property ${name} is undefined`,
     });
   }
-
-  static unassignableFunction(): SourceMessage {
-    return this.formatError({
-      title: "unassignable function",
-      body: `cannot dot assign functions to fields`,
-    });
-  }
 }

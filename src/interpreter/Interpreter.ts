@@ -346,7 +346,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     const distance = this.locals.get(expr);
 
     if (distance !== undefined) {
-      return this.environment.getAt(name.lexeme, distance, name);
+      try {
+        return this.environment.getAt(name.lexeme, distance, name);
+      } catch {
+        return this.environment.getAt(name.lexeme, distance + 1, name);
+      }
     }
     return this.globals.get(name);
   }
