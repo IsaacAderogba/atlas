@@ -2,7 +2,7 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../interpreter/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
-import { Parameter } from "./Node";
+import { Entry, Parameter } from "./Node";
 import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
@@ -236,6 +236,24 @@ export class ErrorExpr implements BaseExpr {
   }
 }
 
+export class RecordExpr implements BaseExpr {
+  constructor(
+    readonly open: Token,
+    readonly entries: Entry[],
+    readonly close: Token
+  ) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitRecordExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.open.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
 export class VariableExpr {
   constructor(readonly name: Token) {}
 
@@ -262,6 +280,7 @@ export type Expr =
   | LiteralExpr
   | ListExpr
   | LogicalExpr
+  | RecordExpr
   | SetExpr
   | ThisExpr
   | UnaryExpr
@@ -278,6 +297,7 @@ export interface ExprVisitor<T> {
   visitLiteralExpr(expr: LiteralExpr): T;
   visitListExpr(expr: ListExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
+  visitRecordExpr(expr: RecordExpr): T;
   visitSetExpr(expr: SetExpr): T;
   visitThisExpr(expr: ThisExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;

@@ -22,3 +22,13 @@ export class Property implements BaseNode {
     return new SourceRange(start, end);
   }
 }
+
+export class Entry implements BaseNode {
+  constructor(readonly key: Expr, readonly value: Expr) {}
+
+  sourceRange(): SourceRange {
+    const { start } = this.key.sourceRange();
+    const { end } = this.value.sourceRange();
+    return new SourceRange(start, end);
+  }
+}

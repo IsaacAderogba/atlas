@@ -9,6 +9,7 @@ import {
   GroupingExpr,
   ListExpr,
   LogicalExpr,
+  RecordExpr,
   SetExpr,
   TernaryExpr,
   ThisExpr,
@@ -240,6 +241,13 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   visitLogicalExpr(expr: LogicalExpr): void {
     this.analyzeExpr(expr.left);
     this.analyzeExpr(expr.right);
+  }
+
+  visitRecordExpr(expr: RecordExpr): void {
+    for (const item of expr.entries) {
+      this.analyzeExpr(item.key);
+      this.analyzeExpr(item.value);
+    }
   }
 
   visitSetExpr(expr: SetExpr): void {

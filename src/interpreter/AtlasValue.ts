@@ -7,6 +7,7 @@ import { AtlasInstance } from "./AtlasInstance";
 import { AtlasList } from "./AtlasList";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasNumber } from "./AtlasNumber";
+import { AtlasRecord } from "./AtlasRecord";
 import { AtlasString } from "./AtlasString";
 import { AtlasTrue } from "./AtlasTrue";
 import { NativeFunction, toNativeFunctions } from "./NativeFunction";
@@ -21,6 +22,7 @@ export type AtlasValue =
   | AtlasClass
   | AtlasInstance
   | AtlasList
+  | AtlasRecord
   | NativeFunction;
 
 export const Boolean = new AtlasClass(
@@ -56,6 +58,15 @@ export const List = new AtlasClass(
   toNativeFunctions({
     init: () => {
       return new AtlasList();
+    },
+  })
+);
+
+export const Record = new AtlasClass(
+  "Record",
+  toNativeFunctions({
+    init: () => {
+      return new AtlasRecord();
     },
   })
 );

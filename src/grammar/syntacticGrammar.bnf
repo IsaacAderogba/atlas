@@ -31,9 +31,10 @@ term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
 call           -> primary ( "(" expressions? ")" | "." accessor )* ;
-primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | "(" expression ")" | error ;
+primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | record | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
-list           -> "[" expressions? "]" ;
+list           -> "[" expressions* "]" ;
+record         -> "{" entries* "}" ;
 error          -> ( "or" ) logic_or
                 | ( "and" ) logic_and
                 | ( "!=" | "==" ) equality
@@ -43,6 +44,8 @@ error          -> ( "or" ) logic_or
                 | ( ";" ) ;
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
+entries        -> entry ( "," entry )* ;
+entry          -> expression ":" expression ;
 expressions    -> expression ( "," expression )* ;
 property       -> IDENTIFIER "=" expression ;
 parameters     -> parameter ( "," parameter )* ;

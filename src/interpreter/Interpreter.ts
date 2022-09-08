@@ -10,6 +10,7 @@ import {
   ListExpr,
   LiteralExpr,
   LogicalExpr,
+  RecordExpr,
   SetExpr,
   TernaryExpr,
   ThisExpr,
@@ -45,6 +46,7 @@ import { AtlasNull } from "./AtlasNull";
 import { AtlasClass } from "./AtlasClass";
 import { NativeError } from "../errors/NativeError";
 import { AtlasList } from "./AtlasList";
+import { AtlasRecord } from "./AtlasRecord";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -330,6 +332,15 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitListExpr(expr: ListExpr): AtlasValue {
     return new AtlasList(expr.items.map(item => this.evaluate(item)));
+  }
+
+  visitRecordExpr(expr: RecordExpr): AtlasValue {
+    const record = new Map<AtlasValue, AtlasValue>();
+    for (const { key, value } of expr.entries) {
+      record.set(this.evaluate(key), this.evaluate(value));
+    }
+    
+    return new AtlasRecord(record);
   }
 
   visitSetExpr(expr: SetExpr): AtlasValue {

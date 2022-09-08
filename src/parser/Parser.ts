@@ -15,6 +15,7 @@ import {
   SetExpr,
   ThisExpr,
   ListExpr,
+  RecordExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -33,7 +34,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Property, Parameter } from "../ast/Node";
+import { Property, Parameter, Entry } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -310,6 +311,7 @@ export class Parser {
     if (this.match("IDENTIFIER")) return new VariableExpr(this.previous());
     if (this.match("FUNCTION")) return this.func();
     if (this.match("LEFT_BRACKET")) return this.list();
+    if (this.match("LEFT_BRACE")) return this.record();
 
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();
@@ -336,7 +338,7 @@ export class Parser {
     return new FunctionExpr(keyword, parameters, body);
   }
 
-  private list(): Expr {
+  private list(): ListExpr {
     const open = this.previous();
     const items = this.expressions("RIGHT_BRACKET");
     const close = this.consume(
@@ -345,6 +347,17 @@ export class Parser {
     );
 
     return new ListExpr(open, items, close);
+  }
+
+  private record(): RecordExpr {
+    const open = this.previous();
+    const entries = this.entries();
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+
+    return new RecordExpr(open, entries, close);
   }
 
   private errorStatement(err: SyntaxError): ErrorStmt {
@@ -411,6 +424,22 @@ export class Parser {
     }
 
     return args;
+  }
+
+  private entries(): Entry[] {
+    const entries: Entry[] = [];
+
+    if (!this.check("RIGHT_BRACE")) {
+      do {
+        const key = this.expression();
+        this.consume("COLON", SyntaxErrors.expectedSemiColon());
+        const value = this.expression();
+
+        entries.push(new Entry(key, value));
+      } while (this.match("COMMA"));
+    }
+
+    return entries;
   }
 
   private parameters(): Parameter[] {
