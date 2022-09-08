@@ -1,4 +1,4 @@
-import { AtlasCallable, isCallable } from "./AtlasCallable";
+import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
@@ -44,11 +44,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
 
   set(name: Token, value: AtlasValue): void {
     if (this.staticClass) {
-      if (isCallable(value)) {
-        this.staticClass.methods.set(name.lexeme, value);
-      } else {
-        this.staticClass.fields.set(name.lexeme, value);
-      }
+      this.staticClass.fields.set(name.lexeme, value);
       return;
     }
 

@@ -1,12 +1,50 @@
 class Person {
-  fn = f() {
-    this.func = f() {
-      print("hi world")
+  // prop and method are fields
+  static prop = "prop"
+  static method = f() {
+    this.function = f() {
+      print("function")
+      this.fn = f() {
+        print("fn")
+      }
     }
+
+    print("method")
+  }
+
+  prop = "prop"
+  method = f() {
+    this.function = f() {
+      print("function")
+    }
+
+    print("method")
   }
 }
 
-var jane = Person()
-jane.fn()
+print(Person.prop)
+Person.method()
+Person.function()
+Person.fn()
 
-jane.func()
+/*
+var person = Person()
+print(person.prop)
+person.method()
+person.function()
+*/
+
+class Bacon {
+  init = f() {
+
+  }
+
+  eat = f() {
+    print("Crunch")
+  }
+}
+
+var bacon = Bacon()
+
+var bacon2 = bacon.init()
+print(bacon2)
