@@ -523,7 +523,7 @@ describe("Interpreter errors", () => {
     });
   });
 
-  it("errors with unassignable property target", () => {
+  it("errors with unassignable function", () => {
     const sources = ["print.y = 4"];
 
     sources.forEach(source => {
@@ -531,7 +531,7 @@ describe("Interpreter errors", () => {
 
       const { errors } = interpret();
       expect(errors[0].message).toMatchObject(
-        RuntimeErrors.unassignablePropertyTarget("<native fn>")
+        RuntimeErrors.unassignableFunction()
       );
     });
   });

@@ -1,7 +1,7 @@
 import { Token } from "../ast/Token";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { AtlasCallable } from "./AtlasCallable";
+import { AtlasCallable, isCallable } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
@@ -14,11 +14,19 @@ export abstract class AtlasObject {
 
   constructor(properties: AtlasObjectProps = {}) {
     for (const [name, value] of Object.entries(properties)) {
-      if (value.type === "FUNCTION" || value.type === "NATIVE_FUNCTION") {
+      if (isCallable(value)) {
         this.methods.set(name, value);
       } else {
         this.fields.set(name, value);
       }
+    }
+  }
+
+  assign(name: string, value: AtlasValue): void {
+    if (isCallable(value)) {
+      this.methods.set(name, value);
+    } else {
+      this.fields.set(name, value);
     }
   }
 
@@ -32,11 +40,12 @@ export abstract class AtlasObject {
     throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 
-  set(name: Token, _: AtlasValue): void {
-    throw this.error(
-      name,
-      RuntimeErrors.unassignablePropertyTarget(this.toString())
-    );
+  set(name: Token, value: AtlasValue): void {
+    if (!isCallable(value)) {
+      this.fields.set(name.lexeme, value);
+    } else {
+      throw this.error(name, RuntimeErrors.unassignableFunction());
+    }
   }
 
   protected error(

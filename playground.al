@@ -1,23 +1,18 @@
-class Emitter {
-  init = f() {
-    return null
-  }
+class Big {
+  fn = f() {}
 
-  subscribe = f(name) {
-    print("Subscribed" # name)
+  foo = "hi"
 
-    return f() {
-      this.unsubscribe(name)
-    }
-  }
-
-  unsubscribe = f(name) {
-    print("Unsubscribed " # name)
-  }
+  func = f() {
+  print("foo")
+}
 }
 
-var emitter = Emitter()
+var big = Big()
 
-var unsubscribe = emitter.subscribe("Adam")
+big.func = f() {
+  print("foo")
+}
 
-unsubscribe()
+print(big.func())
+// print(big.fn())

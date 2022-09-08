@@ -103,10 +103,10 @@ export class RuntimeErrors {
     });
   }
 
-  static unassignablePropertyTarget(name: string): SourceMessage {
+  static unassignableFunction(): SourceMessage {
     return this.formatError({
-      title: "unassignable property target",
-      body: `unable to assign properties to "${name}"`,
+      title: "unassignable function",
+      body: `cannot dot assign functions to fields`,
     });
   }
 }
