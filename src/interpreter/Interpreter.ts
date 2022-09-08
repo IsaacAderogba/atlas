@@ -349,6 +349,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       try {
         return this.environment.getAt(name.lexeme, distance, name);
       } catch {
+        console.log("fall back");
         return this.environment.getAt(name.lexeme, distance + 1, name);
       }
     }
