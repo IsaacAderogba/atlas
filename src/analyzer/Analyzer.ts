@@ -125,21 +125,26 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   visitClassStmt(stmt: ClassStmt): void {
     const enclosingClass = this.currentClass;
     this.currentClass = ClassType.CLASS;
-
     this.declare(stmt.name);
     this.define(stmt.name);
 
     this.beginScope();
     this.getScope().set("this", { state: VariableState.SETTLED });
+    for (const prop of stmt.statics) {
+      this.analyzeProperty(prop, FunctionType.METHOD);
+    }
+    this.endScope();
 
+    this.beginScope();
+    this.getScope().set("this", { state: VariableState.SETTLED });
     for (const prop of stmt.properties) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionType.INIT : FunctionType.METHOD;
 
       this.analyzeProperty(prop, method);
     }
-
     this.endScope();
+
     this.currentClass = enclosingClass;
   }
 

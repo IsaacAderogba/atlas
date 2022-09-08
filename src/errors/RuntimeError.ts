@@ -102,11 +102,4 @@ export class RuntimeErrors {
       body: `property ${name} is undefined`,
     });
   }
-
-  static unassignablePropertyTarget(name: string): SourceMessage {
-    return this.formatError({
-      title: "unassignable property target",
-      body: `unable to assign properties to "${name}"`,
-    });
-  }
 }

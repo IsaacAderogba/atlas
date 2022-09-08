@@ -44,6 +44,7 @@ export class ClassStmt implements BaseStmt {
     readonly name: Token,
     readonly open: Token,
     readonly properties: Property[],
+    readonly statics: Property[],
     readonly close: Token
   ) {}
 

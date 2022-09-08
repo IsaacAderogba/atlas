@@ -1,23 +1,50 @@
-class Emitter {
-  init = f() {
-    return null
-  }
-
-  subscribe = f(name) {
-    print("Subscribed" # name)
-
-    return f() {
-      this.unsubscribe(name)
+class Person {
+  // prop and method are fields
+  static prop = "prop"
+  static method = f() {
+    this.function = f() {
+      print("function")
+      this.fn = f() {
+        print("fn")
+      }
     }
+
+    print("method")
   }
 
-  unsubscribe = f(name) {
-    print("Unsubscribed " # name)
+  prop = "prop"
+  method = f() {
+    this.function = f() {
+      print("function")
+    }
+
+    print("method")
   }
 }
 
-var emitter = Emitter()
+print(Person.prop)
+Person.method()
+Person.function()
+Person.fn()
 
-var unsubscribe = emitter.subscribe("Adam")
+/*
+var person = Person()
+print(person.prop)
+person.method()
+person.function()
+*/
 
-unsubscribe()
+class Bacon {
+  init = f() {
+
+  }
+
+  eat = f() {
+    print("Crunch")
+  }
+}
+
+var bacon = Bacon()
+
+var bacon2 = bacon.init()
+print(bacon2)

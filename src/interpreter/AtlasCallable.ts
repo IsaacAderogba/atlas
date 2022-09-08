@@ -7,3 +7,13 @@ export interface AtlasCallable {
   bind(instance: AtlasObject): AtlasCallable & AtlasValue;
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue;
 }
+
+export const isCallable = (
+  value: AtlasValue
+): value is AtlasCallable & AtlasValue => {
+  return (
+    value.type === "FUNCTION" ||
+    value.type === "NATIVE_FUNCTION" ||
+    value.type === "CLASS"
+  );
+};

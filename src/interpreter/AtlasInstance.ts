@@ -15,17 +15,13 @@ export class AtlasInstance extends AtlasObject {
   }
 
   get(name: Token): AtlasValue {
-    const value = this.fields.get(name.lexeme);
-    if (value) return value;
+    const field = this.fields.get(name.lexeme);
+    if (field) return field;
 
-    const method = this.atlasClass.methods.get(name.lexeme);
+    const method = this.atlasClass.findMethod(name.lexeme);
     if (method) return method.bind(this);
 
     return super.get(name);
-  }
-
-  set(name: Token, value: AtlasValue): void {
-    this.fields.set(name.lexeme, value);
   }
 
   toString(): string {

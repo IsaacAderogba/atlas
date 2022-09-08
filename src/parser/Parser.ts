@@ -77,8 +77,10 @@ export class Parser {
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const props: Property[] = [];
+    const statics: Property[] = [];
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      props.push(this.property());
+      const array = this.match("STATIC") ? statics : props;
+      array.push(this.property());
     }
 
     const close = this.consume(
@@ -86,7 +88,7 @@ export class Parser {
       SyntaxErrors.expectedRightBrace()
     );
 
-    return new ClassStmt(keyword, name, open, props, close);
+    return new ClassStmt(keyword, name, open, props, statics, close);
   }
 
   private varDeclaration(): VarStmt {
@@ -100,7 +102,7 @@ export class Parser {
     if (this.match("LEFT_BRACE")) return this.blockStatement();
     if (this.match("BREAK")) return new BreakStmt(this.previous());
     if (this.match("CONTINUE")) return new ContinueStmt(this.previous());
-    
+
     return this.expressionStatement();
   }
 

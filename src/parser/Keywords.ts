@@ -11,6 +11,7 @@ export const Keywords = new Map<string, TokenType>([
   ["if", "IF"],
   ["or", "OR"],
   ["return", "RETURN"],
+  ["static", "STATIC"],
   ["super", "SUPER"],
   ["this", "THIS"],
   ["type", "TYPE"],
