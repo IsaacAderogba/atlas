@@ -188,6 +188,24 @@ export class LiteralExpr implements BaseExpr {
   }
 }
 
+export class ListExpr implements BaseExpr {
+  constructor(
+    readonly open: Token,
+    readonly items: Expr[],
+    readonly close: Token
+  ) {}
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitListExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.open.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
 export class LogicalExpr implements BaseExpr {
   constructor(
     readonly left: Expr,
@@ -242,6 +260,7 @@ export type Expr =
   | GetExpr
   | GroupingExpr
   | LiteralExpr
+  | ListExpr
   | LogicalExpr
   | SetExpr
   | ThisExpr
@@ -257,6 +276,7 @@ export interface ExprVisitor<T> {
   visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
+  visitListExpr(expr: ListExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
   visitSetExpr(expr: SetExpr): T;
   visitThisExpr(expr: ThisExpr): T;

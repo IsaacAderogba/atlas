@@ -4,6 +4,7 @@ import { AtlasClass } from "./AtlasClass";
 import { AtlasFalse } from "./AtlasFalse";
 import { AtlasFunction } from "./AtlasFunction";
 import { AtlasInstance } from "./AtlasInstance";
+import { AtlasList } from "./AtlasList";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasNumber } from "./AtlasNumber";
 import { AtlasString } from "./AtlasString";
@@ -19,6 +20,7 @@ export type AtlasValue =
   | AtlasFunction
   | AtlasClass
   | AtlasInstance
+  | AtlasList
   | NativeFunction;
 
 export const Boolean = new AtlasClass(
@@ -45,6 +47,15 @@ export const Number = new AtlasClass(
     init: (value: AtlasValue) => {
       if (value.type === "NUMBER") return new AtlasNumber(value.value);
       throw new NativeError(RuntimeErrors.expectedNumber());
+    },
+  })
+);
+
+export const List = new AtlasClass(
+  "List",
+  toNativeFunctions({
+    init: () => {
+      return new AtlasList();
     },
   })
 );

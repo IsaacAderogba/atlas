@@ -7,6 +7,7 @@ import {
   FunctionExpr,
   GetExpr,
   GroupingExpr,
+  ListExpr,
   LogicalExpr,
   SetExpr,
   TernaryExpr,
@@ -228,6 +229,12 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitLiteralExpr(): void {
     // no op
+  }
+
+  visitListExpr(expr: ListExpr): void {
+    for (const item of expr.items) {
+      this.analyzeExpr(item);
+    }
   }
 
   visitLogicalExpr(expr: LogicalExpr): void {

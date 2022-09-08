@@ -110,6 +110,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedRightBracket(): SourceMessage {
+    return this.formatError({
+      title: "expected right bracket",
+      body: 'a right bracket "]" was expected',
+    });
+  }
+
   static expectedExpression(): SourceMessage {
     return this.formatError({
       title: "expected expression",

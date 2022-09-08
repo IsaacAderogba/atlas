@@ -14,6 +14,7 @@ import {
   GetExpr,
   SetExpr,
   ThisExpr,
+  ListExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -278,7 +279,7 @@ export class Parser {
     while (true) {
       if (this.match("LEFT_PAREN")) {
         const open = this.previous();
-        const args = this.arguments();
+        const args = this.expressions("RIGHT_PAREN");
         const close = this.consume(
           "RIGHT_PAREN",
           SyntaxErrors.expectedRightParen()
@@ -308,6 +309,7 @@ export class Parser {
     if (this.match("THIS")) return new ThisExpr(this.previous());
     if (this.match("IDENTIFIER")) return new VariableExpr(this.previous());
     if (this.match("FUNCTION")) return this.func();
+    if (this.match("LEFT_BRACKET")) return this.list();
 
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();
@@ -332,6 +334,17 @@ export class Parser {
 
     const body = this.blockStatement();
     return new FunctionExpr(keyword, parameters, body);
+  }
+
+  private list(): Expr {
+    const open = this.previous();
+    const items = this.expressions("RIGHT_BRACKET");
+    const close = this.consume(
+      "RIGHT_BRACKET",
+      SyntaxErrors.expectedRightBracket()
+    );
+
+    return new ListExpr(open, items, close);
   }
 
   private errorStatement(err: SyntaxError): ErrorStmt {
@@ -388,10 +401,10 @@ export class Parser {
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
-  private arguments(): Expr[] {
+  private expressions(type: TokenType): Expr[] {
     const args: Expr[] = [];
 
-    if (!this.check("RIGHT_PAREN")) {
+    if (!this.check(type)) {
       do {
         args.push(this.expression());
       } while (this.match("COMMA"));

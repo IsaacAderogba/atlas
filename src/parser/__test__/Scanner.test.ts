@@ -19,6 +19,8 @@ describe("Scanner tokens", () => {
       { char: ")", type: "RIGHT_PAREN" },
       { char: "{", type: "LEFT_BRACE" },
       { char: "}", type: "RIGHT_BRACE" },
+      { char: "[", type: "LEFT_BRACKET" },
+      { char: "]", type: "RIGHT_BRACKET" },
       { char: ",", type: "COMMA" },
       { char: ".", type: "DOT" },
       { char: "-", type: "MINUS" },

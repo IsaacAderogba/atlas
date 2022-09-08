@@ -8,6 +8,7 @@ import {
   String,
   Function,
   Class,
+  List,
 } from "./interpreter/AtlasValue";
 
 export const clock = new NativeFunction(
@@ -29,4 +30,5 @@ export const globals = {
   String,
   Function,
   Class,
+  List,
 };

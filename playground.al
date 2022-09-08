@@ -1,50 +1,11 @@
-class Person {
-  // prop and method are fields
-  static prop = "prop"
-  static method = f() {
-    this.function = f() {
-      print("function")
-      this.fn = f() {
-        print("fn")
-      }
-    }
+var list = List()
 
-    print("method")
-  }
+print(list)
 
-  prop = "prop"
-  method = f() {
-    this.function = f() {
-      print("function")
-    }
+list.add(2)
 
-    print("method")
-  }
-}
+print(list)
 
-print(Person.prop)
-Person.method()
-Person.function()
-Person.fn()
+var removed = list.remove()
 
-/*
-var person = Person()
-print(person.prop)
-person.method()
-person.function()
-*/
-
-class Bacon {
-  init = f() {
-
-  }
-
-  eat = f() {
-    print("Crunch")
-  }
-}
-
-var bacon = Bacon()
-
-var bacon2 = bacon.init()
-print(bacon2)
+print(removed)

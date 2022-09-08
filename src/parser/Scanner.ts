@@ -61,6 +61,12 @@ export class Scanner {
       case "}":
         this.addToken("RIGHT_BRACE");
         break;
+      case "[":
+        this.addToken("LEFT_BRACKET");
+        break;
+      case "]":
+        this.addToken("RIGHT_BRACKET");
+        break;
       case ",":
         this.addToken("COMMA");
         break;

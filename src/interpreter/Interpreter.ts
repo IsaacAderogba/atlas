@@ -7,6 +7,7 @@ import {
   FunctionExpr,
   GetExpr,
   GroupingExpr,
+  ListExpr,
   LiteralExpr,
   LogicalExpr,
   SetExpr,
@@ -43,6 +44,7 @@ import { Token } from "../ast/Token";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasClass } from "./AtlasClass";
 import { NativeError } from "../errors/NativeError";
+import { AtlasList } from "./AtlasList";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -324,6 +326,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         );
     }
     return this.evaluate(expr.right);
+  }
+
+  visitListExpr(expr: ListExpr): AtlasValue {
+    return new AtlasList(expr.items.map(item => this.evaluate(item)));
   }
 
   visitSetExpr(expr: SetExpr): AtlasValue {
