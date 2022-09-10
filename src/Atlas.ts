@@ -1,25 +1,67 @@
+import fs from "fs";
+import readline from "readline";
 import { Stmt } from "./ast/Stmt";
 import { Parser } from "./parser/Parser";
 import { Scanner } from "./parser/Scanner";
-import { Reporter } from "./reporter/Reporter";
 import { Interpreter } from "./interpreter/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError } from "./errors/SourceError";
-
-interface AtlasProps {
-  reporter: Reporter;
-}
+import { ConsoleReporter } from "./reporter/ConsoleReporter";
 
 export class Atlas {
-  private reporter: Reporter;
-  private interpreter = new Interpreter();
+  private static reporter = new ConsoleReporter();
+  public static interpreter = new Interpreter();
 
-  constructor({ reporter }: AtlasProps) {
-    this.reporter = reporter;
+  static main(args: string[]): void {
+    if (args.length > 1) {
+      console.log("Usage: atlas [script]");
+      process.exit(64);
+    } else if (args.length == 1) {
+      this.runFile(args[0]);
+    } else {
+      this.runPrompt();
+    }
   }
 
-  run(source: string): AtlasStatus {
+  static runFile(path: string): void {
+    const reporter = new ConsoleReporter();
+    let source: string;
+
+    try {
+      source = fs.readFileSync(path, { encoding: "utf8" });
+    } catch (error) {
+      reporter.error(`Unable to open file: ${path}`);
+      process.exit(66);
+    }
+
+    const status = this.run(source);
+
+    switch (status) {
+      case AtlasStatus.STATIC_ERROR:
+        return process.exit(65);
+      case AtlasStatus.RUNTIME_ERROR:
+        return process.exit(70);
+      case AtlasStatus.SUCCESS:
+        return process.exit(0);
+    }
+  }
+
+  static runPrompt(): void {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    rl.setPrompt("> ");
+    rl.prompt();
+    rl.on("line", input => {
+      this.run(input);
+      rl.prompt();
+    });
+  }
+
+  static run(source: string): AtlasStatus {
     const { status, statements } = this.check(source);
     if (status !== AtlasStatus.VALID) return status;
 
@@ -35,7 +77,7 @@ export class Atlas {
     return AtlasStatus.SUCCESS;
   }
 
-  check(source: string): { status: AtlasStatus; statements: Stmt[] } {
+  static check(source: string): { status: AtlasStatus; statements: Stmt[] } {
     const scanner = new Scanner(source);
     const { tokens, errors: scanErrs } = scanner.scan();
     if (this.reportErrors(source, scanErrs)) {
@@ -57,7 +99,7 @@ export class Atlas {
     return { status: AtlasStatus.VALID, statements };
   }
 
-  private reportErrors(source: string, errors: SourceError[]): boolean {
+  private static reportErrors(source: string, errors: SourceError[]): boolean {
     let hasError = false;
     errors.forEach(({ message, sourceRange }) => {
       if (message.type === "error") hasError = true;
