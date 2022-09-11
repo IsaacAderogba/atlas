@@ -182,17 +182,17 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       const { type, expr } = this.currentFunction;
 
       switch (type) {
-        case FunctionType.NONE:
-          this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
-          break;
         case FunctionType.INIT:
           this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
+          break;
         case FunctionType.FUNCTION:
         case FunctionType.METHOD:
           if (expr.async) {
             this.error(stmt.keyword, SemanticErrors.prohibitedAsyncReturn());
           }
       }
+    } else {
+      this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
     }
 
     this.analyzeExpr(stmt.value);

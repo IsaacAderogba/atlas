@@ -1,5 +1,4 @@
 export enum FunctionType {
-  NONE = "NONE",
   FUNCTION = "FUNCTION",
   INIT = "INIT",
   METHOD = "METHOD",

@@ -86,6 +86,45 @@ describe("Analyzer errors", () => {
     });
   });
 
+  it("errors with prohibited async init", () => {
+    const expressions = [
+      `
+      class Foo {
+        init = f*() {
+        }
+      }
+    `,
+    ];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedAsyncInit()
+      );
+    });
+  });
+
+  it("errors with prohibited async return", () => {
+    const expressions = [
+      `
+      var foo = f*() {
+        return null
+      }
+    `,
+    ];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedAsyncReturn()
+      );
+    });
+  });
+
   it("errors with prohibited this", () => {
     const expressions = ["this"];
 
