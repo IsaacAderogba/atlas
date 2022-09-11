@@ -26,16 +26,30 @@ import {
   ExpressionStmt,
   IfStmt,
   ReturnStmt,
+  Stmt,
   StmtVisitor,
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
+import { TypeCheckError } from "../errors/TypeCheckError";
+import { Interpreter } from "../runtime/Interpreter";
 
 export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
+  private errors: TypeCheckError[] = [];
+
+  constructor(
+    private readonly interpreter: Interpreter,
+    private readonly statements: Stmt[]
+  ) {}
+
+  typeCheck(): { errors: TypeCheckError[] } {
+    return { errors: this.errors };
+  }
+
   visitBlockStmt(_stmt: BlockStmt): void {
     throw new Error("Method not implemented.");
   }
-  
+
   visitBreakStmt(_stmt: BreakStmt): void {
     throw new Error("Method not implemented.");
   }
@@ -43,7 +57,7 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
   visitClassStmt(_stmt: ClassStmt): void {
     throw new Error("Method not implemented.");
   }
-  
+
   visitContinueStmt(_stmt: ContinueStmt): void {
     throw new Error("Method not implemented.");
   }

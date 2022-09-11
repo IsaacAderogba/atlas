@@ -8,6 +8,7 @@ import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
+import { TypeChecker } from "./typechecker/TypeChecker";
 
 export class Atlas {
   private static reporter = new ConsoleReporter();
@@ -91,8 +92,15 @@ export class Atlas {
     }
 
     const analyzer = new Analyzer(this.interpreter, statements);
+    const typechecker = new TypeChecker(this.interpreter, statements);
+
     const { errors: analyzeErrs } = analyzer.analyze();
-    if (this.reportErrors(source, analyzeErrs)) {
+    const hadAnalysisErr = this.reportErrors(source, analyzeErrs);
+
+    const { errors: typeErrrs } = typechecker.typeCheck();
+    const hadTypeErr = this.reportErrors(source, typeErrrs);
+
+    if (hadAnalysisErr || hadTypeErr) {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
