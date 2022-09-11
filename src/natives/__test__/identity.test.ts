@@ -1,6 +1,7 @@
-export {};
+import { Boolean } from "../../primitives/AtlasValue";
+
 describe("identity", () => {
-  it("determines whether one value is an instance of another", () => {
+  it("tests `isInstance` results", () => {
     const tests = [
       {
         source: "var x = isInstance(true, Boolean)",
@@ -24,6 +25,23 @@ describe("identity", () => {
 
       tester.interpret(source);
       expect(tester.evaluate(variable)).toMatchObject({ value });
+    });
+  });
+
+  it("tests `type` results", () => {
+    const tests = [
+      {
+        source: "var x = typeOf(true)",
+        variable: "x",
+        instance: Boolean,
+      },
+    ];
+
+    tests.forEach(({ source, variable, instance }) => {
+      const { tester } = setupTester();
+
+      tester.interpret(source);
+      expect(tester.evaluate(variable)).toMatchObject(instance);
     });
   });
 });

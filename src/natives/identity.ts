@@ -14,8 +14,8 @@ export const isInstance = new AtlasNativeFn(
   }
 );
 
-const type = new AtlasNativeFn(
+const typeOf = new AtlasNativeFn(
   (value: AtlasValue) => primitives[value.type] ?? atlasNull()
 );
 
-export const identity = { type, isInstance };
+export const identity = { typeOf, isInstance };
