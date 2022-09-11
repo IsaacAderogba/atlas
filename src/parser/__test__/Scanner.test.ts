@@ -1,10 +1,10 @@
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
-import { AtlasFalse } from "../../interpreter/AtlasFalse";
-import { AtlasNull } from "../../interpreter/AtlasNull";
-import { AtlasNumber } from "../../interpreter/AtlasNumber";
-import { AtlasString } from "../../interpreter/AtlasString";
-import { AtlasTrue } from "../../interpreter/AtlasTrue";
+import { AtlasFalse } from "../../primitives/AtlasFalse";
+import { AtlasNull } from "../../primitives/AtlasNull";
+import { AtlasNumber } from "../../primitives/AtlasNumber";
+import { AtlasString } from "../../primitives/AtlasString";
+import { AtlasTrue } from "../../primitives/AtlasTrue";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { scanner: Scanner } => {
@@ -19,6 +19,8 @@ describe("Scanner tokens", () => {
       { char: ")", type: "RIGHT_PAREN" },
       { char: "{", type: "LEFT_BRACE" },
       { char: "}", type: "RIGHT_BRACE" },
+      { char: "[", type: "LEFT_BRACKET" },
+      { char: "]", type: "RIGHT_BRACKET" },
       { char: ",", type: "COMMA" },
       { char: ".", type: "DOT" },
       { char: "-", type: "MINUS" },

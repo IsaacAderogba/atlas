@@ -2,7 +2,7 @@ import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
-import { Interpreter } from "./Interpreter";
+import { Interpreter } from "../runtime/Interpreter";
 import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
 

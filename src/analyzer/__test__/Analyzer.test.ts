@@ -1,5 +1,5 @@
 import { SemanticErrors } from "../../errors/SemanticError";
-import { Interpreter } from "../../interpreter/Interpreter";
+import { Interpreter } from "../../runtime/Interpreter";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
 import { Analyzer } from "../Analyzer";
@@ -82,6 +82,45 @@ describe("Analyzer errors", () => {
       const { errors } = analyzer.analyze();
       expect(errors[0].message).toMatchObject(
         SemanticErrors.prohibitedInitReturn()
+      );
+    });
+  });
+
+  it("errors with prohibited async init", () => {
+    const expressions = [
+      `
+      class Foo {
+        init = f*() {
+        }
+      }
+    `,
+    ];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedAsyncInit()
+      );
+    });
+  });
+
+  it("errors with prohibited async return", () => {
+    const expressions = [
+      `
+      var foo = f*() {
+        return null
+      }
+    `,
+    ];
+
+    expressions.forEach(expr => {
+      const { analyzer } = setupTests(expr);
+
+      const { errors } = analyzer.analyze();
+      expect(errors[0].message).toMatchObject(
+        SemanticErrors.prohibitedAsyncReturn()
       );
     });
   });

@@ -2,10 +2,10 @@ import { FunctionExpr } from "../ast/Expr";
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
-import { Environment } from "./Environment";
-import { Interpreter } from "./Interpreter";
+import { Environment } from "../runtime/Environment";
+import { Interpreter } from "../runtime/Interpreter";
 import { AtlasObject } from "./AtlasObject";
-import { Return } from "./Throws";
+import { Return } from "../runtime/Throws";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "FUNCTION";
@@ -29,21 +29,33 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
-    const environment = new Environment(this.closure);
+    const execute = (): AtlasValue => {
+      const environment = new Environment(this.closure);
 
-    for (const [i, param] of this.expression.params.entries()) {
-      environment.define(param.name.lexeme, args[i]);
+      for (const [i, param] of this.expression.params.entries()) {
+        environment.define(param.name.lexeme, args[i]);
+      }
+
+      try {
+        interpreter.interpretBlock(
+          this.expression.body.statements,
+          environment
+        );
+      } catch (err) {
+        if (err instanceof Return) return err.value;
+        throw err;
+      }
+
+      if (this.isInitializer) return this.closure.getAt("this", 0);
+      return new AtlasNull();
+    };
+
+    if (this.expression.async) {
+      interpreter.scheduler.queueTask(() => execute());
+      return new AtlasNull();
     }
 
-    try {
-      interpreter.interpretBlock(this.expression.body.statements, environment);
-    } catch (err) {
-      if (err instanceof Return) return err.value;
-      throw err;
-    }
-
-    if (this.isInitializer) return this.closure.getAt("this", 0);
-    return new AtlasNull();
+    return execute();
   }
 
   toString(): string {

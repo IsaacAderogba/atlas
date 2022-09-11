@@ -14,6 +14,8 @@ import {
   GetExpr,
   SetExpr,
   ThisExpr,
+  ListExpr,
+  RecordExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -32,7 +34,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Property, Parameter } from "../ast/Node";
+import { Property, Parameter, Entry } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -278,7 +280,7 @@ export class Parser {
     while (true) {
       if (this.match("LEFT_PAREN")) {
         const open = this.previous();
-        const args = this.arguments();
+        const args = this.expressions("RIGHT_PAREN");
         const close = this.consume(
           "RIGHT_PAREN",
           SyntaxErrors.expectedRightParen()
@@ -308,6 +310,8 @@ export class Parser {
     if (this.match("THIS")) return new ThisExpr(this.previous());
     if (this.match("IDENTIFIER")) return new VariableExpr(this.previous());
     if (this.match("FUNCTION")) return this.func();
+    if (this.match("LEFT_BRACKET")) return this.list();
+    if (this.match("LEFT_BRACE")) return this.record();
 
     if (this.match("LEFT_PAREN")) {
       const open = this.previous();
@@ -324,14 +328,38 @@ export class Parser {
 
   private func(): FunctionExpr {
     const keyword = this.previous();
+    const async = this.match("STAR") ? this.previous() : undefined;
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+
     const parameters = this.parameters();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const body = this.blockStatement();
-    return new FunctionExpr(keyword, parameters, body);
+    return new FunctionExpr(keyword, async, parameters, body);
+  }
+
+  private list(): ListExpr {
+    const open = this.previous();
+    const items = this.expressions("RIGHT_BRACKET");
+    const close = this.consume(
+      "RIGHT_BRACKET",
+      SyntaxErrors.expectedRightBracket()
+    );
+
+    return new ListExpr(open, items, close);
+  }
+
+  private record(): RecordExpr {
+    const open = this.previous();
+    const entries = this.entries();
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+
+    return new RecordExpr(open, entries, close);
   }
 
   private errorStatement(err: SyntaxError): ErrorStmt {
@@ -388,16 +416,32 @@ export class Parser {
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
-  private arguments(): Expr[] {
+  private expressions(type: TokenType): Expr[] {
     const args: Expr[] = [];
 
-    if (!this.check("RIGHT_PAREN")) {
+    if (!this.check(type)) {
       do {
         args.push(this.expression());
       } while (this.match("COMMA"));
     }
 
     return args;
+  }
+
+  private entries(): Entry[] {
+    const entries: Entry[] = [];
+
+    if (!this.check("RIGHT_BRACE")) {
+      do {
+        const key = this.expression();
+        this.consume("COLON", SyntaxErrors.expectedSemiColon());
+        const value = this.expression();
+
+        entries.push(new Entry(key, value));
+      } while (this.match("COMMA"));
+    }
+
+    return entries;
   }
 
   private parameters(): Parameter[] {

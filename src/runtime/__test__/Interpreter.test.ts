@@ -3,6 +3,7 @@ import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
+import { AtlasList } from "../../primitives/AtlasList";
 import { Interpreter } from "../Interpreter";
 
 interface SetupTests {
@@ -430,6 +431,15 @@ describe("Interpreter evaluations", () => {
     tests.forEach(({ object, source }) => {
       const { evaluate } = setupTests(source);
       expect(evaluate()).toMatchObject(object);
+    });
+  });
+
+  it("evaluates list expressions", () => {
+    const tests = [{ source: "[1, 2, 3]", object: AtlasList }];
+
+    tests.forEach(({ object, source }) => {
+      const { evaluate } = setupTests(source);
+      expect(evaluate()).toBeInstanceOf(object);
     });
   });
 });

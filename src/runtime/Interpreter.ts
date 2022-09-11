@@ -7,18 +7,20 @@ import {
   FunctionExpr,
   GetExpr,
   GroupingExpr,
+  ListExpr,
   LiteralExpr,
   LogicalExpr,
+  RecordExpr,
   SetExpr,
   TernaryExpr,
   ThisExpr,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { AtlasFalse } from "./AtlasFalse";
-import { AtlasNumber } from "./AtlasNumber";
-import { AtlasTrue } from "./AtlasTrue";
-import { AtlasValue } from "./AtlasValue";
+import { AtlasFalse } from "../primitives/AtlasFalse";
+import { AtlasNumber } from "../primitives/AtlasNumber";
+import { AtlasTrue } from "../primitives/AtlasTrue";
+import { AtlasValue } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
@@ -34,18 +36,22 @@ import {
   WhileStmt,
 } from "../ast/Stmt";
 import { Environment } from "./Environment";
-import { AtlasCallable, isCallable } from "./AtlasCallable";
+import { AtlasCallable, isCallable } from "../primitives/AtlasCallable";
 import { globals } from "../globals";
-import { AtlasFunction } from "./AtlasFunction";
+import { AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
-import { AtlasString } from "./AtlasString";
+import { AtlasString } from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
-import { AtlasNull } from "./AtlasNull";
-import { AtlasClass } from "./AtlasClass";
+import { AtlasNull } from "../primitives/AtlasNull";
+import { AtlasClass } from "../primitives/AtlasClass";
 import { NativeError } from "../errors/NativeError";
+import { AtlasList } from "../primitives/AtlasList";
+import { AtlasRecord } from "../primitives/AtlasRecord";
+import { Scheduler } from "./Scheduler";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
+  readonly scheduler = new Scheduler();
   private environment = this.globals;
   private readonly locals: Map<Expr, number> = new Map();
 
@@ -55,6 +61,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(statement);
       }
 
+      this.scheduler.run();
       return { errors: [] };
     } catch (error) {
       if (error instanceof RuntimeError) {
@@ -324,6 +331,19 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         );
     }
     return this.evaluate(expr.right);
+  }
+
+  visitListExpr(expr: ListExpr): AtlasValue {
+    return new AtlasList(expr.items.map(item => this.evaluate(item)));
+  }
+
+  visitRecordExpr(expr: RecordExpr): AtlasValue {
+    const record = new Map<AtlasValue, AtlasValue>();
+    for (const { key, value } of expr.entries) {
+      record.set(this.evaluate(key), this.evaluate(value));
+    }
+
+    return new AtlasRecord(record);
   }
 
   visitSetExpr(expr: SetExpr): AtlasValue {

@@ -1,11 +1,11 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
-import { Interpreter } from "./Interpreter";
+import { Interpreter } from "../runtime/Interpreter";
 import { AtlasObject } from "./AtlasObject";
 
-export class NativeFunction extends AtlasObject implements AtlasCallable {
+export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NATIVE_FUNCTION";
-  readonly className = "NativeFunction";
+  readonly className = "AtlasNativeFn";
 
   constructor(
     private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue
@@ -17,8 +17,8 @@ export class NativeFunction extends AtlasObject implements AtlasCallable {
     return this.jsFunction.length;
   }
 
-  bind(instance: AtlasValue): NativeFunction {
-    return new NativeFunction(this.jsFunction.bind(instance));
+  bind(instance: AtlasValue): AtlasNativeFn {
+    return new AtlasNativeFn(this.jsFunction.bind(instance));
   }
 
   call(_: Interpreter, args: AtlasValue[]): AtlasValue {
@@ -33,12 +33,12 @@ export class NativeFunction extends AtlasObject implements AtlasCallable {
 type ConvertedFunctions = { [key: string]: AtlasCallable & AtlasValue };
 
 export const toNativeFunctions = (funcs: {
-  [name: string]: NativeFunction["jsFunction"];
+  [name: string]: AtlasNativeFn["jsFunction"];
 }): ConvertedFunctions => {
   const convertedFuncs: ConvertedFunctions = {};
 
   for (const [name, func] of Object.entries(funcs)) {
-    convertedFuncs[name] = new NativeFunction(func);
+    convertedFuncs[name] = new AtlasNativeFn(func);
   }
 
   return convertedFuncs;

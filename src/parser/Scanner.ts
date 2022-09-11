@@ -1,15 +1,15 @@
 import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
-import { AtlasValue } from "../interpreter/AtlasValue";
+import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceMessage, SourceRange } from "../errors/SourceError";
 import { Keywords } from "./Keywords";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
-import { AtlasString } from "../interpreter/AtlasString";
-import { AtlasNumber } from "../interpreter/AtlasNumber";
-import { AtlasNull } from "../interpreter/AtlasNull";
-import { AtlasTrue } from "../interpreter/AtlasTrue";
-import { AtlasFalse } from "../interpreter/AtlasFalse";
+import { AtlasString } from "../primitives/AtlasString";
+import { AtlasNumber } from "../primitives/AtlasNumber";
+import { AtlasNull } from "../primitives/AtlasNull";
+import { AtlasTrue } from "../primitives/AtlasTrue";
+import { AtlasFalse } from "../primitives/AtlasFalse";
 
 export class Scanner {
   private readonly source: string;
@@ -60,6 +60,12 @@ export class Scanner {
         break;
       case "}":
         this.addToken("RIGHT_BRACE");
+        break;
+      case "[":
+        this.addToken("LEFT_BRACKET");
+        break;
+      case "]":
+        this.addToken("RIGHT_BRACKET");
         break;
       case ",":
         this.addToken("COMMA");
