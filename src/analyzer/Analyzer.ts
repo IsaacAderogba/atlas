@@ -40,10 +40,11 @@ import { Stack } from "../utils/Stack";
 import { ClassType, FunctionType, VariableState } from "./Enums";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
+type CurrentFunction = { type: FunctionType; expr: FunctionExpr };
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly scopes: Stack<AnalyzerScope> = new Stack();
-  private currentFunction = FunctionType.NONE;
+  private currentFunction?: CurrentFunction;
   private currentClass = ClassType.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
@@ -73,9 +74,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     expression.accept(this);
   }
 
-  private analyzeFunction(func: FunctionExpr, type: FunctionType): void {
+  private analyzeFunction(func: FunctionExpr, current: CurrentFunction): void {
     const enclosingFunction = this.currentFunction;
-    this.currentFunction = type;
+    this.currentFunction = current;
 
     this.beginScope();
 
@@ -91,9 +92,13 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   private analyzeProperty(prop: Property, type: FunctionType): void {
     if (prop.initializer instanceof FunctionExpr) {
+      if (type === FunctionType.INIT && prop.initializer.async) {
+        this.error(prop.name, SemanticErrors.prohibitedAsyncInit());
+      }
+
       this.declare(prop.name);
       this.define(prop.name);
-      this.analyzeFunction(prop.initializer, type);
+      this.analyzeFunction(prop.initializer, { type, expr: prop.initializer });
     } else {
       this.declare(prop.name);
       this.analyzeExpr(prop.initializer);
@@ -173,13 +178,21 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
-    switch (this.currentFunction) {
-      case FunctionType.NONE:
-        this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
-        break;
-      case FunctionType.INIT:
-        this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
-        break;
+    if (this.currentFunction) {
+      const { type, expr } = this.currentFunction;
+
+      switch (type) {
+        case FunctionType.NONE:
+          this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
+          break;
+        case FunctionType.INIT:
+          this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
+        case FunctionType.FUNCTION:
+        case FunctionType.METHOD:
+          if (expr.async) {
+            this.error(stmt.keyword, SemanticErrors.prohibitedAsyncReturn());
+          }
+      }
     }
 
     this.analyzeExpr(stmt.value);
@@ -225,7 +238,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitFunctionExpr(expr: FunctionExpr): void {
-    this.analyzeFunction(expr, FunctionType.FUNCTION);
+    this.analyzeFunction(expr, { expr, type: FunctionType.FUNCTION });
   }
 
   visitLiteralExpr(): void {

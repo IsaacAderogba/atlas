@@ -3,6 +3,8 @@ var countDown = f*(n) {
     print(n)
     countDown(n - 1)
   }
+
+  return null
 }
 
 
@@ -11,3 +13,9 @@ countDown(5)
 countDown(5)
 countDown(5)
 countDown(5)
+
+class Foo {
+  init = f*() {
+    return null
+  }
+}
