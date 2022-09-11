@@ -1,16 +1,8 @@
 import { AtlasNumber } from "./primitives/AtlasNumber";
 import { AtlasString } from "./primitives/AtlasString";
 import { AtlasNativeFn } from "./primitives/AtlasNativeFn";
-import {
-  Boolean,
-  Null,
-  Number,
-  String,
-  Function,
-  Class,
-  List,
-  Record,
-} from "./primitives/AtlasValue";
+import { primitives } from "./primitives/AtlasValue";
+import { identity } from "./natives/identity";
 
 export const clock = new AtlasNativeFn(
   () => new AtlasNumber(Date.now() / 1000)
@@ -25,12 +17,6 @@ export const print = new AtlasNativeFn(value => {
 export const globals = {
   clock,
   print,
-  Boolean,
-  Null,
-  Number,
-  String,
-  Function,
-  Class,
-  List,
-  Record,
+  ...identity,
+  ...primitives,
 };

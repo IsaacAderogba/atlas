@@ -95,3 +95,34 @@ export const Class = new AtlasClass(
     },
   })
 );
+
+export const Instance = new AtlasClass(
+  "Instance",
+  toNativeFunctions({
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
+    },
+  })
+);
+
+export const NativeFn = new AtlasClass(
+  "NativeFn",
+  toNativeFunctions({
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
+    },
+  })
+);
+
+export const primitives = {
+  Boolean,
+  Class,
+  Function,
+  Instance,
+  List,
+  NativeFn,
+  Null,
+  Number,
+  Record,
+  String,
+};

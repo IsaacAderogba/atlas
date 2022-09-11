@@ -12,3 +12,4 @@ export class AtlasNull extends AtlasObject {
   }
 }
 
+export const atlasNull = (): AtlasNull => new AtlasNull()
