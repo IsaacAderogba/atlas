@@ -12,8 +12,8 @@ export const isCallable = (
   value: AtlasValue
 ): value is AtlasCallable & AtlasValue => {
   return (
-    value.type === "FUNCTION" ||
-    value.type === "NATIVE_FUNCTION" ||
-    value.type === "CLASS"
+    value.type === "Function" ||
+    value.type === "NativeFn" ||
+    value.type === "Class"
   );
 };

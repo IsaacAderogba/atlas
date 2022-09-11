@@ -4,8 +4,7 @@ import { Interpreter } from "../runtime/Interpreter";
 import { AtlasObject } from "./AtlasObject";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
-  readonly type = "NATIVE_FUNCTION";
-  readonly className = "AtlasNativeFn";
+  readonly type = "NativeFn";
 
   constructor(
     private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue

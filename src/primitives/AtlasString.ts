@@ -1,7 +1,7 @@
 import { AtlasObject } from "./AtlasObject";
 
 export class AtlasString extends AtlasObject {
-  readonly type = "STRING";
+  readonly type = "String";
 
   constructor(readonly value: string) {
     super({});

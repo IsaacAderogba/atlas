@@ -7,7 +7,7 @@ import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
-  readonly type = "CLASS";
+  readonly type = "Class";
   name: string;
   staticClass?: AtlasClass;
 

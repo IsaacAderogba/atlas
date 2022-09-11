@@ -8,7 +8,7 @@ import { AtlasObject } from "./AtlasObject";
 import { Return } from "../runtime/Throws";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
-  readonly type = "FUNCTION";
+  readonly type = "Function";
 
   constructor(
     private readonly expression: FunctionExpr,

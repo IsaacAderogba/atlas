@@ -8,8 +8,7 @@ import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { AtlasString } from "../primitives/AtlasString";
 import { AtlasNumber } from "../primitives/AtlasNumber";
 import { AtlasNull } from "../primitives/AtlasNull";
-import { AtlasTrue } from "../primitives/AtlasTrue";
-import { AtlasFalse } from "../primitives/AtlasFalse";
+import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Scanner {
   private readonly source: string;
@@ -157,10 +156,10 @@ export class Scanner {
         this.addToken("NULL", { literal: new AtlasNull() });
         break;
       case "true":
-        this.addToken("TRUE", { literal: new AtlasTrue() });
+        this.addToken("TRUE", { literal: atlasBoolean(true) });
         break;
       case "false":
-        this.addToken("FALSE", { literal: new AtlasFalse() });
+        this.addToken("FALSE", { literal: atlasBoolean(false) });
         break;
       default:
         this.addToken(Keywords.get(text) || "IDENTIFIER");

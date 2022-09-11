@@ -4,7 +4,7 @@ import { AtlasValue } from "./AtlasValue";
 import { toNativeFunctions } from "./AtlasNativeFn";
 
 export class AtlasRecord extends AtlasObject {
-  readonly type = "RECORD";
+  readonly type = "Record";
 
   constructor(readonly entries: Map<AtlasValue, AtlasValue> = new Map()) {
     super(

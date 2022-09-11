@@ -4,7 +4,7 @@ import { AtlasValue } from "./AtlasValue";
 import { toNativeFunctions } from "./AtlasNativeFn";
 
 export class AtlasList extends AtlasObject {
-  readonly type = "LIST";
+  readonly type = "List";
 
   constructor(readonly items: AtlasValue[] = []) {
     super(

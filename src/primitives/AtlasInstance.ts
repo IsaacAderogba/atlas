@@ -5,7 +5,7 @@ import { AtlasObject } from "./AtlasObject";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
-  readonly type = "INSTANCE";
+  readonly type = "Instance";
 
   constructor(
     readonly atlasClass: AtlasClass,

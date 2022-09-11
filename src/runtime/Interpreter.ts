@@ -17,9 +17,7 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { AtlasFalse } from "../primitives/AtlasFalse";
 import { AtlasNumber } from "../primitives/AtlasNumber";
-import { AtlasTrue } from "../primitives/AtlasTrue";
 import { AtlasValue } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
@@ -48,6 +46,7 @@ import { NativeError } from "../errors/NativeError";
 import { AtlasList } from "../primitives/AtlasList";
 import { AtlasRecord } from "../primitives/AtlasRecord";
 import { Scheduler } from "./Scheduler";
+import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -230,28 +229,28 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         const isGreater =
           this.getNumberValue(leftSource, left) >
           this.getNumberValue(rightSource, right);
-        return isGreater ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(isGreater);
       case "GREATER_EQUAL":
         const isGreaterEqual =
           this.getNumberValue(leftSource, left) >=
           this.getNumberValue(rightSource, right);
-        return isGreaterEqual ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(isGreaterEqual);
       case "LESS":
         const isLess =
           this.getNumberValue(leftSource, left) <
           this.getNumberValue(rightSource, right);
-        return isLess ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(isLess);
       case "LESS_EQUAL":
         const isLessEqual =
           this.getNumberValue(leftSource, left) <=
           this.getNumberValue(rightSource, right);
-        return isLessEqual ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(isLessEqual);
       case "BANG_EQUAL":
         const areNotEqual = !areEqualValues(left, right);
-        return areNotEqual ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(areNotEqual);
       case "EQUAL_EQUAL":
         const areEqual = areEqualValues(left, right);
-        return areEqual ? new AtlasTrue() : new AtlasFalse();
+        return atlasBoolean(areEqual);
       default:
         throw this.error(
           expr.operator,
@@ -271,7 +270,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     switch (expr.operator.type) {
       case "BANG":
         const boolean = this.getBooleanValue(source, right);
-        return boolean ? new AtlasFalse() : new AtlasTrue();
+        return atlasBoolean(boolean ? false : true);
       case "MINUS":
         return new AtlasNumber(-this.getNumberValue(source, right));
       default:
@@ -377,12 +376,12 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   private getStringValue(source: SourceRangeable, operand: AtlasValue): string {
-    if (operand.type === "STRING") return operand.value;
+    if (operand.type === "String") return operand.value;
     throw this.error(source, RuntimeErrors.expectedString());
   }
 
   private getNumberValue(source: SourceRangeable, operand: AtlasValue): number {
-    if (operand.type === "NUMBER") return operand.value;
+    if (operand.type === "Number") return operand.value;
     throw this.error(source, RuntimeErrors.expectedNumber());
   }
 
@@ -390,8 +389,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     source: SourceRangeable,
     operand: AtlasValue
   ): boolean {
-    if (operand.type === "TRUE") return operand.value;
-    if (operand.type === "FALSE") return operand.value;
+    if (operand.type === "Boolean") return operand.value;
     throw this.error(source, RuntimeErrors.expectedBoolean());
   }
 

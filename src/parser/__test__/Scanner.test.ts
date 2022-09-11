@@ -1,10 +1,9 @@
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
-import { AtlasFalse } from "../../primitives/AtlasFalse";
+import { atlasBoolean } from "../../primitives/AtlasBoolean";
 import { AtlasNull } from "../../primitives/AtlasNull";
 import { AtlasNumber } from "../../primitives/AtlasNumber";
 import { AtlasString } from "../../primitives/AtlasString";
-import { AtlasTrue } from "../../primitives/AtlasTrue";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { scanner: Scanner } => {
@@ -151,7 +150,7 @@ describe("Scanner tokens", () => {
     const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("TRUE");
-    expect(tokens[0].literal).toEqual(new AtlasTrue());
+    expect(tokens[0].literal).toEqual(atlasBoolean(true));
 
     expect(tokens.length).toEqual(2);
   });
@@ -161,7 +160,7 @@ describe("Scanner tokens", () => {
     const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("FALSE");
-    expect(tokens[0].literal).toEqual(new AtlasFalse());
+    expect(tokens[0].literal).toEqual(atlasBoolean(false));
 
     expect(tokens.length).toEqual(2);
   });

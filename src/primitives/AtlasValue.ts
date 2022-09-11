@@ -1,7 +1,7 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
+import { atlasBoolean, AtlasBoolean } from "./AtlasBoolean";
 import { AtlasClass } from "./AtlasClass";
-import { AtlasFalse } from "./AtlasFalse";
 import { AtlasFunction } from "./AtlasFunction";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasList } from "./AtlasList";
@@ -9,12 +9,10 @@ import { AtlasNull } from "./AtlasNull";
 import { AtlasNumber } from "./AtlasNumber";
 import { AtlasRecord } from "./AtlasRecord";
 import { AtlasString } from "./AtlasString";
-import { AtlasTrue } from "./AtlasTrue";
 import { AtlasNativeFn, toNativeFunctions } from "./AtlasNativeFn";
 
 export type AtlasValue =
-  | AtlasTrue
-  | AtlasFalse
+  | AtlasBoolean
   | AtlasNull
   | AtlasNumber
   | AtlasString
@@ -29,8 +27,7 @@ export const Boolean = new AtlasClass(
   "Boolean",
   toNativeFunctions({
     init: (value: AtlasValue) => {
-      if (value.type === "TRUE") return new AtlasTrue();
-      if (value.type === "FALSE") return new AtlasFalse();
+      if (value.type === "Boolean") return atlasBoolean(value.value);
       throw new NativeError(RuntimeErrors.expectedBoolean());
     },
   })
@@ -47,7 +44,7 @@ export const Number = new AtlasClass(
   "Number",
   toNativeFunctions({
     init: (value: AtlasValue) => {
-      if (value.type === "NUMBER") return new AtlasNumber(value.value);
+      if (value.type === "Number") return new AtlasNumber(value.value);
       throw new NativeError(RuntimeErrors.expectedNumber());
     },
   })
@@ -75,7 +72,7 @@ export const String = new AtlasClass(
   "String",
   toNativeFunctions({
     init: (value: AtlasValue) => {
-      if (value.type === "STRING") return new AtlasString(value.value);
+      if (value.type === "String") return new AtlasString(value.value);
       throw new NativeError(RuntimeErrors.expectedString());
     },
   })
