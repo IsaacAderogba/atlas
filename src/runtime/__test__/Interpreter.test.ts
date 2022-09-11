@@ -3,7 +3,7 @@ import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
-import { AtlasList } from "../AtlasList";
+import { AtlasList } from "../../primitives/AtlasList";
 import { Interpreter } from "../Interpreter";
 
 interface SetupTests {

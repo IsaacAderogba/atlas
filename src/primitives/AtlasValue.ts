@@ -10,7 +10,7 @@ import { AtlasNumber } from "./AtlasNumber";
 import { AtlasRecord } from "./AtlasRecord";
 import { AtlasString } from "./AtlasString";
 import { AtlasTrue } from "./AtlasTrue";
-import { NativeFunction, toNativeFunctions } from "./NativeFunction";
+import { AtlasNativeFn, toNativeFunctions } from "./AtlasNativeFn";
 
 export type AtlasValue =
   | AtlasTrue
@@ -18,12 +18,12 @@ export type AtlasValue =
   | AtlasNull
   | AtlasNumber
   | AtlasString
-  | AtlasFunction
   | AtlasClass
   | AtlasInstance
   | AtlasList
   | AtlasRecord
-  | NativeFunction;
+  | AtlasFunction
+  | AtlasNativeFn;
 
 export const Boolean = new AtlasClass(
   "Boolean",

@@ -17,10 +17,10 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { AtlasFalse } from "./AtlasFalse";
-import { AtlasNumber } from "./AtlasNumber";
-import { AtlasTrue } from "./AtlasTrue";
-import { AtlasValue } from "./AtlasValue";
+import { AtlasFalse } from "../primitives/AtlasFalse";
+import { AtlasNumber } from "../primitives/AtlasNumber";
+import { AtlasTrue } from "../primitives/AtlasTrue";
+import { AtlasValue } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
@@ -36,17 +36,17 @@ import {
   WhileStmt,
 } from "../ast/Stmt";
 import { Environment } from "./Environment";
-import { AtlasCallable, isCallable } from "./AtlasCallable";
+import { AtlasCallable, isCallable } from "../primitives/AtlasCallable";
 import { globals } from "../globals";
-import { AtlasFunction } from "./AtlasFunction";
+import { AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
-import { AtlasString } from "./AtlasString";
+import { AtlasString } from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
-import { AtlasNull } from "./AtlasNull";
-import { AtlasClass } from "./AtlasClass";
+import { AtlasNull } from "../primitives/AtlasNull";
+import { AtlasClass } from "../primitives/AtlasClass";
 import { NativeError } from "../errors/NativeError";
-import { AtlasList } from "./AtlasList";
-import { AtlasRecord } from "./AtlasRecord";
+import { AtlasList } from "../primitives/AtlasList";
+import { AtlasRecord } from "../primitives/AtlasRecord";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);

@@ -1,4 +1,4 @@
-import { AtlasValue } from "../interpreter/AtlasValue";
+import { AtlasValue } from "../primitives/AtlasValue";
 
 export class Scope<T> {
   private storage = new Map<string, T>();

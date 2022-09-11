@@ -3,7 +3,7 @@ import readline from "readline";
 import { Stmt } from "./ast/Stmt";
 import { Parser } from "./parser/Parser";
 import { Scanner } from "./parser/Scanner";
-import { Interpreter } from "./interpreter/Interpreter";
+import { Interpreter } from "./runtime/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError } from "./errors/SourceError";

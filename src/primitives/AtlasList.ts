@@ -1,7 +1,7 @@
 import { AtlasNull } from "./AtlasNull";
 import { AtlasObject } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
-import { toNativeFunctions } from "./NativeFunction";
+import { toNativeFunctions } from "./AtlasNativeFn";
 
 export class AtlasList extends AtlasObject {
   readonly type = "LIST";

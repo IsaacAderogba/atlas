@@ -2,10 +2,10 @@ import { FunctionExpr } from "../ast/Expr";
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
-import { Environment } from "./Environment";
-import { Interpreter } from "./Interpreter";
+import { Environment } from "../runtime/Environment";
+import { Interpreter } from "../runtime/Interpreter";
 import { AtlasObject } from "./AtlasObject";
-import { Return } from "./Throws";
+import { Return } from "../runtime/Throws";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "FUNCTION";

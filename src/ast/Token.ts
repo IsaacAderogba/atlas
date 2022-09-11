@@ -1,4 +1,4 @@
-import { AtlasValue } from "../interpreter/AtlasValue";
+import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { TokenType } from "./TokenType";
 

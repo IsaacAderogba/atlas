@@ -1,5 +1,5 @@
 import { SemanticErrors } from "../../errors/SemanticError";
-import { Interpreter } from "../../interpreter/Interpreter";
+import { Interpreter } from "../../runtime/Interpreter";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
 import { Analyzer } from "../Analyzer";
