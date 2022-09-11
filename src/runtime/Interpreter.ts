@@ -47,9 +47,11 @@ import { AtlasClass } from "../primitives/AtlasClass";
 import { NativeError } from "../errors/NativeError";
 import { AtlasList } from "../primitives/AtlasList";
 import { AtlasRecord } from "../primitives/AtlasRecord";
+import { Scheduler } from "./Scheduler";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
+  readonly scheduler = new Scheduler();
   private environment = this.globals;
   private readonly locals: Map<Expr, number> = new Map();
 
@@ -59,6 +61,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(statement);
       }
 
+      this.scheduler.run();
       return { errors: [] };
     } catch (error) {
       if (error instanceof RuntimeError) {
@@ -339,7 +342,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     for (const { key, value } of expr.entries) {
       record.set(this.evaluate(key), this.evaluate(value));
     }
-    
+
     return new AtlasRecord(record);
   }
 

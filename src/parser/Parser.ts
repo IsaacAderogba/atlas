@@ -328,14 +328,16 @@ export class Parser {
 
   private func(): FunctionExpr {
     const keyword = this.previous();
+    const async = this.match("STAR") ? this.previous() : undefined;
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+
     const parameters = this.parameters();
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const body = this.blockStatement();
-    return new FunctionExpr(keyword, parameters, body);
+    return new FunctionExpr(keyword, async, parameters, body);
   }
 
   private list(): ListExpr {
