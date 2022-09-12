@@ -2,7 +2,7 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
-import { Entry, Parameter, TypeProperty } from "./Node";
+import { Entry, Parameter } from "./Node";
 import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
@@ -314,7 +314,6 @@ export class CallableTypeExpr {
   constructor(
     readonly open: Token,
     readonly generics: TypeExpr[],
-    readonly close: Token,
     readonly returnType: TypeExpr
   ) {}
 

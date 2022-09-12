@@ -604,9 +604,39 @@ describe("Type statements", () => {
     });
   });
 
-  // it("parses composite statements", () => {});
+  it("parses composite statements", () => {
+    const { tester } = setupTester();
 
-  // it("parses callable statements", () => {});
+    const { statements } = tester.parseWorkflow("type Foo = Bar | Faz");
+    expect(statements[0]).toMatchObject({
+      type: {
+        left: {
+          name: { lexeme: "Bar", type: "IDENTIFIER" },
+        },
+        operator: { lexeme: "|", type: "PIPE" },
+        right: {
+          name: { lexeme: "Faz", type: "IDENTIFIER" },
+        },
+      },
+    });
+  });
+
+  it("parses callable statements", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow(
+      "type Foo = (Number) -> String"
+    );
+    expect(statements[0]).toMatchObject({
+      type: {
+        generics: [{ name: { lexeme: "Number", type: "IDENTIFIER" } }],
+        open: { lexeme: "(", type: "LEFT_PAREN" },
+        returnType: {
+          name: { lexeme: "String", type: "IDENTIFIER" },
+        },
+      },
+    });
+  });
 
   it("parses generic statements", () => {
     const { tester } = setupTester();
@@ -637,12 +667,32 @@ describe("Type statements", () => {
   });
 });
 
-// describe("Type expressions", () => {
-//   it("parses call expressions", () => {});
+describe("Type annotations", () => {
+  it("parses variable annotations", () => {
+    const { tester } = setupTester();
 
-//   it("parses generic expressions", () => {});
-// });
+    const { statements } = tester.parseWorkflow("var foo: String = 'foo'");
+    expect(statements[0]).toMatchObject({
+      keyword: { lexeme: "var", type: "VAR" },
+      property: {
+        initializer: {
+          token: {
+            lexeme: "'foo'",
+            literal: { type: "String", value: "foo" },
+            type: "STRING",
+          },
+          value: {
+            type: "String",
+            value: "foo",
+          },
+        },
+        name: { lexeme: "foo", type: "IDENTIFIER" },
+        type: {
+          name: { lexeme: "String", type: "IDENTIFIER" },
+        },
+      },
+    });
+  });
 
-// describe("Type errors", () => {
-//   it("parses call expressions", () => {});
-// });
+  // it("parses generic expressions", () => {});
+});

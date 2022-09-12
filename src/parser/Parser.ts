@@ -518,10 +518,10 @@ export class Parser {
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("MINUS", SyntaxErrors.expectedDash());
-    const close = this.consume("GREATER", SyntaxErrors.expectedRightCaret());
+    this.consume("GREATER", SyntaxErrors.expectedRightCaret());
     const returnType = this.typeExpr();
 
-    return new CallableTypeExpr(open, generics, close, returnType);
+    return new CallableTypeExpr(open, generics, returnType);
   }
 
   private expressions(type: TokenType): Expr[] {
