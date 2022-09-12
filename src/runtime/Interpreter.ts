@@ -344,12 +344,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitRecordExpr(expr: RecordExpr): AtlasValue {
-    const record = new Map<AtlasString, AtlasValue>();
+    const entries: { [key: string]: AtlasValue } = {};
+
     for (const { key, value } of expr.entries) {
-      record.set(key.literal as AtlasString, this.evaluate(value));
+      const string = this.getStringValue(expr, key.literal as AtlasString);
+      entries[string] = this.evaluate(value);
     }
 
-    return new AtlasRecord(record);
+    return new AtlasRecord(entries);
   }
 
   visitSetExpr(expr: SetExpr): AtlasValue {

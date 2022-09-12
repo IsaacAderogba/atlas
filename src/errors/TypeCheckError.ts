@@ -18,4 +18,11 @@ export class TypeCheckErrors {
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
     return { title: `type ${type}: ` + title, body, type };
   }
+
+  static unexpectedLiteralType(type: string): SourceMessage {
+    return this.formatError({
+      title: "unexpected literal type",
+      body: `cannot process expression with type "${type}"`,
+    });
+  }
 }

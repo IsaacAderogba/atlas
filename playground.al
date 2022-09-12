@@ -1,3 +1,6 @@
-interface Foo { 
-  bar = String 
+var foo = {
+  "bar": "foobaz"
 }
+
+
+print(foo.bar)

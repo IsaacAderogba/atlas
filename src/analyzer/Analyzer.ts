@@ -24,7 +24,6 @@ import {
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
-  InterfaceStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,

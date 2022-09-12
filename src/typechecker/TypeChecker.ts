@@ -34,10 +34,12 @@ import {
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
-import { TypeCheckError } from "../errors/TypeCheckError";
+import { SourceMessage, SourceRangeable } from "../errors/SourceError";
+import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { Interpreter } from "../runtime/Interpreter";
+import Types, { Type } from "./Types";
 
-export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
+export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
   private errors: TypeCheckError[] = [];
 
   constructor(
@@ -50,15 +52,19 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
     //   this.typeCheckStmt(statement);
     // }
 
-    return { errors: this.errors };
+    try {
+      return { errors: this.errors };
+    } catch (errs) {
+      return { errors: this.errors };
+    }
   }
 
   private typeCheckStmt(statement: Stmt): void {
     statement.accept(this);
   }
 
-  private typeCheckExpr(expression: Expr): void {
-    expression.accept(this);
+  private typeCheckExpr(expression: Expr): Type {
+    return expression.accept(this);
   }
 
   visitBlockStmt(_stmt: BlockStmt): void {
@@ -109,63 +115,91 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitAssignExpr(_expr: AssignExpr): void {
+  visitAssignExpr(_expr: AssignExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitBinaryExpr(_expr: BinaryExpr): void {
+  visitBinaryExpr(_expr: BinaryExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitCallExpr(_expr: CallExpr): void {
+  visitCallExpr(_expr: CallExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitFunctionExpr(_expr: FunctionExpr): void {
+  visitFunctionExpr(_expr: FunctionExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitGetExpr(_expr: GetExpr): void {
+  visitGetExpr(expr: GetExpr): Type {
+    return this.typeCheckExpr(expr.object);
+  }
+
+  visitTernaryExpr(_expr: TernaryExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitTernaryExpr(_expr: TernaryExpr): void {
+  visitGroupingExpr(_expr: GroupingExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitGroupingExpr(_expr: GroupingExpr): void {
+  visitLiteralExpr(expr: LiteralExpr): Type {
+    switch (expr.value.type) {
+      case "Null":
+        return Types.Null;
+      case "Boolean":
+        return Types.Boolean;
+      case "Number":
+        return Types.Number;
+      case "String":
+        return Types.String;
+      default:
+        throw this.error(
+          expr,
+          TypeCheckErrors.unexpectedLiteralType(expr.value.type)
+        );
+    }
+  }
+
+  visitListExpr(_expr: ListExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitLiteralExpr(_expr: LiteralExpr): void {
+  visitLogicalExpr(_expr: LogicalExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitListExpr(_expr: ListExpr): void {
+  visitRecordExpr(expr: RecordExpr): Type {
+    const properties = expr.entries.map(entry => ({
+      name: entry.key.lexeme,
+      type: this.typeCheckExpr(entry.value),
+    }));
+
+    return Types.Record(properties);
+  }
+
+  visitSetExpr(_expr: SetExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitLogicalExpr(_expr: LogicalExpr): void {
+  visitThisExpr(_expr: ThisExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitRecordExpr(_expr: RecordExpr): void {
+  visitUnaryExpr(_expr: UnaryExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitSetExpr(_expr: SetExpr): void {
+  visitVariableExpr(_expr: VariableExpr): Type {
     throw new Error("Method not implemented.");
   }
 
-  visitThisExpr(_expr: ThisExpr): void {
-    throw new Error("Method not implemented.");
-  }
-
-  visitUnaryExpr(_expr: UnaryExpr): void {
-    throw new Error("Method not implemented.");
-  }
-
-  visitVariableExpr(_expr: VariableExpr): void {
-    throw new Error("Method not implemented.");
+  private error(
+    source: SourceRangeable,
+    message: SourceMessage
+  ): TypeCheckError {
+    const error = new TypeCheckError(message, source.sourceRange());
+    this.errors.push(error);
+    return error;
   }
 }
