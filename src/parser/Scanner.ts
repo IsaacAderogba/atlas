@@ -66,6 +66,12 @@ export class Scanner {
       case "]":
         this.addToken("RIGHT_BRACKET");
         break;
+      case "|":
+        this.addToken("PIPE");
+        break;
+      case "&":
+        this.addToken("AMPERSAND");
+        break;
       case ",":
         this.addToken("COMMA");
         break;

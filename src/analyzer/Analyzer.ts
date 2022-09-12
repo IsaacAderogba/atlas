@@ -198,6 +198,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(stmt.value);
   }
 
+  visitTypeStmt(): void {
+    // no op
+  }
+
   visitVarStmt(stmt: VarStmt): void {
     this.analyzeProperty(stmt.property, FunctionType.FUNCTION);
   }

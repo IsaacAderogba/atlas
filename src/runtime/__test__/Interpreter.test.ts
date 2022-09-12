@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { Analyzer } from "../../analyzer/Analyzer";
 import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
@@ -17,7 +18,7 @@ const setupTests = (source: string): SetupTests => {
   const { tokens, errors: scanErrs } = scanner.scan();
 
   if (scanErrs.length) {
-    console.log("Scan errors", scanErrs);
+    console.error("Scan errors", scanErrs);
     throw new Error("Scan failed");
   }
 
@@ -29,7 +30,7 @@ const setupTests = (source: string): SetupTests => {
     interpret: () => {
       const { statements, errors: parseErrs } = parser.parse();
       if (!statements || parseErrs.length) {
-        console.log("Parse errors", parseErrs);
+        console.error("Parse errors", parseErrs);
         throw new Error("Parse failed");
       }
 
@@ -452,7 +453,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedString());
+      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedString());
     });
   });
 
@@ -473,7 +474,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedNumber());
+      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedNumber());
     });
   });
 
@@ -484,7 +485,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedBoolean());
+      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedBoolean());
     });
   });
 
@@ -495,7 +496,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.prohibitedZeroDivision()
       );
     });
@@ -516,7 +517,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.mismatchedArity(2, 3)
       );
     });
@@ -529,7 +530,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedCallable());
+      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedCallable());
     });
   });
 
@@ -546,7 +547,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.undefinedProperty("y")
       );
     });

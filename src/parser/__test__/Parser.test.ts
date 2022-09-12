@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { SyntaxErrors } from "../../errors/SyntaxError";
 import { Parser } from "../Parser";
 import { Scanner } from "../Scanner";
@@ -397,7 +398,7 @@ describe("Parser expressions", () => {
     const expression = parser.expression();
     expect(expression).toMatchObject({
       error: {
-        message: {},
+        sourceMessage: {},
         sourceRange: {},
       },
     });
@@ -409,7 +410,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 == 4 ? 3");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedColon());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.expectedColon());
   });
 
   it("errors with expected left paren", () => {
@@ -419,7 +420,9 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftParen());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SyntaxErrors.expectedLeftParen()
+      );
     });
   });
 
@@ -437,7 +440,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SyntaxErrors.expectedRightParen()
       );
     });
@@ -463,7 +466,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SyntaxErrors.expectedLeftOperand()
       );
     });
@@ -476,7 +479,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SyntaxErrors.expectedExpression()
       );
     });
@@ -488,7 +491,9 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedParameter());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SyntaxErrors.expectedParameter()
+      );
     });
   });
 
@@ -498,7 +503,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SyntaxErrors.expectedIdentifier()
       );
     });
@@ -508,7 +513,9 @@ describe("Parser errors", () => {
     const { parser } = setupTests("var x");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.expectedAssignment());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.expectedAssignment()
+    );
   });
 
   it("errors with expected left brace", () => {
@@ -518,7 +525,9 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(SyntaxErrors.expectedLeftBrace());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SyntaxErrors.expectedLeftBrace()
+      );
     });
   });
 
@@ -529,7 +538,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SyntaxErrors.expectedRightBrace()
       );
     });
@@ -539,7 +548,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 = 4");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(
+    expect(errors[0].sourceMessage).toMatchObject(
       SyntaxErrors.invalidAssignmentTarget()
     );
   });
@@ -548,6 +557,77 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4;");
 
     const { errors } = parser.parse();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.invalidSemiColon());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.invalidSemiColon()
+    );
   });
 });
+
+describe("Type statements", () => {
+  it("parses type statements", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow("type Foo[T] = T");
+    expect(statements[0]).toMatchObject({
+      keyword: { lexeme: "type", type: "TYPE" },
+      name: { lexeme: "Foo", type: "IDENTIFIER" },
+      parameters: [
+        {
+          name: { lexeme: "T", type: "IDENTIFIER" },
+        },
+      ],
+      type: {
+        name: { lexeme: "T", type: "IDENTIFIER" },
+      },
+    });
+  });
+
+  // it("parses composite statements", () => {});
+
+  // it("parses callable statements", () => {});
+
+  // it("parses object statements", () => {
+  //   const { tester } = setupTester();
+
+  //   const { statements } = tester.parseWorkflow("type Foo = { key: string }");
+  //   expect(statements[0]).toEqual("");
+  // });
+
+  it("parses generic statements", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow("type Foo = String[Bar]");
+    expect(statements[0]).toMatchObject({
+      type: {
+        generics: [
+          {
+            name: { lexeme: "Bar", type: "IDENTIFIER" },
+          },
+        ],
+        name: { lexeme: "String", type: "IDENTIFIER" },
+      },
+    });
+  });
+
+  it("parses identifier statements", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow("type Foo = String");
+    expect(statements[0]).toMatchObject({
+      parameters: [],
+      type: {
+        name: { lexeme: "String", type: "IDENTIFIER" },
+      },
+    });
+  });
+});
+
+// describe("Type expressions", () => {
+//   it("parses call expressions", () => {});
+
+//   it("parses generic expressions", () => {});
+// });
+
+// describe("Type errors", () => {
+//   it("parses call expressions", () => {});
+// });

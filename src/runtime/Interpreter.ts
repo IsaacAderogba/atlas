@@ -63,9 +63,8 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       this.scheduler.run();
       return { errors: [] };
     } catch (error) {
-      if (error instanceof RuntimeError) {
-        return { errors: [error] };
-      }
+      if (error instanceof RuntimeError) return { errors: [error] };
+
       throw error;
     }
   }
@@ -168,6 +167,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     } else if (stmt.elseBranch) {
       this.execute(stmt.elseBranch);
     }
+  }
+
+  visitTypeStmt(): void {
+    // no op
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
@@ -295,7 +298,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     try {
       return callee.call(this, args);
     } catch (err) {
-      if (err instanceof NativeError) throw this.error(expr, err.message);
+      if (err instanceof NativeError) throw this.error(expr, err.sourceMessage);
       throw err;
     }
   }

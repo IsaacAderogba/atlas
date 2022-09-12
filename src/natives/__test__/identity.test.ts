@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { Boolean } from "../../primitives/AtlasValue";
 
 describe("identity", () => {
@@ -23,8 +24,8 @@ describe("identity", () => {
     tests.forEach(({ source, variable, value }) => {
       const { tester } = setupTester();
 
-      tester.interpret(source);
-      expect(tester.evaluate(variable)).toMatchObject({ value });
+      tester.interpretWorkflow(source);
+      expect(tester.evaluateWorkflow(variable)).toMatchObject({ value });
     });
   });
 
@@ -40,8 +41,8 @@ describe("identity", () => {
     tests.forEach(({ source, variable, instance }) => {
       const { tester } = setupTester();
 
-      tester.interpret(source);
-      expect(tester.evaluate(variable)).toMatchObject(instance);
+      tester.interpretWorkflow(source);
+      expect(tester.evaluateWorkflow(variable)).toMatchObject(instance);
     });
   });
 });

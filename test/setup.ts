@@ -7,11 +7,12 @@ import { Interpreter } from "../src/runtime/Interpreter";
 import { Analyzer } from "../src/analyzer/Analyzer";
 import { TypeChecker } from "../src/typechecker/TypeChecker";
 import { Token } from "../src/ast/Token";
+import { Expr } from "../src/ast/Expr";
 
 class Tester {
   public interpreter = new Interpreter();
 
-  interpret(source: string): void {
+  interpretWorkflow(source: string): void {
     const { tokens } = this.scan(source);
     const { statements } = this.parse(tokens);
     this.analyze(statements);
@@ -19,33 +20,42 @@ class Tester {
     this.interpreter.interpret(statements);
   }
 
-  evaluate(source: string): AtlasValue {
-    const { tokens } = this.scan(source);
-    const expression = this.parseExpression(tokens);
+  evaluateWorkflow(source: string): AtlasValue {
+    const expression = this.testExpress(source);
     return this.interpreter.evaluate(expression);
   }
 
-  scan(source: string): ReturnType<Scanner["scan"]> {
+  parseWorkflow(source: string): ReturnType<Parser["parse"]>  {
+    const { tokens } = this.scan(source);
+    return this.parse(tokens);
+  }
+
+  testExpress(source: string): Expr {
+    const { tokens } = this.scan(source);
+    return this.parseExpression(tokens);
+  }
+
+  private scan(source: string): ReturnType<Scanner["scan"]> {
     const scanner = new Scanner(source);
     return scanner.scan();
   }
 
-  parse(tokens: Token[]): ReturnType<Parser["parse"]> {
+  private parse(tokens: Token[]): ReturnType<Parser["parse"]> {
     const parser = new Parser(tokens);
     return parser.parse();
   }
 
-  parseExpression(tokens: Token[]): ReturnType<Parser["expression"]> {
+  private parseExpression(tokens: Token[]): ReturnType<Parser["expression"]> {
     const parser = new Parser(tokens);
     return parser.expression();
   }
 
-  analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
+  private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
     const analyzer = new Analyzer(this.interpreter, statements);
     return analyzer.analyze();
   }
 
-  typecheck(statements: Stmt[]): ReturnType<TypeChecker["typeCheck"]> {
+  private typecheck(statements: Stmt[]): ReturnType<TypeChecker["typeCheck"]> {
     const typechecker = new TypeChecker(this.interpreter, statements);
     return typechecker.typeCheck();
   }
@@ -59,5 +69,5 @@ const setupTester = (): { tester: Tester } => {
 global.setupTester = setupTester;
 
 declare global {
-  var setupTester: () => { tester: Tester } ;
+  var setupTester: () => { tester: Tester };
 }

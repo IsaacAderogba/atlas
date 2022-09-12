@@ -70,7 +70,7 @@ export class Atlas {
 
     if (errors.length) {
       errors.forEach(e =>
-        this.reporter.rangeError(source, e.sourceRange, e.message)
+        this.reporter.rangeError(source, e.sourceRange, e.sourceMessage)
       );
       return AtlasStatus.RUNTIME_ERROR;
     }
@@ -109,9 +109,9 @@ export class Atlas {
 
   private static reportErrors(source: string, errors: SourceError[]): boolean {
     let hasError = false;
-    errors.forEach(({ message, sourceRange }) => {
-      if (message.type === "error") hasError = true;
-      this.reporter.rangeError(source, sourceRange, message);
+    errors.forEach(({ sourceMessage, sourceRange }) => {
+      if (sourceMessage.type === "error") hasError = true;
+      this.reporter.rangeError(source, sourceRange, sourceMessage);
     });
 
     return hasError;

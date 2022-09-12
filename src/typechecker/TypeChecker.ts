@@ -3,6 +3,7 @@ import {
   AssignExpr,
   BinaryExpr,
   CallExpr,
+  Expr,
   ExprVisitor,
   FunctionExpr,
   GetExpr,
@@ -28,6 +29,7 @@ import {
   ReturnStmt,
   Stmt,
   StmtVisitor,
+  TypeStmt,
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
@@ -43,7 +45,19 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
   ) {}
 
   typeCheck(): { errors: TypeCheckError[] } {
+    // for (const statement of this.statements) {
+    //   this.typeCheckStmt(statement);
+    // }
+
     return { errors: this.errors };
+  }
+
+  private typeCheckStmt(statement: Stmt): void {
+    statement.accept(this);
+  }
+
+  private typeCheckExpr(expression: Expr): void {
+    expression.accept(this);
   }
 
   visitBlockStmt(_stmt: BlockStmt): void {
@@ -79,6 +93,10 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(_stmt: VarStmt): void {
+    throw new Error("Method not implemented.");
+  }
+
+  visitTypeStmt(_stmt: TypeStmt): void {
     throw new Error("Method not implemented.");
   }
 

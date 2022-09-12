@@ -16,6 +16,8 @@ export type TokenType =
   | "COLON"
   | "QUESTION"
   | "HASH"
+  | "PIPE"
+  | "AMPERSAND"
 
   // One or two character tokens.
   | "BANG"

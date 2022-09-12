@@ -1,11 +1,13 @@
 import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
-export class SyntaxError implements SourceError {
+export class SyntaxError extends Error implements SourceError {
   constructor(
-    readonly message: SourceMessage,
+    readonly sourceMessage: SourceMessage,
     readonly sourceRange: SourceRange
-  ) {}
+  ) {
+    super(sourceMessage.title)
+  }
 }
 
 export class SyntaxErrors {
@@ -114,6 +116,27 @@ export class SyntaxErrors {
     return this.formatError({
       title: "expected right bracket",
       body: 'a right bracket "]" was expected',
+    });
+  }
+
+  static expectedRightCaret(): SourceMessage {
+    return this.formatError({
+      title: "expected right caret",
+      body: 'a right caret ">" was expected',
+    });
+  }
+
+  static expectedDash(): SourceMessage {
+    return this.formatError({
+      title: "expected dash",
+      body: 'a dash "-" was expected',
+    });
+  }
+
+  static expectedBacktick(): SourceMessage {
+    return this.formatError({
+      title: "expected backtick",
+      body: 'a backtick "`" was expected',
     });
   }
 

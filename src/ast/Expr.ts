@@ -2,7 +2,7 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
-import { Entry, Parameter } from "./Node";
+import { Entry, Parameter, TypeEntry } from "./Node";
 import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
@@ -63,6 +63,7 @@ export class CallExpr implements BaseExpr {
   constructor(
     readonly open: Token,
     readonly callee: Expr,
+    readonly generics: TypeExpr[],
     readonly args: Expr[],
     readonly close: Token
   ) {}
@@ -303,4 +304,109 @@ export interface ExprVisitor<T> {
   visitThisExpr(expr: ThisExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
   visitVariableExpr(expr: VariableExpr): T;
+}
+
+interface BaseTypeExpr extends SourceRangeable {
+  accept<T>(visitor: TypeExprVisitor<T>): T;
+}
+
+export class CallableTypeExpr {
+  constructor(
+    readonly open: Token,
+    readonly generics: TypeExpr[],
+    readonly close: Token,
+    readonly returnType: TypeExpr
+  ) {}
+
+  accept<R>(visitor: TypeExprVisitor<R>): R {
+    return visitor.visitCallableTypeExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.open.sourceRange();
+    const { end } = this.returnType.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
+export class CompositeTypeExpr implements BaseTypeExpr {
+  constructor(
+    readonly left: TypeExpr,
+    readonly operator: Token,
+    readonly right: TypeExpr
+  ) {}
+
+  accept<T>(visitor: TypeExprVisitor<T>): T {
+    return visitor.visitCompositeTypeExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.left.sourceRange().start;
+    const end = this.right.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class ObjectTypeExpr implements BaseTypeExpr {
+  constructor(
+    readonly open: Token,
+    readonly entries: TypeEntry[],
+    readonly close: Token,
+  ) {}
+
+  accept<R>(visitor: TypeExprVisitor<R>): R {
+    return visitor.visitObjectTypeExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.open.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
+export class GenericTypeExpr implements BaseTypeExpr {
+  constructor(
+    readonly name: Token,
+    readonly generics: TypeExpr[],
+  ) {}
+
+  accept<R>(visitor: TypeExprVisitor<R>): R {
+    return visitor.visitGenericTypeExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.name.sourceRange().start;
+    const end = this.name.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export class SubTypeExpr implements BaseTypeExpr {
+  constructor(readonly name: Token) {}
+
+  accept<R>(visitor: TypeExprVisitor<R>): R {
+    return visitor.visitSubTypeExpr(this);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.name.sourceRange().start;
+    const end = this.name.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
+export type TypeExpr =
+  | CallableTypeExpr
+  | CompositeTypeExpr
+  | GenericTypeExpr
+  | ObjectTypeExpr
+  | SubTypeExpr;
+
+export interface TypeExprVisitor<T> {
+  visitCallableTypeExpr(typeExpr: CallableTypeExpr): T;
+  visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): T;
+  visitGenericTypeExpr(typeExpr: GenericTypeExpr): T;
+  visitObjectTypeExpr(typeExpr: ObjectTypeExpr): T;
+  visitSubTypeExpr(typeExpr: SubTypeExpr): T;
 }

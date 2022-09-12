@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
 import { atlasBoolean } from "../../primitives/AtlasBoolean";
@@ -20,6 +21,8 @@ describe("Scanner tokens", () => {
       { char: "}", type: "RIGHT_BRACE" },
       { char: "[", type: "LEFT_BRACKET" },
       { char: "]", type: "RIGHT_BRACKET" },
+      { char: "|", type: "PIPE" },
+      { char: "&", type: "AMPERSAND" },
       { char: ",", type: "COMMA" },
       { char: ".", type: "DOT" },
       { char: "-", type: "MINUS" },
@@ -181,14 +184,14 @@ describe("Scanner errors", () => {
     const { scanner } = setupTests("£");
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
   });
 
   it("errors with unterminated string", () => {
     const { scanner } = setupTests('"Hello');
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
   });
 
   it("cascades multiple errors", () => {
@@ -196,7 +199,7 @@ describe("Scanner errors", () => {
 
     const { errors } = scanner.scan();
 
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
-    expect(errors[1].message).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    expect(errors[1].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
   });
 });

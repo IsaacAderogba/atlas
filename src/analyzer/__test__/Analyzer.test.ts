@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { SemanticErrors } from "../../errors/SemanticError";
 import { Interpreter } from "../../runtime/Interpreter";
 import { Parser } from "../../parser/Parser";
@@ -22,7 +23,7 @@ describe("Analyzer warnings", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.unusedVariable());
+      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.unusedVariable());
     });
   });
 });
@@ -35,7 +36,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedBreak());
+      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.prohibitedBreak());
     });
   });
 
@@ -46,7 +47,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedContinue()
       );
     });
@@ -59,7 +60,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedFunctionReturn()
       );
     });
@@ -80,7 +81,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedInitReturn()
       );
     });
@@ -100,7 +101,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedAsyncInit()
       );
     });
@@ -119,7 +120,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedAsyncReturn()
       );
     });
@@ -132,7 +133,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(SemanticErrors.prohibitedThis());
+      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.prohibitedThis());
     });
   });
 
@@ -143,7 +144,7 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         SemanticErrors.prohibitedRedeclaration()
       );
     });

@@ -5,6 +5,7 @@ declaration    -> classDecl
                 | errorStmt ;
 classDecl      -> "class" IDENTIFIER "{" property* "}" ;
 varDecl        -> "var" property ;
+typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? ; "=" typeExpr ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -30,7 +31,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( "(" expressions? ")" | "." accessor )* ;
+call           -> primary ( ( "[" generics "]" )? "(" expressions? ")" | "." accessor )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | record | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 list           -> "[" expressions* "]" ;
@@ -47,6 +48,17 @@ errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while
 entries        -> entry ( "," entry )* ;
 entry          -> expression ":" expression ;
 expressions    -> expression ( "," expression )* ;
-property       -> IDENTIFIER "=" expression ;
-parameters     -> parameter ( "," parameter )* ;
-parameter      -> IDENTIFIER ;
+property       -> IDENTIFIER ( ":" typeExpr )? "=" expression ;
+parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
+
+
+typeExpr          -> compositeTypeExpr ;
+compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
+subTypeExpr       -> callableType | objectTypeType | genericType | IDENTIFIER ;
+callableTypeExpr  -> "(" generics ")" "->" typeExpr ;
+objectTypeExpr    -> "{" typeEntries* "}" ;
+genericType       -> IDENTIFIER ( "[" generics "]" )? ;
+
+generics          -> typeExpr ( "," typeExpr )* ;
+typeEntries       -> typeEntry ( "," typeEntry )* ;
+typeEntry         -> IDENTIFIER ":" typeExpr ;
