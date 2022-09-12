@@ -61,7 +61,6 @@ export class BinaryExpr implements BaseExpr {
 
 export class CallExpr implements BaseExpr {
   constructor(
-    readonly open: Token,
     readonly callee: Expr,
     readonly generics: TypeExpr[],
     readonly args: Expr[],
@@ -73,7 +72,7 @@ export class CallExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.open.sourceRange().start;
+    const start = this.callee.sourceRange().start;
     const end = this.close.sourceRange().end;
     return new SourceRange(start, end);
   }

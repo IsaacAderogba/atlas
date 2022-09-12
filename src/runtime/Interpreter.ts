@@ -38,7 +38,7 @@ import { AtlasCallable, isCallable } from "../primitives/AtlasCallable";
 import { globals } from "../globals";
 import { AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
-import { atlasString, AtlasString } from "../primitives/AtlasString";
+import { AtlasString } from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
 import { AtlasNull } from "../primitives/AtlasNull";
 import { AtlasClass } from "../primitives/AtlasClass";
@@ -346,7 +346,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitRecordExpr(expr: RecordExpr): AtlasValue {
     const record = new Map<AtlasString, AtlasValue>();
     for (const { key, value } of expr.entries) {
-      record.set(atlasString(key.lexeme), this.evaluate(value));
+      record.set(key.literal as AtlasString, this.evaluate(value));
     }
 
     return new AtlasRecord(record);

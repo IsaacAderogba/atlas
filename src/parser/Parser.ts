@@ -120,8 +120,14 @@ export class Parser {
 
   private interfaceDeclaration(): InterfaceStmt {
     const keyword = this.previous();
-
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+
+    let parameters: Parameter[] = [];
+    if (this.match("LEFT_BRACKET")) {
+      parameters = this.parameters();
+      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+    }
+
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const props: TypeProperty[] = [];
 
@@ -143,7 +149,7 @@ export class Parser {
       SyntaxErrors.expectedRightBrace()
     );
 
-    return new InterfaceStmt(keyword, name, open, props, close);
+    return new InterfaceStmt(keyword, name, parameters, open, props, close);
   }
 
   private varDeclaration(): VarStmt {
@@ -332,20 +338,13 @@ export class Parser {
 
     while (true) {
       if (this.check("LEFT_PAREN") || this.check("LEFT_BRACKET")) {
-        let open: Token | null = null;
-
         let generics: TypeExpr[] = [];
         if (this.match("LEFT_BRACKET")) {
-          open = this.previous();
           generics = this.generics("RIGHT_BRACKET");
           this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
         }
 
-        const token = this.consume(
-          "LEFT_PAREN",
-          SyntaxErrors.expectedLeftParen()
-        );
-        if (!open) open = token;
+        this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
 
         const args = this.expressions("RIGHT_PAREN");
         const close = this.consume(
@@ -353,7 +352,7 @@ export class Parser {
           SyntaxErrors.expectedRightParen()
         );
 
-        expr = new CallExpr(open, expr, generics, args, close);
+        expr = new CallExpr(expr, generics, args, close);
       } else if (this.match("DOT")) {
         const name = this.consume(
           "IDENTIFIER",

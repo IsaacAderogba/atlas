@@ -326,7 +326,6 @@ describe("Parser expressions", () => {
       callee: {
         name: { lexeme: "sayHi", type: "IDENTIFIER" },
       },
-      open: { lexeme: "(", type: "LEFT_PAREN" },
       close: { lexeme: ")", type: "RIGHT_PAREN" },
     });
   });
@@ -694,5 +693,23 @@ describe("Type annotations", () => {
     });
   });
 
-  // it("parses generic expressions", () => {});
+  it("parses call annotations", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow("foo[String]()");
+    expect(statements[0]).toMatchObject({
+      expression: {
+        args: [],
+        callee: {
+          name: { lexeme: "foo", type: "IDENTIFIER" },
+        },
+        close: { lexeme: ")", type: "RIGHT_PAREN" },
+        generics: [
+          {
+            name: { lexeme: "String", type: "IDENTIFIER" },
+          },
+        ],
+      },
+    });
+  });
 });

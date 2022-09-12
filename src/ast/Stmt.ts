@@ -123,6 +123,7 @@ export class InterfaceStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
     readonly name: Token,
+    readonly parameters: Parameter[],
     readonly open: Token,
     readonly entries: TypeProperty[],
     readonly close: Token,
