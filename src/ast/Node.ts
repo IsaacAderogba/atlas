@@ -28,7 +28,7 @@ export class Property implements BaseNode {
 }
 
 export class Entry implements BaseNode {
-  constructor(readonly key: Expr, readonly value: Expr) {}
+  constructor(readonly key: Token, readonly value: Expr) {}
 
   sourceRange(): SourceRange {
     const { start } = this.key.sourceRange();

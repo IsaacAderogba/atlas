@@ -46,7 +46,7 @@ error          -> ( "or" ) logic_or
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
 entries        -> entry ( "," entry )* ;
-entry          -> expression ":" expression ;
+entry          -> STRING ":" expression ;
 expressions    -> expression ( "," expression )* ;
 property       -> IDENTIFIER ( ":" typeExpr )? "=" expression ;
 parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;

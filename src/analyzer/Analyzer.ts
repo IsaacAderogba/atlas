@@ -262,7 +262,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitRecordExpr(expr: RecordExpr): void {
     for (const item of expr.entries) {
-      this.analyzeExpr(item.key);
       this.analyzeExpr(item.value);
     }
   }

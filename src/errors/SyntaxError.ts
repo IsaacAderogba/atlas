@@ -147,6 +147,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedString(): SourceMessage {
+    return this.formatError({
+      title: "expected string",
+      body: "a strin was expected",
+    });
+  }
+
   static expectedLeftOperand(): SourceMessage {
     return this.formatError({
       title: "expected left operand",

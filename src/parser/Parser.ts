@@ -539,7 +539,7 @@ export class Parser {
 
     if (!this.check("RIGHT_BRACE")) {
       do {
-        const key = this.expression();
+        const key = this.consume("STRING", SyntaxErrors.expectedString());
         this.consume("COLON", SyntaxErrors.expectedSemiColon());
         const value = this.expression();
 

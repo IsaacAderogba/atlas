@@ -11,3 +11,6 @@ export class AtlasString extends AtlasObject {
     return this.value;
   }
 }
+
+export const atlasString = (value: string): AtlasString =>
+  new AtlasString(value);
