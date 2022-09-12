@@ -20,7 +20,6 @@ import {
   CompositeTypeExpr,
   SubTypeExpr,
   CallableTypeExpr,
-  ObjectTypeExpr,
   GenericTypeExpr,
 } from "../ast/Expr";
 import {
@@ -31,6 +30,7 @@ import {
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
+  InterfaceStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -41,7 +41,7 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Property, Parameter, Entry, TypeEntry } from "../ast/Node";
+import { Property, Parameter, Entry, TypeProperty } from "../ast/Node";
 
 export class Parser {
   private tokens: Token[];
@@ -72,6 +72,7 @@ export class Parser {
     try {
       if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("TYPE")) return this.typeDeclaration();
+      if (this.match("INTERFACE")) return this.interfaceDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -115,6 +116,33 @@ export class Parser {
     const type = this.typeExpr();
 
     return new TypeStmt(keyword, name, parameters, type);
+  }
+
+  private interfaceDeclaration(): InterfaceStmt {
+    const keyword = this.previous();
+
+    const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+    const props: TypeProperty[] = [];
+
+    if (!this.check("RIGHT_BRACE")) {
+      do {
+        const key = this.consume(
+          "IDENTIFIER",
+          SyntaxErrors.expectedIdentifier()
+        );
+        this.consume("EQUAL", SyntaxErrors.expectedAssignment());
+        const value = this.typeExpr();
+
+        props.push(new TypeProperty(key, value));
+      } while (this.match("COMMA"));
+    }
+
+    const close = this.consume(
+      "RIGHT_BRACKET",
+      SyntaxErrors.expectedRightBracket()
+    );
+
+    return new InterfaceStmt(keyword, open, props, close);
   }
 
   private varDeclaration(): VarStmt {
@@ -469,7 +497,6 @@ export class Parser {
 
   private subTypeExpr(): TypeExpr {
     if (this.match("LEFT_PAREN")) return this.callableTypeExpr();
-    if (this.match("LEFT_BRACE")) return this.objectTypeExpr();
 
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
 
@@ -494,32 +521,6 @@ export class Parser {
     const returnType = this.typeExpr();
 
     return new CallableTypeExpr(open, generics, close, returnType);
-  }
-
-  private objectTypeExpr(): TypeExpr {
-    const open = this.previous();
-
-    const entries: TypeEntry[] = [];
-
-    if (!this.check("RIGHT_BRACE")) {
-      do {
-        const key = this.consume(
-          "IDENTIFIER",
-          SyntaxErrors.expectedIdentifier()
-        );
-        this.consume("COLON", SyntaxErrors.expectedSemiColon());
-        const value = this.typeExpr();
-
-        entries.push(new TypeEntry(key, value));
-      } while (this.match("COMMA"));
-    }
-
-    const close = this.consume(
-      "RIGHT_BRACKET",
-      SyntaxErrors.expectedRightBracket()
-    );
-
-    return new ObjectTypeExpr(open, entries, close);
   }
 
   private expressions(type: TokenType): Expr[] {

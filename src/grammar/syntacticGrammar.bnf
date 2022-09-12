@@ -5,7 +5,8 @@ declaration    -> classDecl
                 | errorStmt ;
 classDecl      -> "class" IDENTIFIER "{" property* "}" ;
 varDecl        -> "var" property ;
-typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? ; "=" typeExpr ;
+interfaceDecl  -> "interface" IDENTIFIER ( "[" parameters "]" )? "{" typeProperty* "}" ;
+typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? "=" typeExpr ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -54,11 +55,9 @@ parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
 
 typeExpr          -> compositeTypeExpr ;
 compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
-subTypeExpr       -> callableType | objectTypeType | genericType | IDENTIFIER ;
+subTypeExpr       -> callableType | genericType | IDENTIFIER ;
 callableTypeExpr  -> "(" generics ")" "->" typeExpr ;
-objectTypeExpr    -> "{" typeEntries* "}" ;
 genericType       -> IDENTIFIER ( "[" generics "]" )? ;
 
 generics          -> typeExpr ( "," typeExpr )* ;
-typeEntries       -> typeEntry ( "," typeEntry )* ;
-typeEntry         -> IDENTIFIER ":" typeExpr ;
+typeProperty      -> IDENTIFIER "=" typeExpr ;

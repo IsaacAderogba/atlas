@@ -37,7 +37,7 @@ export class Entry implements BaseNode {
   }
 }
 
-export class TypeEntry implements BaseNode {
+export class TypeProperty implements BaseNode {
   constructor(readonly key: Token, readonly value: TypeExpr) {}
 
   sourceRange(): SourceRange {

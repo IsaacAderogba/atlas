@@ -44,6 +44,7 @@ export type TokenType =
   | "FUNCTION"
   | "FOR"
   | "IF"
+  | "INTERFACE"
   | "NULL"
   | "OR"
   | "RETURN"

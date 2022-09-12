@@ -2,7 +2,7 @@ import { SyntaxError } from "../errors/SyntaxError";
 import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
-import { Entry, Parameter, TypeEntry } from "./Node";
+import { Entry, Parameter, TypeProperty } from "./Node";
 import type { BlockStmt } from "./Stmt";
 
 interface BaseExpr extends SourceRangeable {
@@ -347,29 +347,8 @@ export class CompositeTypeExpr implements BaseTypeExpr {
   }
 }
 
-export class ObjectTypeExpr implements BaseTypeExpr {
-  constructor(
-    readonly open: Token,
-    readonly entries: TypeEntry[],
-    readonly close: Token,
-  ) {}
-
-  accept<R>(visitor: TypeExprVisitor<R>): R {
-    return visitor.visitObjectTypeExpr(this);
-  }
-
-  sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
-    const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
-  }
-}
-
 export class GenericTypeExpr implements BaseTypeExpr {
-  constructor(
-    readonly name: Token,
-    readonly generics: TypeExpr[],
-  ) {}
+  constructor(readonly name: Token, readonly generics: TypeExpr[]) {}
 
   accept<R>(visitor: TypeExprVisitor<R>): R {
     return visitor.visitGenericTypeExpr(this);
@@ -400,13 +379,11 @@ export type TypeExpr =
   | CallableTypeExpr
   | CompositeTypeExpr
   | GenericTypeExpr
-  | ObjectTypeExpr
   | SubTypeExpr;
 
 export interface TypeExprVisitor<T> {
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): T;
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): T;
   visitGenericTypeExpr(typeExpr: GenericTypeExpr): T;
-  visitObjectTypeExpr(typeExpr: ObjectTypeExpr): T;
   visitSubTypeExpr(typeExpr: SubTypeExpr): T;
 }

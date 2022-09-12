@@ -26,6 +26,7 @@ import {
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
+  InterfaceStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -85,6 +86,10 @@ export class TypeChecker implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitIfStmt(_stmt: IfStmt): void {
+    throw new Error("Method not implemented.");
+  }
+
+  visitInterfaceStmt(_stmt: InterfaceStmt): void {
     throw new Error("Method not implemented.");
   }
 

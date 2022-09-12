@@ -169,6 +169,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
   }
 
+  visitInterfaceStmt(): void {
+    // no op
+  }
+
   visitTypeStmt(): void {
     // no op
   }

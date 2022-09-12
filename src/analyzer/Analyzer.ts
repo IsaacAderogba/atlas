@@ -24,6 +24,7 @@ import {
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
+  InterfaceStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -175,6 +176,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.analyzeExpr(stmt.condition);
     this.analyzeStmt(stmt.thenBranch);
     if (stmt.elseBranch) this.analyzeStmt(stmt.elseBranch);
+  }
+
+  visitInterfaceStmt(): void {
+    // no op
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
