@@ -122,6 +122,7 @@ export class IfStmt implements BaseStmt {
 export class InterfaceStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
+    readonly name: Token,
     readonly open: Token,
     readonly entries: TypeProperty[],
     readonly close: Token,

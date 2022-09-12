@@ -1,5 +1,3 @@
-var hi = {
-  "hi": "hi"
+interface Foo { 
+  bar = String 
 }
-
-hi.add(4, "bar")

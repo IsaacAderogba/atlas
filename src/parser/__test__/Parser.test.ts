@@ -564,6 +564,28 @@ describe("Parser errors", () => {
 });
 
 describe("Type statements", () => {
+  it("parses interface statements", () => {
+    const { tester } = setupTester();
+
+    const { statements } = tester.parseWorkflow(
+      "interface Foo { bar = String }"
+    );
+    expect(statements[0]).toMatchObject({
+      close: { lexeme: "}", type: "RIGHT_BRACE" },
+      entries: [
+        {
+          key: { lexeme: "bar", type: "IDENTIFIER" },
+          value: {
+            name: { lexeme: "String", type: "IDENTIFIER" },
+          },
+        },
+      ],
+      keyword: { lexeme: "interface", type: "INTERFACE" },
+      name: { lexeme: "Foo", type: "IDENTIFIER" },
+      open: { lexeme: "{", type: "LEFT_BRACE" },
+    });
+  });
+
   it("parses type statements", () => {
     const { tester } = setupTester();
 
@@ -585,13 +607,6 @@ describe("Type statements", () => {
   // it("parses composite statements", () => {});
 
   // it("parses callable statements", () => {});
-
-  // it("parses object statements", () => {
-  //   const { tester } = setupTester();
-
-  //   const { statements } = tester.parseWorkflow("type Foo = { key: string }");
-  //   expect(statements[0]).toEqual("");
-  // });
 
   it("parses generic statements", () => {
     const { tester } = setupTester();

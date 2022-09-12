@@ -121,6 +121,7 @@ export class Parser {
   private interfaceDeclaration(): InterfaceStmt {
     const keyword = this.previous();
 
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const props: TypeProperty[] = [];
 
@@ -138,11 +139,11 @@ export class Parser {
     }
 
     const close = this.consume(
-      "RIGHT_BRACKET",
-      SyntaxErrors.expectedRightBracket()
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
     );
 
-    return new InterfaceStmt(keyword, open, props, close);
+    return new InterfaceStmt(keyword, name, open, props, close);
   }
 
   private varDeclaration(): VarStmt {
