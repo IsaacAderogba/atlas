@@ -61,4 +61,12 @@ export class TypeCheckErrors {
       body: `type "${type}" has not been defined`,
     });
   }
+
+  static unusedType(): SourceMessage {
+    return this.formatError({
+      title: "unused type",
+      body: "type was defined but never used",
+      type: "warning",
+    });
+  }
 }

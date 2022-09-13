@@ -50,8 +50,8 @@ import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
-  readonly scheduler = new Scheduler();
   private environment = this.globals;
+  readonly scheduler = new Scheduler();
   private readonly locals: Map<Expr, number> = new Map();
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {

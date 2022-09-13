@@ -37,7 +37,7 @@ import { globals } from "../globals";
 import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
-import { ClassType, FunctionType, VariableState } from "./Enums";
+import { ClassType, FunctionType, VariableState } from "../utils/Enums";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionType; expr: FunctionExpr };

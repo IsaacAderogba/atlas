@@ -36,21 +36,37 @@ import {
 } from "../ast/Stmt";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
+import { typeGlobals } from "../globals";
 import Types, { AtlasType } from "../primitives/AtlasType";
+import { ClassType, FunctionType, VariableState } from "../utils/Enums";
+import { Scope } from "../utils/Scope";
+import { Stack } from "../utils/Stack";
+
+type TypeCheckerScope = Scope<{
+  type: AtlasType;
+  state: VariableState;
+  source?: SourceRangeable;
+}>;
 
 export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
+  private readonly scopes: Stack<TypeCheckerScope> = new Stack();
+  private currentFunction = FunctionType.NONE;
+  private currentClass = ClassType.NONE;
   private errors: TypeCheckError[] = [];
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
+    this.beginScope(
+      Scope.fromGlobals(typeGlobals, (_, type) => ({
+        type,
+        state: VariableState.SETTLED,
+      }))
+    );
     for (const statement of statements) {
       this.typeCheckStmt(statement);
     }
+    this.endScope();
 
-    try {
-      return { errors: this.errors };
-    } catch (errs) {
-      return { errors: this.errors };
-    }
+    return { errors: this.errors };
   }
 
   typeCheckStmt(statement: Stmt): void {
@@ -253,6 +269,28 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
       TypeCheckErrors.invalidSubtype(expected.type, actual.type)
     );
     return false;
+  }
+
+  private beginScope(scope: TypeCheckerScope = new Scope()): void {
+    this.scopes.push(scope);
+  }
+
+  private endScope(): void {
+    const scope = this.scopes.pop();
+
+    if (scope && this.currentClass === ClassType.NONE) {
+      for (const { state, source } of scope.values()) {
+        if (state === VariableState.DEFINED && source) {
+          this.error(source, TypeCheckErrors.unusedType());
+        }
+      }
+    }
+  }
+
+  private getScope(): TypeCheckerScope {
+    const scope = this.scopes.peek();
+    if (!scope) throw new Error("Expected scope");
+    return scope;
   }
 
   private error(

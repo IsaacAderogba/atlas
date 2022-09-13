@@ -1,26 +1,25 @@
 import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { RuntimeError } from "../errors/RuntimeError";
-import { AtlasType } from "../primitives/AtlasType";
 import { TypeCheckErrors } from "../errors/TypeCheckError";
 
-export class TypeEnvironment {
-  private values = new Map<string, AtlasType>();
-  readonly enclosing?: TypeEnvironment;
+export class TypeEnvironment<T> {
+  private values = new Map<string, T>();
+  readonly enclosing?: TypeEnvironment<T>;
 
-  constructor(enclosing?: TypeEnvironment) {
+  constructor(enclosing?: TypeEnvironment<T>) {
     this.enclosing = enclosing;
   }
 
-  static fromGlobals(obj: { [name: string]: AtlasType }): TypeEnvironment {
-    const environment = new TypeEnvironment();
+  static fromGlobals<T>(obj: { [name: string]: T }): TypeEnvironment<T> {
+    const environment = new TypeEnvironment<T>();
     for (const [name, value] of Object.entries(obj)) {
-      environment.define(name, value);
+      environment.set(name, value);
     }
     return environment;
   }
 
-  get(token: Token): AtlasType {
+  get(token: Token): T {
     const value = this.values.get(token.lexeme);
 
     if (value) return value;
@@ -29,7 +28,7 @@ export class TypeEnvironment {
     throw this.error(token, TypeCheckErrors.undefinedType(token.lexeme));
   }
 
-  define(name: string, value: AtlasType, token?: Token): void {
+  set(name: string, value: T, token?: Token): void {
     if (this.values.has(name) && token) {
       throw this.error(token, TypeCheckErrors.prohibitedTypeRedeclaration());
     }
