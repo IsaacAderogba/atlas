@@ -60,6 +60,41 @@ describe("Typechecker expressions", () => {
       expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
     });
   });
+
+  it("evaluates unary expressions", () => {
+    const types = [
+      { source: "'4' # '4'", subtype: Types.String },
+      { source: "4 + 4", subtype: Types.Number },
+      { source: "4 - 4", subtype: Types.Number },
+      { source: "4 / 4", subtype: Types.Number },
+      { source: "4 * 4", subtype: Types.Number },
+      { source: "4 > 4", subtype: Types.Boolean },
+      { source: "4 >= 4", subtype: Types.Boolean },
+      { source: "4 < 4", subtype: Types.Boolean },
+      { source: "4 <= 4", subtype: Types.Boolean },
+      { source: "4 == 4", subtype: Types.Boolean },
+      { source: "4 != 4", subtype: Types.Boolean },
+    ];
+
+    types.forEach(({ source, subtype }) => {
+      const { tester } = setupTester();
+
+      expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+    });
+  });
+
+  it("evaluates logical expressions", () => {
+    const types = [
+      { source: "true or false", subtype: Types.Boolean },
+      { source: "false and false", subtype: Types.Boolean },
+    ];
+
+    types.forEach(({ source, subtype }) => {
+      const { tester } = setupTester();
+
+      expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+    });
+  });
 });
 
 describe("Typechecker errors", () => {
@@ -110,6 +145,32 @@ describe("Typechecker errors", () => {
         error: TypeCheckErrors.invalidSubtype(
           Types.Number.type,
           Types.Boolean.type
+        ),
+      },
+    ];
+
+    types.forEach(({ source, error }) => {
+      const { tester } = setupTester();
+
+      const { errors } = tester.typeCheckWorkflow(source);
+      expect(errors[0].sourceMessage).toEqual(error);
+    });
+  });
+
+  it("errors with invalid subtypes for logical expressions", () => {
+    const types = [
+      {
+        source: "true or '4'",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Boolean.type,
+          Types.String.type
+        ),
+      },
+      {
+        source: "false and null",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Boolean.type,
+          Types.Null.type
         ),
       },
     ];

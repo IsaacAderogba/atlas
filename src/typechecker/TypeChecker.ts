@@ -186,8 +186,17 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitLogicalExpr(_expr: LogicalExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitLogicalExpr(expr: LogicalExpr): AtlasType {
+    switch (expr.operator.type) {
+      case "OR":
+      case "AND":
+        this.checkExprSubtype(expr.left, Types.Boolean);
+        this.checkExprSubtype(expr.right, Types.Boolean);
+        return Types.Boolean;
+      default:
+        this.error(expr.operator, TypeCheckErrors.unexpectedLogicalOperator());
+        return Types.Any;
+    }
   }
 
   visitRecordExpr(expr: RecordExpr): AtlasType {
