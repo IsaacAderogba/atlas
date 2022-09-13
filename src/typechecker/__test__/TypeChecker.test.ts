@@ -88,4 +88,37 @@ describe("Typechecker errors", () => {
       expect(errors[0].sourceMessage).toEqual(error);
     });
   });
+
+  it("errors with invalid subtypes for binary expressions", () => {
+    const types = [
+      {
+        source: "4 # '4'",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.String.type,
+          Types.Number.type
+        ),
+      },
+      {
+        source: "4 + null",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Number.type,
+          Types.Null.type
+        ),
+      },
+      {
+        source: "4 >= true",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Number.type,
+          Types.Boolean.type
+        ),
+      },
+    ];
+
+    types.forEach(({ source, error }) => {
+      const { tester } = setupTester();
+
+      const { errors } = tester.typeCheckWorkflow(source);
+      expect(errors[0].sourceMessage).toEqual(error);
+    });
+  });
 });

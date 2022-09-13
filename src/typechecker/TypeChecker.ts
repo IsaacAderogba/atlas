@@ -113,8 +113,35 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitBinaryExpr(_expr: BinaryExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitBinaryExpr(expr: BinaryExpr): AtlasType {
+    switch (expr.operator.type) {
+      case "HASH":
+        this.checkExprSubtype(expr.left, Types.String);
+        this.checkExprSubtype(expr.right, Types.String);
+        return Types.String;
+      case "PLUS":
+      case "MINUS":
+      case "SLASH":
+      case "STAR":
+        this.checkExprSubtype(expr.left, Types.Number);
+        this.checkExprSubtype(expr.right, Types.Number);
+        return Types.Number;
+      case "GREATER":
+      case "GREATER_EQUAL":
+      case "LESS":
+      case "LESS_EQUAL":
+        this.checkExprSubtype(expr.left, Types.Number);
+        this.checkExprSubtype(expr.right, Types.Number);
+        return Types.Boolean;
+      case "EQUAL_EQUAL":
+      case "BANG_EQUAL":
+        this.typeCheckExpr(expr.left);
+        this.typeCheckExpr(expr.right);
+        return Types.Boolean;
+      default:
+        this.error(expr.operator, TypeCheckErrors.unexpectedBinaryOperator());
+        return Types.Any;
+    }
   }
 
   visitCallExpr(_expr: CallExpr): AtlasType {
@@ -199,12 +226,9 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
-    const exprType = expr.accept(this);
-
-    if (expectedType) {
-      const isValid = this.validateSubtype(expr, exprType, expectedType);
-      if (!isValid) return Types.Any;
-    }
+    const exprType = this.typeCheckExpr(expr);
+    const isValid = this.validateSubtype(expr, exprType, expectedType);
+    if (!isValid) return Types.Any;
     return exprType;
   }
 

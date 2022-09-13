@@ -40,6 +40,10 @@ export class TypeCheckErrors {
     return this.formatError({ title: "unexpected unary operator", body: "" });
   }
 
+  static unexpectedBinaryOperator(): SourceMessage {
+    return this.formatError({ title: "unexpected unary operator", body: "" });
+  }
+
   static prohibitedTypeRedeclaration(): SourceMessage {
     return this.formatError({
       title: "prohibited type redeclaration",
