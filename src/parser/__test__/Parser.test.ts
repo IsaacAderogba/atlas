@@ -409,7 +409,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 == 4 ? 3");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.expectedColon());
+    expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedColon());
   });
 
   it("errors with expected left paren", () => {
@@ -419,7 +419,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedLeftParen()
       );
     });
@@ -439,7 +439,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedRightParen()
       );
     });
@@ -465,7 +465,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedLeftOperand()
       );
     });
@@ -478,7 +478,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedExpression()
       );
     });
@@ -490,7 +490,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedParameter()
       );
     });
@@ -502,7 +502,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedIdentifier()
       );
     });
@@ -512,7 +512,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("var x");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toMatchObject(
+    expect(errors[0].sourceMessage).toEqual(
       SyntaxErrors.expectedAssignment()
     );
   });
@@ -524,7 +524,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedLeftBrace()
       );
     });
@@ -537,7 +537,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toMatchObject(
+      expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedRightBrace()
       );
     });
@@ -547,7 +547,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4 = 4");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toMatchObject(
+    expect(errors[0].sourceMessage).toEqual(
       SyntaxErrors.invalidAssignmentTarget()
     );
   });
@@ -556,7 +556,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4;");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toMatchObject(
+    expect(errors[0].sourceMessage).toEqual(
       SyntaxErrors.invalidSemiColon()
     );
   });

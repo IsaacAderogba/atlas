@@ -36,7 +36,6 @@ import {
 } from "../ast/Stmt";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
-import { Interpreter } from "../runtime/Interpreter";
 import Types, { AtlasType } from "../primitives/AtlasType";
 
 export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
@@ -82,8 +81,8 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitExpressionStmt(_stmt: ExpressionStmt): void {
-    throw new Error("Method not implemented.");
+  visitExpressionStmt(stmt: ExpressionStmt): void {
+    this.typeCheckExpr(stmt.expression);
   }
 
   visitIfStmt(_stmt: IfStmt): void {

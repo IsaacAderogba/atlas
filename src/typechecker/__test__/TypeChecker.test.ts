@@ -1,4 +1,5 @@
 import Types from "../../primitives/AtlasType";
+import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { describe, expect, it } from "vitest";
 
 describe("Typechecker expressions", () => {
@@ -57,6 +58,34 @@ describe("Typechecker expressions", () => {
       const { tester } = setupTester();
 
       expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+    });
+  });
+});
+
+describe("Typechecker errors", () => {
+  it("errors with invalid subtypes for unary expressions", () => {
+    const types = [
+      {
+        source: "!4",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Boolean.type,
+          Types.Number.type
+        ),
+      },
+      {
+        source: "-true",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Number.type,
+          Types.Boolean.type
+        ),
+      },
+    ];
+
+    types.forEach(({ source, error }) => {
+      const { tester } = setupTester();
+
+      const { errors } = tester.typeCheckWorkflow(source);
+      expect(errors[0].sourceMessage).toEqual(error);
     });
   });
 });
