@@ -1,6 +1,7 @@
 import { AtlasObject } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { Interpreter } from "../runtime/Interpreter";
+import { AtlasType } from "./AtlasType";
 
 export interface AtlasCallable {
   arity(): number;
@@ -16,4 +17,8 @@ export const isCallable = (
     value.type === "NativeFn" ||
     value.type === "Class"
   );
+};
+
+export const isCallableType = (_value: AtlasType): boolean => {
+  return false;
 };
