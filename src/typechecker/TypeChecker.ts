@@ -37,9 +37,10 @@ import {
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { Interpreter } from "../runtime/Interpreter";
-import Types, { Type } from "./Types";
+import Types, { AtlasType } from "../primitives/AtlasType";
 
-export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
+
+export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   private errors: TypeCheckError[] = [];
 
   constructor(
@@ -63,7 +64,7 @@ export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
     statement.accept(this);
   }
 
-  private typeCheckExpr(expression: Expr): Type {
+  private typeCheckExpr(expression: Expr): AtlasType {
     return expression.accept(this);
   }
 
@@ -115,35 +116,35 @@ export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitAssignExpr(_expr: AssignExpr): Type {
+  visitAssignExpr(_expr: AssignExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitBinaryExpr(_expr: BinaryExpr): Type {
+  visitBinaryExpr(_expr: BinaryExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitCallExpr(_expr: CallExpr): Type {
+  visitCallExpr(_expr: CallExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitFunctionExpr(_expr: FunctionExpr): Type {
+  visitFunctionExpr(_expr: FunctionExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitGetExpr(expr: GetExpr): Type {
-    return this.typeCheckExpr(expr.object);
-  }
-
-  visitTernaryExpr(_expr: TernaryExpr): Type {
+  visitGetExpr(_expr: GetExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitGroupingExpr(_expr: GroupingExpr): Type {
+  visitTernaryExpr(_expr: TernaryExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitLiteralExpr(expr: LiteralExpr): Type {
+  visitGroupingExpr(_expr: GroupingExpr): AtlasType {
+    throw new Error("Method not implemented.");
+  }
+
+  visitLiteralExpr(expr: LiteralExpr): AtlasType {
     switch (expr.value.type) {
       case "Null":
         return Types.Null;
@@ -161,15 +162,15 @@ export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
     }
   }
 
-  visitListExpr(_expr: ListExpr): Type {
+  visitListExpr(_expr: ListExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitLogicalExpr(_expr: LogicalExpr): Type {
+  visitLogicalExpr(_expr: LogicalExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitRecordExpr(expr: RecordExpr): Type {
+  visitRecordExpr(expr: RecordExpr): AtlasType {
     const properties = expr.entries.map(entry => ({
       name: entry.key.lexeme,
       type: this.typeCheckExpr(entry.value),
@@ -178,19 +179,19 @@ export class TypeChecker implements ExprVisitor<Type>, StmtVisitor<void> {
     return Types.Record(properties);
   }
 
-  visitSetExpr(_expr: SetExpr): Type {
+  visitSetExpr(_expr: SetExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitThisExpr(_expr: ThisExpr): Type {
+  visitThisExpr(_expr: ThisExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitUnaryExpr(_expr: UnaryExpr): Type {
+  visitUnaryExpr(_expr: UnaryExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 
-  visitVariableExpr(_expr: VariableExpr): Type {
+  visitVariableExpr(_expr: VariableExpr): AtlasType {
     throw new Error("Method not implemented.");
   }
 

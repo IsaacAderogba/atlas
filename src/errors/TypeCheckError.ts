@@ -25,4 +25,18 @@ export class TypeCheckErrors {
       body: `cannot process expression with type "${type}"`,
     });
   }
+
+  static prohibitedTypeRedeclaration(): SourceMessage {
+    return this.formatError({
+      title: "prohibited type redeclaration",
+      body: "existing type cannot be redeclared",
+    });
+  }
+
+  static undefinedType(type: string): SourceMessage {
+    return this.formatError({
+      title: "undefined type",
+      body: `type "${type}" has not been defined`,
+    });
+  }
 }

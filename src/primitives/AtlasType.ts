@@ -5,7 +5,7 @@ export class BooleanType {
 }
 
 export const booleanType = new BooleanType();
-export const isBooleanType = (type: Type): type is BooleanType =>
+export const isBooleanType = (type: AtlasType): type is BooleanType =>
   type.type === "Boolean";
 
 export class NumberType {
@@ -15,7 +15,7 @@ export class NumberType {
 }
 
 export const numberType = new NumberType();
-export const isNumberType = (type: Type): type is NumberType =>
+export const isNumberType = (type: AtlasType): type is NumberType =>
   type.type === "Number";
 
 export class StringType {
@@ -25,7 +25,7 @@ export class StringType {
 }
 
 export const stringType = new StringType();
-export const isStringType = (type: Type): type is StringType =>
+export const isStringType = (type: AtlasType): type is StringType =>
   type.type === "String";
 
 export class NullType {
@@ -35,13 +35,13 @@ export class NullType {
 }
 
 export const nullType = new NullType();
-export const isNullType = (type: Type): type is NullType =>
+export const isNullType = (type: AtlasType): type is NullType =>
   type.type === "Null";
 
 export class RecordType {
   readonly type = "Record";
 
-  constructor(readonly properties: { name: string; type: Type }[]) {}
+  constructor(readonly properties: { name: string; type: AtlasType }[]) {}
 
   toString = (): string => {
     const props = this.properties.map(
@@ -53,7 +53,7 @@ export class RecordType {
 }
 
 export const recordType = (
-  properties: { name: string; type: Type }[] | { [name: string]: Type }
+  properties: { name: string; type: AtlasType }[] | { [name: string]: AtlasType }
 ): RecordType => {
   if (Array.isArray(properties)) return new RecordType(properties);
 
@@ -62,10 +62,10 @@ export const recordType = (
   );
 };
 
-export const isRecordType = (type: Type): type is RecordType =>
+export const isRecordType = (type: AtlasType): type is RecordType =>
   type.type === "Record";
 
-export type Type =
+export type AtlasType =
   | BooleanType
   | NumberType
   | StringType
