@@ -6,7 +6,7 @@ export class TypeCheckError extends Error implements SourceError {
     readonly sourceMessage: SourceMessage,
     readonly sourceRange: SourceRange
   ) {
-    super(sourceMessage.title)
+    super(sourceMessage.title);
   }
 }
 
@@ -19,11 +19,25 @@ export class TypeCheckErrors {
     return { title: `type ${type}: ` + title, body, type };
   }
 
+  static invalidSubtype(
+    expectedType: string,
+    foundType: string
+  ): SourceMessage {
+    return this.formatError({
+      title: "invalid subtype",
+      body: `expected type "${expectedType}", but got type "${foundType}"`,
+    });
+  }
+
   static unexpectedLiteralType(type: string): SourceMessage {
     return this.formatError({
       title: "unexpected literal type",
       body: `cannot process expression with type "${type}"`,
     });
+  }
+
+  static unexpectedUnaryOperator(): SourceMessage {
+    return this.formatError({ title: "unexpected unary operator", body: "" });
   }
 
   static prohibitedTypeRedeclaration(): SourceMessage {

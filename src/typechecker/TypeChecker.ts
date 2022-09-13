@@ -181,12 +181,46 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitUnaryExpr(_expr: UnaryExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitUnaryExpr(expr: UnaryExpr): AtlasType {
+    switch (expr.operator.type) {
+      case "BANG":
+        this.checkExprSubtype(expr.right, Types.Boolean);
+        return Types.Boolean;
+      case "MINUS":
+        this.checkExprSubtype(expr.right, Types.Number);
+        return Types.Number;
+      default:
+        this.error(expr.operator, TypeCheckErrors.unexpectedUnaryOperator());
+        return Types.Any;
+    }
   }
 
   visitVariableExpr(_expr: VariableExpr): AtlasType {
     throw new Error("Method not implemented.");
+  }
+
+  private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
+    const exprType = expr.accept(this);
+
+    if (expectedType) {
+      const isValid = this.validateSubtype(expr, exprType, expectedType);
+      if (!isValid) return Types.Any;
+    }
+    return exprType;
+  }
+
+  private validateSubtype(
+    expr: Expr,
+    actual: AtlasType,
+    expected: AtlasType
+  ): boolean {
+    if (actual.isSubtype(expected)) return true;
+
+    this.error(
+      expr,
+      TypeCheckErrors.invalidSubtype(expected.type, actual.type)
+    );
+    return false;
   }
 
   private error(
