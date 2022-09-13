@@ -43,9 +43,9 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   private errors: TypeCheckError[] = [];
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    // for (const statement of this.statements) {
-    //   this.typeCheckStmt(statement);
-    // }
+    for (const statement of statements) {
+      this.typeCheckStmt(statement);
+    }
 
     try {
       return { errors: this.errors };

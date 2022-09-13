@@ -65,9 +65,6 @@ export class Parser {
       }
     }
 
-    // @ts-ignore
-    console.log(statements[0].expression);
-
     return { statements, errors: this.errors };
   }
 

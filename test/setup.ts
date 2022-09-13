@@ -18,7 +18,7 @@ class Tester {
     const { tokens } = this.scan(source);
     const { statements } = this.parse(tokens);
     this.analyze(statements);
-    this.typechecker.typeCheck(statements);
+    // this.typechecker.typeCheck(statements);
     this.interpreter.interpret(statements);
   }
 
