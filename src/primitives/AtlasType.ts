@@ -7,6 +7,8 @@ export type ObjectTypeProps = { [key: string]: AtlasType };
 export abstract class ObjectType {
   abstract type: string;
   abstract toString(): string;
+  abstract isSubtype(candidate: AtlasType): boolean;
+
   methods = new Map<string, AtlasType>();
   fields = new Map<string, AtlasType>();
 
@@ -28,8 +30,26 @@ export abstract class ObjectType {
   }
 }
 
+export class AnyType extends ObjectType {
+  readonly type = "Any";
+
+  isSubtype(_candidate: AtlasType): boolean {
+    return true;
+  }
+
+  toString = (): string => "any";
+}
+
+export const anyType = new AnyType();
+export const isAnyType = (type: AtlasType): type is AnyType =>
+  type.type === "Any";
+
 export class BooleanType extends ObjectType {
   readonly type = "Boolean";
+
+  isSubtype(candidate: AtlasType): boolean {
+    return isBooleanType(candidate);
+  }
 
   toString = (): string => "boolean";
 }
@@ -41,6 +61,10 @@ export const isBooleanType = (type: AtlasType): type is BooleanType =>
 export class NumberType extends ObjectType {
   readonly type = "Number";
 
+  isSubtype(candidate: AtlasType): boolean {
+    return isNumberType(candidate);
+  }
+
   toString = (): string => "number";
 }
 
@@ -51,6 +75,10 @@ export const isNumberType = (type: AtlasType): type is NumberType =>
 export class StringType extends ObjectType {
   readonly type = "String";
 
+  isSubtype(candidate: AtlasType): boolean {
+    return isStringType(candidate);
+  }
+
   toString = (): string => "string";
 }
 
@@ -60,6 +88,10 @@ export const isStringType = (type: AtlasType): type is StringType =>
 
 export class NullType extends ObjectType {
   readonly type = "Null";
+
+  isSubtype(candidate: AtlasType): boolean {
+    return isNullType(candidate);
+  }
 
   toString = (): string => "null";
 }
@@ -73,6 +105,10 @@ export class RecordType extends ObjectType {
 
   constructor(readonly properties: { name: string; type: AtlasType }[]) {
     super();
+  }
+
+  isSubtype(_candidate: AtlasType): boolean {
+    return false;
   }
 
   toString = (): string => {
@@ -100,6 +136,7 @@ export const isRecordType = (type: AtlasType): type is RecordType =>
   type.type === "Record";
 
 export type AtlasType =
+  | AnyType
   | BooleanType
   | NumberType
   | StringType
@@ -107,12 +144,14 @@ export type AtlasType =
   | RecordType;
 
 export default {
+  Any: anyType,
   Null: nullType,
   Boolean: booleanType,
   Number: numberType,
   Record: recordType,
   String: stringType,
 
+  isAnyType: isAnyType,
   isNull: isNullType,
   isBoolean: isBooleanType,
   isNumber: isNumberType,
