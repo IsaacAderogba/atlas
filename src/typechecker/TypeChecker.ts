@@ -39,16 +39,10 @@ import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { Interpreter } from "../runtime/Interpreter";
 import Types, { AtlasType } from "../primitives/AtlasType";
 
-
 export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   private errors: TypeCheckError[] = [];
 
-  constructor(
-    private readonly interpreter: Interpreter,
-    private readonly statements: Stmt[]
-  ) {}
-
-  typeCheck(): { errors: TypeCheckError[] } {
+  typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     // for (const statement of this.statements) {
     //   this.typeCheckStmt(statement);
     // }
@@ -60,11 +54,11 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     }
   }
 
-  private typeCheckStmt(statement: Stmt): void {
+  typeCheckStmt(statement: Stmt): void {
     statement.accept(this);
   }
 
-  private typeCheckExpr(expression: Expr): AtlasType {
+  typeCheckExpr(expression: Expr): AtlasType {
     return expression.accept(this);
   }
 

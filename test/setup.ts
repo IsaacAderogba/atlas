@@ -8,15 +8,17 @@ import { Analyzer } from "../src/analyzer/Analyzer";
 import { TypeChecker } from "../src/typechecker/TypeChecker";
 import { Token } from "../src/ast/Token";
 import { Expr } from "../src/ast/Expr";
+import { AtlasType } from "../src/primitives/AtlasType";
 
 class Tester {
   public interpreter = new Interpreter();
+  public typechecker = new TypeChecker();
 
   interpretWorkflow(source: string): void {
     const { tokens } = this.scan(source);
     const { statements } = this.parse(tokens);
     this.analyze(statements);
-    this.typecheck(statements);
+    this.typechecker.typeCheck(statements);
     this.interpreter.interpret(statements);
   }
 
@@ -25,7 +27,12 @@ class Tester {
     return this.interpreter.evaluate(expression);
   }
 
-  parseWorkflow(source: string): ReturnType<Parser["parse"]>  {
+  evalTypeWorkflow(source: string): AtlasType {
+    const expression = this.testExpress(source);
+    return this.typechecker.typeCheckExpr(expression);
+  }
+
+  parseWorkflow(source: string): ReturnType<Parser["parse"]> {
     const { tokens } = this.scan(source);
     return this.parse(tokens);
   }
@@ -53,11 +60,6 @@ class Tester {
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
     const analyzer = new Analyzer(this.interpreter, statements);
     return analyzer.analyze();
-  }
-
-  private typecheck(statements: Stmt[]): ReturnType<TypeChecker["typeCheck"]> {
-    const typechecker = new TypeChecker(this.interpreter, statements);
-    return typechecker.typeCheck();
   }
 }
 

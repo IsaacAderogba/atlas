@@ -13,6 +13,7 @@ import { TypeChecker } from "./typechecker/TypeChecker";
 export class Atlas {
   private static reporter = new ConsoleReporter();
   public static interpreter = new Interpreter();
+  public static typechecker = new TypeChecker();
 
   static main(args: string[]): void {
     if (args.length > 1) {
@@ -92,12 +93,10 @@ export class Atlas {
     }
 
     const analyzer = new Analyzer(this.interpreter, statements);
-    const typechecker = new TypeChecker(this.interpreter, statements);
-
     const { errors: analyzeErrs } = analyzer.analyze();
     const hadAnalysisErr = this.reportErrors(source, analyzeErrs);
 
-    const { errors: typeErrrs } = typechecker.typeCheck();
+    const { errors: typeErrrs } = this.typechecker.typeCheck(statements);
     const hadTypeErr = this.reportErrors(source, typeErrrs);
 
     if (hadAnalysisErr || hadTypeErr) {
