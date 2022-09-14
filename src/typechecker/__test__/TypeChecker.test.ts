@@ -6,7 +6,7 @@ describe("Typechecker inference", () => {
   it("infers any", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Any)).toEqual(false);
+    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Any)).toEqual(true);
   });
 
   it("infers numbers", () => {
@@ -198,5 +198,14 @@ describe("Typechecker errors", () => {
       const { errors } = tester.typeCheckWorkflow(source);
       expect(errors[0].sourceMessage).toEqual(error);
     });
+  });
+
+  it("errors with invalid subtype for variable declarations", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("var x: Number = true");
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.invalidSubtype(Types.Number.type, Types.Boolean.type)
+    );
   });
 });

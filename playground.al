@@ -1,1 +1,1 @@
--true
+var x: Number = true

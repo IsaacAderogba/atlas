@@ -50,7 +50,7 @@ export class BooleanType extends ObjectType {
   readonly type = "Boolean";
 
   isSubtype(candidate: AtlasType): boolean {
-    return isBooleanType(candidate);
+    return isAnyType(candidate) || isBooleanType(candidate);
   }
 
   static init = (): BooleanType => new BooleanType();
@@ -66,7 +66,7 @@ export class NumberType extends ObjectType {
   readonly type = "Number";
 
   isSubtype(candidate: AtlasType): boolean {
-    return isNumberType(candidate);
+    return isAnyType(candidate) || isNumberType(candidate);
   }
 
   static init = (): NumberType => new NumberType();
@@ -82,7 +82,7 @@ export class StringType extends ObjectType {
   readonly type = "String";
 
   isSubtype(candidate: AtlasType): boolean {
-    return isStringType(candidate);
+    return isAnyType(candidate) || isStringType(candidate);
   }
 
   static init = (): StringType => new StringType();
@@ -98,7 +98,7 @@ export class NullType extends ObjectType {
   readonly type = "Null";
 
   isSubtype(candidate: AtlasType): boolean {
-    return isNullType(candidate);
+    return isAnyType(candidate) || isNullType(candidate);
   }
 
   static init = (): NullType => new NullType();
@@ -117,8 +117,8 @@ export class RecordType extends ObjectType {
     super();
   }
 
-  isSubtype(_candidate: AtlasType): boolean {
-    return false;
+  isSubtype(candidate: AtlasType): boolean {
+    return isAnyType(candidate);
   }
 
   toString = (): string => {

@@ -21,11 +21,11 @@ export class TypeCheckErrors {
 
   static invalidSubtype(
     expectedType: string,
-    foundType: string
+    actualType: string
   ): SourceMessage {
     return this.formatError({
       title: "invalid subtype",
-      body: `expected type "${expectedType}", but got type "${foundType}"`,
+      body: `expected type "${expectedType}", but got type "${actualType}"`,
     });
   }
 

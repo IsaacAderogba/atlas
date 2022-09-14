@@ -2,10 +2,13 @@
 import {
   AssignExpr,
   BinaryExpr,
+  CallableTypeExpr,
   CallExpr,
+  CompositeTypeExpr,
   Expr,
   ExprVisitor,
   FunctionExpr,
+  GenericTypeExpr,
   GetExpr,
   GroupingExpr,
   ListExpr,
@@ -13,8 +16,11 @@ import {
   LogicalExpr,
   RecordExpr,
   SetExpr,
+  SubTypeExpr,
   TernaryExpr,
   ThisExpr,
+  TypeExpr,
+  TypeExprVisitor,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
@@ -61,7 +67,12 @@ class TypeCheckerScope {
   }
 }
 
-export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
+export class TypeChecker
+  implements
+    ExprVisitor<AtlasType>,
+    TypeExprVisitor<AtlasType>,
+    StmtVisitor<void>
+{
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
   private readonly globalScope = new TypeCheckerScope({
     typeScope: Scope.fromGlobals(Types, (_, type) => ({
@@ -78,24 +89,28 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     this.withScope(() => {
       for (const statement of statements) {
-        this.typeCheckStmt(statement);
+        this.checkStmt(statement);
       }
     }, this.globalScope);
 
     return { errors: this.errors };
   }
 
-  typeCheckStmt(statement: Stmt): void {
+  checkStmt(statement: Stmt): void {
     statement.accept(this);
   }
 
-  typeCheckExpr(expression: Expr): AtlasType {
+  checkExpr(expression: Expr): AtlasType {
     return expression.accept(this);
+  }
+
+  checkTypeExpr(typeExpr: TypeExpr): AtlasType {
+    return typeExpr.accept(this);
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
     this.withScope(() => {
-      for (const statement of stmt.statements) this.typeCheckStmt(statement);
+      for (const statement of stmt.statements) this.checkStmt(statement);
     });
   }
 
@@ -116,7 +131,7 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
-    this.typeCheckExpr(stmt.expression);
+    this.checkExpr(stmt.expression);
   }
 
   visitIfStmt(_stmt: IfStmt): void {
@@ -136,7 +151,7 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   }
 
   private typeCheckProperty(
-    { initializer, name }: Property,
+    { initializer, name, type }: Property,
     _funcType: FunctionType
   ): void {
     if (initializer instanceof FunctionExpr) {
@@ -144,8 +159,14 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
       return;
     }
 
-    const actual = this.typeCheckExpr(initializer);
-    this.defineValue(name, actual);
+    let narrowed: AtlasType;
+    if (type) {
+      narrowed = this.checkExprSubtype(initializer, this.checkTypeExpr(type));
+    } else {
+      narrowed = this.checkExpr(initializer);
+    }
+
+    this.defineValue(name, narrowed);
   }
 
   visitTypeStmt(_stmt: TypeStmt): void {
@@ -182,8 +203,8 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
         return Types.Boolean;
       case "EQUAL_EQUAL":
       case "BANG_EQUAL":
-        this.typeCheckExpr(expr.left);
-        this.typeCheckExpr(expr.right);
+        this.checkExpr(expr.left);
+        this.checkExpr(expr.right);
         return Types.Boolean;
       default:
         this.error(expr.operator, TypeCheckErrors.unexpectedBinaryOperator());
@@ -249,7 +270,7 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   visitRecordExpr(expr: RecordExpr): AtlasType {
     const properties = expr.entries.map(entry => ({
       name: entry.key.lexeme,
-      type: this.typeCheckExpr(entry.value),
+      type: this.checkExpr(entry.value),
     }));
 
     return Types.Record.init(properties);
@@ -281,6 +302,22 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     return this.lookupValue(expr.name);
   }
 
+  visitCallableTypeExpr(_typeExpr: CallableTypeExpr): AtlasType {
+    throw new Error("Method not implemented.");
+  }
+
+  visitCompositeTypeExpr(_typeExpr: CompositeTypeExpr): AtlasType {
+    throw new Error("Method not implemented.");
+  }
+
+  visitGenericTypeExpr(_typeExpr: GenericTypeExpr): AtlasType {
+    throw new Error("Method not implemented.");
+  }
+
+  visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
+    return this.lookupType(typeExpr.name);
+  }
+
   lookupValue(name: Token): AtlasType {
     for (const scope of this.scopes) {
       const type = scope.valueScope.get(name.lexeme);
@@ -308,24 +345,22 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
-    const exprType = this.typeCheckExpr(expr);
-    const isValid = this.validateSubtype(expr, exprType, expectedType);
-    if (!isValid) return Types.Any;
-    return exprType;
+    const actualType = this.checkExpr(expr);
+    return this.checkSubtype(expr, actualType, expectedType);
   }
 
-  private validateSubtype(
-    expr: Expr,
+  private checkSubtype(
+    expr: Expr | TypeExpr,
     actual: AtlasType,
     expected: AtlasType
-  ): boolean {
-    if (actual.isSubtype(expected)) return true;
+  ): AtlasType {
+    if (actual.isSubtype(expected)) return expected;
 
     this.error(
       expr,
       TypeCheckErrors.invalidSubtype(expected.type, actual.type)
     );
-    return false;
+    return Types.Any;
   }
 
   private defineValue(name: Token, type: AtlasType): void {
