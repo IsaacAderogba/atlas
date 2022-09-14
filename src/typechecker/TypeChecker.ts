@@ -224,7 +224,8 @@ export class TypeChecker
   }
 
   visitGetExpr(_expr: GetExpr): AtlasType {
-    throw new Error("Method not implemented.");
+    throw new Error("err");
+    // return this.lookupMemberType(expr);
   }
 
   visitTernaryExpr(_expr: TernaryExpr): AtlasType {
@@ -273,12 +274,13 @@ export class TypeChecker
   }
 
   visitRecordExpr(expr: RecordExpr): AtlasType {
-    const properties = expr.entries.map(entry => ({
-      name: (entry.key.literal as AtlasString).value,
-      type: this.checkExpr(entry.value),
-    }));
+    const entries: { [key: string]: AtlasType } = {};
 
-    return Types.Record.init(properties);
+    expr.entries.forEach(({ key, value }) => {
+      entries[(key.literal as AtlasString).value] = this.checkExpr(value);
+    });
+
+    return Types.Record.init(entries);
   }
 
   visitSetExpr(_expr: SetExpr): AtlasType {
@@ -325,7 +327,7 @@ export class TypeChecker
     return this.lookupType(typeExpr.name);
   }
 
-  lookupValue(name: Token): AtlasType {
+  private lookupValue(name: Token): AtlasType {
     for (const scope of this.scopes) {
       const type = scope.valueScope.get(name.lexeme);
       if (type) return type;
@@ -337,7 +339,7 @@ export class TypeChecker
     return this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
   }
 
-  lookupType(name: Token): AtlasType {
+  private lookupType(name: Token): AtlasType {
     for (const scope of this.scopes) {
       const entry = scope.typeScope.get(name.lexeme);
       if (entry) return entry.type;
@@ -348,6 +350,8 @@ export class TypeChecker
 
     return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
   }
+
+
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
     const actualType = this.checkExpr(expr);

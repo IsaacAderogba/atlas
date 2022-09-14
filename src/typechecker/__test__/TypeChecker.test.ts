@@ -59,10 +59,10 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      Types.Record.init([
-        { name: "foo", type: Types.String },
-        { name: "1", type: Types.Number },
-      ]).isSubtype(tester.evalTypeWorkflow("x"))
+      Types.Record.init({
+        foo: Types.String,
+        "1": Types.Number,
+      }).isSubtype(tester.evalTypeWorkflow("x"))
     ).toEqual(true);
   });
 

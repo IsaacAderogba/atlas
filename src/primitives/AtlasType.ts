@@ -1,6 +1,6 @@
+import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { TypeCheckError } from "../errors/TypeCheckError";
-import { isCallableType } from "./AtlasCallable";
+import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 
 export type ObjectTypeProps = { [key: string]: AtlasType };
 
@@ -9,17 +9,23 @@ export abstract class ObjectType {
   abstract toString(): string;
   abstract isSubtype(candidate: AtlasType): boolean;
 
-  methods = new Map<string, AtlasType>();
   fields = new Map<string, AtlasType>();
 
   constructor(properties: ObjectTypeProps = {}) {
     for (const [name, value] of Object.entries(properties)) {
-      if (isCallableType(value)) {
-        this.methods.set(name, value);
-      } else {
-        this.fields.set(name, value);
-      }
+      this.fields.set(name, value);
     }
+  }
+
+  get(name: Token): AtlasType {
+    const value = this.fields.get(name.lexeme);
+    if (value) return value;
+
+    throw this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
+  }
+
+  set(name: Token, value: AtlasType): void {
+    this.fields.set(name.lexeme, value);
   }
 
   protected error(
@@ -113,47 +119,30 @@ export const isNullType = (type: AtlasType): type is NullType =>
 export class RecordType extends ObjectType {
   readonly type = "Record";
 
-  constructor(readonly properties: { name: string; type: AtlasType }[]) {
-    super();
+  constructor(entries: { [key: string]: AtlasType } = {}) {
+    super(entries);
   }
 
   isSubtype(candidate: AtlasType): boolean {
     if (isAnyType(candidate)) return true;
     if (!(candidate instanceof RecordType)) return false;
 
-    return candidate.properties.every(({ name, type }) => {
-      const compare = this.properties.find(prop => prop.name === name);
-      if (compare) return compare.type.isSubtype(type);
+    return Object.entries(candidate.fields).every(([name, type]) => {
+      const compare = this.fields.get(name);
+      if (compare) return compare.isSubtype(type);
       return false;
     });
   }
 
   toString = (): string => {
-    const props = this.properties.map(
-      ({ name, type }) => `${name}: ${type.toString()}`
-    );
-
-    return `{ ${props.join(", ")} }`;
+    return "record";
   };
 
-  static init = (
-    properties:
-      | { name: string; type: AtlasType }[]
-      | { [name: string]: AtlasType }
-  ): RecordType => {
-    if (Array.isArray(properties)) return new RecordType(properties);
-
-    return this.init(
-      Object.entries(properties).map(([name, type]) => ({ name, type }))
-    );
+  static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
+    return new RecordType(entries);
   };
 
   init: typeof RecordType.init = (...props) => RecordType.init(...props);
-}
-
-function propType(type: RecordType, name: string): AtlasType | undefined {
-  const prop = type.properties.find(({ name: propName }) => propName === name);
-  return prop?.type;
 }
 
 export const isRecordType = (type: AtlasType): type is RecordType =>
