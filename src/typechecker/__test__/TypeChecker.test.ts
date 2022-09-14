@@ -238,4 +238,22 @@ describe("Typechecker errors", () => {
       TypeCheckErrors.invalidSubtype(Types.Number.type, Types.Boolean.type)
     );
   });
+
+  it("errors with invalid subtype for if statements", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("if (4 + 4) {}");
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+    );
+  });
+
+  it("errors with invalid subtype for while statements", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("while (4 + 4) {}");
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+    );
+  });
 });

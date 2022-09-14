@@ -178,8 +178,10 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitWhileStmt(_stmt: WhileStmt): void {
-    throw new Error("Method not implemented.");
+  visitWhileStmt(stmt: WhileStmt): void {
+    const conditionActual = this.checkExpr(stmt.condition);
+    this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
+    this.checkStmt(stmt.body);
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasType {

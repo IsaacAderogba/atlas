@@ -1,6 +1,3 @@
-var x = { "foo": "str" }
-
-
-x = { 
-  "bar": "bar"
+if (4 + 4) {
+  
 }
