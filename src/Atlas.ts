@@ -94,12 +94,12 @@ export class Atlas {
 
     const analyzer = new Analyzer(this.interpreter, statements);
     const { errors: analyzeErrs } = analyzer.analyze();
-    const hadAnalysisErr = this.reportErrors(source, analyzeErrs);
+    if (this.reportErrors(source, analyzeErrs)) {
+      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
+    }
 
-    const { errors: typeErrrs } = this.typechecker.typeCheck(statements);
-    const hadTypeErr = this.reportErrors(source, typeErrrs);
-
-    if (hadAnalysisErr || hadTypeErr) {
+    const { errors: typeErrs } = this.typechecker.typeCheck(statements);
+    if (this.reportErrors(source, typeErrs)) {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 

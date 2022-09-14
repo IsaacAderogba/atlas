@@ -58,7 +58,14 @@ export class TypeCheckErrors {
   static undefinedType(type: string): SourceMessage {
     return this.formatError({
       title: "undefined type",
-      body: `type "${type}" has not been defined`,
+      body: `type "${type}" was used before it was defined`,
+    });
+  }
+
+  static undefinedValue(name: string): SourceMessage {
+    return this.formatError({
+      title: "undefined value",
+      body: `value "${name}" was used before it was defined`,
     });
   }
 

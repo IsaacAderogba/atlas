@@ -37,10 +37,12 @@ export class AnyType extends ObjectType {
     return true;
   }
 
+  static init = (): AnyType => new AnyType();
+  init: typeof AnyType.init = () => AnyType.init();
+
   toString = (): string => "any";
 }
 
-export const anyType = new AnyType();
 export const isAnyType = (type: AtlasType): type is AnyType =>
   type.type === "Any";
 
@@ -51,10 +53,12 @@ export class BooleanType extends ObjectType {
     return isBooleanType(candidate);
   }
 
+  static init = (): BooleanType => new BooleanType();
+  init: typeof BooleanType.init = () => BooleanType.init();
+
   toString = (): string => "boolean";
 }
 
-export const booleanType = new BooleanType();
 export const isBooleanType = (type: AtlasType): type is BooleanType =>
   type.type === "Boolean";
 
@@ -65,10 +69,12 @@ export class NumberType extends ObjectType {
     return isNumberType(candidate);
   }
 
+  static init = (): NumberType => new NumberType();
+  init: typeof NumberType.init = () => NumberType.init();
+
   toString = (): string => "number";
 }
 
-export const numberType = new NumberType();
 export const isNumberType = (type: AtlasType): type is NumberType =>
   type.type === "Number";
 
@@ -79,10 +85,12 @@ export class StringType extends ObjectType {
     return isStringType(candidate);
   }
 
+  static init = (): StringType => new StringType();
+  init: typeof StringType.init = () => StringType.init();
+
   toString = (): string => "string";
 }
 
-export const stringType = new StringType();
 export const isStringType = (type: AtlasType): type is StringType =>
   type.type === "String";
 
@@ -93,10 +101,12 @@ export class NullType extends ObjectType {
     return isNullType(candidate);
   }
 
+  static init = (): NullType => new NullType();
+  init: typeof NullType.init = () => NullType.init();
+
   toString = (): string => "null";
 }
 
-export const nullType = new NullType();
 export const isNullType = (type: AtlasType): type is NullType =>
   type.type === "Null";
 
@@ -118,19 +128,21 @@ export class RecordType extends ObjectType {
 
     return `{ ${props.join(", ")} }`;
   };
+
+  static init = (
+    properties:
+      | { name: string; type: AtlasType }[]
+      | { [name: string]: AtlasType }
+  ): RecordType => {
+    if (Array.isArray(properties)) return new RecordType(properties);
+
+    return this.init(
+      Object.entries(properties).map(([name, type]) => ({ name, type }))
+    );
+  };
+
+  init: typeof RecordType.init = (...props) => RecordType.init(...props);
 }
-
-export const recordType = (
-  properties:
-    | { name: string; type: AtlasType }[]
-    | { [name: string]: AtlasType }
-): RecordType => {
-  if (Array.isArray(properties)) return new RecordType(properties);
-
-  return recordType(
-    Object.entries(properties).map(([name, type]) => ({ name, type }))
-  );
-};
 
 export const isRecordType = (type: AtlasType): type is RecordType =>
   type.type === "Record";
@@ -144,17 +156,10 @@ export type AtlasType =
   | RecordType;
 
 export default {
-  Any: anyType,
-  Null: nullType,
-  Boolean: booleanType,
-  Number: numberType,
-  Record: recordType,
-  String: stringType,
-
-  isAnyType: isAnyType,
-  isNull: isNullType,
-  isBoolean: isBooleanType,
-  isNumber: isNumberType,
-  isString: isStringType,
-  isRecord: isRecordType,
+  Any: AnyType.init(),
+  Null: NullType.init(),
+  Boolean: BooleanType.init(),
+  Number: NumberType.init(),
+  String: StringType.init(),
+  Record: RecordType.init({}),
 };

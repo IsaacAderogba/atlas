@@ -18,6 +18,7 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
+import { Property } from "../ast/Node";
 import {
   BlockStmt,
   BreakStmt,
@@ -34,6 +35,7 @@ import {
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
+import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
@@ -42,29 +44,43 @@ import { ClassType, FunctionType, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 
-type TypeCheckerScope = Scope<{
-  type: AtlasType;
-  state: VariableState;
-  source?: SourceRangeable;
-}>;
+class TypeCheckerScope {
+  readonly typeScope: Scope<{
+    type: AtlasType;
+    state: VariableState;
+    source?: SourceRangeable;
+  }>;
+  readonly valueScope: Scope<AtlasType>;
+
+  constructor({
+    typeScope = new Scope(),
+    valueScope = new Scope(),
+  }: Partial<TypeCheckerScope> = {}) {
+    this.typeScope = typeScope;
+    this.valueScope = valueScope;
+  }
+}
 
 export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
+  private readonly globalScope = new TypeCheckerScope({
+    typeScope: Scope.fromGlobals(Types, (_, type) => ({
+      type,
+      state: VariableState.SETTLED,
+    })),
+    valueScope: Scope.fromGlobals(typeGlobals, (_, type) => type),
+  });
+
   private currentFunction = FunctionType.NONE;
   private currentClass = ClassType.NONE;
   private errors: TypeCheckError[] = [];
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    this.beginScope(
-      Scope.fromGlobals(typeGlobals, (_, type) => ({
-        type,
-        state: VariableState.SETTLED,
-      }))
-    );
-    for (const statement of statements) {
-      this.typeCheckStmt(statement);
-    }
-    this.endScope();
+    this.withScope(() => {
+      for (const statement of statements) {
+        this.typeCheckStmt(statement);
+      }
+    }, this.globalScope);
 
     return { errors: this.errors };
   }
@@ -77,8 +93,10 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     return expression.accept(this);
   }
 
-  visitBlockStmt(_stmt: BlockStmt): void {
-    throw new Error("Method not implemented.");
+  visitBlockStmt(stmt: BlockStmt): void {
+    this.withScope(() => {
+      for (const statement of stmt.statements) this.typeCheckStmt(statement);
+    });
   }
 
   visitBreakStmt(_stmt: BreakStmt): void {
@@ -113,8 +131,21 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     throw new Error("Method not implemented.");
   }
 
-  visitVarStmt(_stmt: VarStmt): void {
-    throw new Error("Method not implemented.");
+  visitVarStmt(stmt: VarStmt): void {
+    this.typeCheckProperty(stmt.property, FunctionType.FUNCTION);
+  }
+
+  private typeCheckProperty(
+    { initializer, name }: Property,
+    _funcType: FunctionType
+  ): void {
+    if (initializer instanceof FunctionExpr) {
+      // todo
+      return;
+    }
+
+    const actual = this.typeCheckExpr(initializer);
+    this.defineValue(name, actual);
   }
 
   visitTypeStmt(_stmt: TypeStmt): void {
@@ -221,7 +252,7 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
       type: this.typeCheckExpr(entry.value),
     }));
 
-    return Types.Record(properties);
+    return Types.Record.init(properties);
   }
 
   visitSetExpr(_expr: SetExpr): AtlasType {
@@ -246,8 +277,34 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     }
   }
 
-  visitVariableExpr(_expr: VariableExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitVariableExpr(expr: VariableExpr): AtlasType {
+    return this.lookupValue(expr.name);
+  }
+
+  lookupValue(name: Token): AtlasType {
+    for (const scope of this.scopes) {
+      const type = scope.valueScope.get(name.lexeme);
+      if (type) return type;
+    }
+
+    const type = this.globalScope.valueScope.get(name.lexeme);
+    if (type) return type;
+
+    this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
+    return Types.Any;
+  }
+
+  lookupType(name: Token): AtlasType {
+    for (const scope of this.scopes) {
+      const entry = scope.typeScope.get(name.lexeme);
+      if (entry) return entry.type;
+    }
+
+    const entry = this.globalScope.typeScope.get(name.lexeme);
+    if (entry) return entry.type;
+
+    this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
+    return Types.Any;
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
@@ -271,15 +328,21 @@ export class TypeChecker implements ExprVisitor<AtlasType>, StmtVisitor<void> {
     return false;
   }
 
-  private beginScope(scope: TypeCheckerScope = new Scope()): void {
-    this.scopes.push(scope);
+  private defineValue(name: Token, type: AtlasType): void {
+    this.getScope().valueScope.set(name.lexeme, type);
   }
 
-  private endScope(): void {
-    const scope = this.scopes.pop();
+  private withScope(
+    onScope: () => void,
+    newScope = new TypeCheckerScope()
+  ): void {
+    this.scopes.push(newScope);
 
+    onScope();
+
+    const scope = this.scopes.pop();
     if (scope && this.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.values()) {
+      for (const { state, source } of scope.typeScope.values()) {
         if (state === VariableState.DEFINED && source) {
           this.error(source, TypeCheckErrors.unusedType());
         }

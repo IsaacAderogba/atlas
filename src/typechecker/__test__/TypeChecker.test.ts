@@ -2,14 +2,14 @@ import Types from "../../primitives/AtlasType";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { describe, expect, it } from "vitest";
 
-describe("Typechecker expressions", () => {
-  it("evaluates any", () => {
+describe("Typechecker inference", () => {
+  it("infers any", () => {
     const { tester } = setupTester();
 
     expect(tester.evalTypeWorkflow("4").isSubtype(Types.Any)).toEqual(false);
   });
 
-  it("evaluates numbers", () => {
+  it("infers numbers", () => {
     const { tester } = setupTester();
 
     expect(tester.evalTypeWorkflow("4").isSubtype(Types.Number)).toEqual(true);
@@ -18,7 +18,7 @@ describe("Typechecker expressions", () => {
     );
   });
 
-  it("evaluates strings", () => {
+  it("infers strings", () => {
     const { tester } = setupTester();
 
     expect(tester.evalTypeWorkflow("'foo'").isSubtype(Types.String)).toEqual(
@@ -27,7 +27,7 @@ describe("Typechecker expressions", () => {
     expect(tester.evalTypeWorkflow("4").isSubtype(Types.String)).toEqual(false);
   });
 
-  it("evaluates booleans", () => {
+  it("infers booleans", () => {
     const { tester } = setupTester();
 
     expect(tester.evalTypeWorkflow("true").isSubtype(Types.Boolean)).toEqual(
@@ -41,14 +41,14 @@ describe("Typechecker expressions", () => {
     );
   });
 
-  it("evaluates null", () => {
+  it("infers null", () => {
     const { tester } = setupTester();
 
     expect(tester.evalTypeWorkflow("null").isSubtype(Types.Null)).toEqual(true);
     expect(tester.evalTypeWorkflow("4").isSubtype(Types.Null)).toEqual(false);
   });
 
-  it("evaluates unary expressions", () => {
+  it("infers unary expressions", () => {
     const types = [
       { source: "!!true", subtype: Types.Boolean },
       { source: "-5", subtype: Types.Number },
@@ -61,7 +61,7 @@ describe("Typechecker expressions", () => {
     });
   });
 
-  it("evaluates unary expressions", () => {
+  it("infers unary expressions", () => {
     const types = [
       { source: "'4' # '4'", subtype: Types.String },
       { source: "4 + 4", subtype: Types.Number },
@@ -83,7 +83,7 @@ describe("Typechecker expressions", () => {
     });
   });
 
-  it("evaluates logical expressions", () => {
+  it("infers logical expressions", () => {
     const types = [
       { source: "true or false", subtype: Types.Boolean },
       { source: "false and false", subtype: Types.Boolean },
@@ -93,6 +93,23 @@ describe("Typechecker expressions", () => {
       const { tester } = setupTester();
 
       expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+    });
+  });
+
+  it("infers variable declarations", () => {
+    const types = [
+      { source: "var x = true", type: Types.Boolean },
+      { source: "var x = false", type: Types.Boolean },
+      { source: "var x = 'foo'", type: Types.String },
+      { source: "var x = 4", type: Types.Number },
+      { source: "var x = null", type: Types.Null },
+    ];
+
+    types.forEach(({ source, type }) => {
+      const { tester } = setupTester();
+
+      tester.typeCheckWorkflow(source);
+      expect(type.isSubtype(tester.evalTypeWorkflow("x"))).toEqual(true);
     });
   });
 });

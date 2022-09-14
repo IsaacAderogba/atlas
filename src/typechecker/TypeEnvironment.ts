@@ -28,11 +28,7 @@ export class TypeEnvironment<T> {
     throw this.error(token, TypeCheckErrors.undefinedType(token.lexeme));
   }
 
-  set(name: string, value: T, token?: Token): void {
-    if (this.values.has(name) && token) {
-      throw this.error(token, TypeCheckErrors.prohibitedTypeRedeclaration());
-    }
-
+  set(name: string, value: T): void {
     this.values.set(name, value);
   }
 
