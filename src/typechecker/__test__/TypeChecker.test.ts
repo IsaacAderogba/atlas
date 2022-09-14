@@ -66,6 +66,18 @@ describe("Typechecker inference", () => {
     ).toEqual(true);
   });
 
+  it("infers get expression", () => {
+    const { tester } = setupTester();
+
+    tester.typeCheckWorkflow(`
+      var x = { "foo": { "foo": "bar" } }
+    `);
+
+    expect(Types.String.isSubtype(tester.evalTypeWorkflow("x.foo.foo"))).toEqual(
+      true
+    );
+  });
+
   it("infers unary expressions", () => {
     const types = [
       { source: "!!true", subtype: Types.Boolean },

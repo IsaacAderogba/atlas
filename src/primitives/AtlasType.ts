@@ -1,6 +1,6 @@
 import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
+import { TypeCheckError } from "../errors/TypeCheckError";
 
 export type ObjectTypeProps = { [key: string]: AtlasType };
 
@@ -17,11 +17,8 @@ export abstract class ObjectType {
     }
   }
 
-  get(name: Token): AtlasType {
-    const value = this.fields.get(name.lexeme);
-    if (value) return value;
-
-    throw this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
+  get(name: Token): AtlasType | undefined {
+    return this.fields.get(name.lexeme);
   }
 
   set(name: Token, value: AtlasType): void {

@@ -223,9 +223,8 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitGetExpr(_expr: GetExpr): AtlasType {
-    throw new Error("err");
-    // return this.lookupMemberType(expr);
+  visitGetExpr(expr: GetExpr): AtlasType {
+    return this.lookupField(expr);
   }
 
   visitTernaryExpr(_expr: TernaryExpr): AtlasType {
@@ -351,7 +350,13 @@ export class TypeChecker
     return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
   }
 
+  private lookupField({ name, object }: GetExpr | SetExpr): AtlasType {
+    const objectType = this.checkExpr(object);
+    const memberType = objectType.get(name);
 
+    if (memberType) return memberType;
+    return this.error(name, TypeCheckErrors.undefinedProperty(name.lexeme));
+  }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
     const actualType = this.checkExpr(expr);

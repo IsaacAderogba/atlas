@@ -69,6 +69,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static undefinedProperty(name: string): SourceMessage {
+    return this.formatError({
+      title: "undefined property",
+      body: `property ${name} is undefined`,
+    });
+  }
+
   static unusedType(): SourceMessage {
     return this.formatError({
       title: "unused type",
