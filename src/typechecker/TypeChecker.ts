@@ -207,8 +207,10 @@ export class TypeChecker
         this.checkExpr(expr.right);
         return Types.Boolean;
       default:
-        this.error(expr.operator, TypeCheckErrors.unexpectedBinaryOperator());
-        return Types.Any;
+        return this.error(
+          expr.operator,
+          TypeCheckErrors.unexpectedBinaryOperator()
+        );
     }
   }
 
@@ -262,8 +264,10 @@ export class TypeChecker
         this.checkExprSubtype(expr.right, Types.Boolean);
         return Types.Boolean;
       default:
-        this.error(expr.operator, TypeCheckErrors.unexpectedLogicalOperator());
-        return Types.Any;
+        return this.error(
+          expr.operator,
+          TypeCheckErrors.unexpectedLogicalOperator()
+        );
     }
   }
 
@@ -293,8 +297,10 @@ export class TypeChecker
         this.checkExprSubtype(expr.right, Types.Number);
         return Types.Number;
       default:
-        this.error(expr.operator, TypeCheckErrors.unexpectedUnaryOperator());
-        return Types.Any;
+        return this.error(
+          expr.operator,
+          TypeCheckErrors.unexpectedUnaryOperator()
+        );
     }
   }
 
@@ -327,8 +333,7 @@ export class TypeChecker
     const type = this.globalScope.valueScope.get(name.lexeme);
     if (type) return type;
 
-    this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
-    return Types.Any;
+    return this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
   }
 
   lookupType(name: Token): AtlasType {
@@ -340,8 +345,7 @@ export class TypeChecker
     const entry = this.globalScope.typeScope.get(name.lexeme);
     if (entry) return entry.type;
 
-    this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
-    return Types.Any;
+    return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
@@ -356,11 +360,10 @@ export class TypeChecker
   ): AtlasType {
     if (actual.isSubtype(expected)) return expected;
 
-    this.error(
+    return this.error(
       expr,
       TypeCheckErrors.invalidSubtype(expected.type, actual.type)
     );
-    return Types.Any;
   }
 
   private defineValue(name: Token, type: AtlasType): void {
@@ -391,12 +394,9 @@ export class TypeChecker
     return scope;
   }
 
-  private error(
-    source: SourceRangeable,
-    message: SourceMessage
-  ): TypeCheckError {
+  private error(source: SourceRangeable, message: SourceMessage): AtlasType {
     const error = new TypeCheckError(message, source.sourceRange());
     this.errors.push(error);
-    return error;
+    return Types.Any;
   }
 }
