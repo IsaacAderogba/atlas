@@ -1,1 +1,6 @@
-var x: Number = true
+var x = { "foo": "str" }
+
+
+x = { 
+  "bar": "bar"
+}

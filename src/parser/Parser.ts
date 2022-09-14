@@ -177,11 +177,10 @@ export class Parser {
     const keyword = this.previous();
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
-    const increment = this.match("SEMICOLON") ? this.expression() : undefined;
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     const body = this.statement();
-    return new WhileStmt(keyword, condition, increment, body);
+    return new WhileStmt(keyword, condition, body);
   }
 
   private ifStatement(): IfStmt {

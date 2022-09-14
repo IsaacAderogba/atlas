@@ -135,8 +135,12 @@ export class TypeChecker
     this.checkExpr(stmt.expression);
   }
 
-  visitIfStmt(_stmt: IfStmt): void {
-    throw new Error("Method not implemented.");
+  visitIfStmt(stmt: IfStmt): void {
+    const conditionActual = this.checkExpr(stmt.condition);
+    this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
+
+    this.checkStmt(stmt.thenBranch);
+    if (stmt.elseBranch) this.checkStmt(stmt.elseBranch);
   }
 
   visitInterfaceStmt(_stmt: InterfaceStmt): void {
@@ -178,8 +182,10 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitAssignExpr(_expr: AssignExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitAssignExpr(expr: AssignExpr): AtlasType {
+    const expected = this.lookupValue(expr.name);
+    const actual = this.checkExpr(expr.value);
+    return this.checkSubtype(expr.value, actual, expected);
   }
 
   visitBinaryExpr(expr: BinaryExpr): AtlasType {
@@ -364,15 +370,15 @@ export class TypeChecker
   }
 
   private checkSubtype(
-    expr: Expr | TypeExpr,
+    source: SourceRangeable,
     actual: AtlasType,
     expected: AtlasType
   ): AtlasType {
     if (actual.isSubtype(expected)) return expected;
 
     return this.error(
-      expr,
-      TypeCheckErrors.invalidSubtype(expected.type, actual.type)
+      source,
+      TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
     );
   }
 

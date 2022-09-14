@@ -223,7 +223,7 @@ describe("Interpreter statements", () => {
   it("interprets while statements", () => {
     const tests = [
       "var x = 2 while (x < 5) x = x + 1",
-      "var x = 2 while (x < 5; x = x + 1) {}",
+      "var x = 2 while (x < 5) { x = x + 1 }",
     ];
 
     tests.forEach(test => {
@@ -245,12 +245,6 @@ describe("Interpreter statements", () => {
     while (x < 5) {
       break
       x = x + 1
-    }
-    `,
-      `
-    var x = 0
-    while (x < 5; x = x + 1) {
-      break
     }
     `,
     ];
@@ -275,14 +269,6 @@ describe("Interpreter statements", () => {
     while (x < 5) {
       x = x + 1
       if (x == 2) continue  
-      y = y + 1
-    }
-    `,
-      `
-    var x = 0
-    var y = 0
-    while (x < 5; x = x + 1) {
-      if (x == 2) continue      
       y = y + 1
     }
     `,
@@ -453,7 +439,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedString());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedString()
+      );
     });
   });
 
@@ -474,7 +462,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedNumber());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedNumber()
+      );
     });
   });
 
@@ -485,7 +475,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedBoolean());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedBoolean()
+      );
     });
   });
 
@@ -530,7 +522,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].sourceMessage).toMatchObject(RuntimeErrors.expectedCallable());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedCallable()
+      );
     });
   });
 

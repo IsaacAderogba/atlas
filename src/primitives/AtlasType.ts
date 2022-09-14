@@ -43,7 +43,7 @@ export class AnyType extends ObjectType {
   static init = (): AnyType => new AnyType();
   init: typeof AnyType.init = () => AnyType.init();
 
-  toString = (): string => "any";
+  toString = (): string => this.type;
 }
 
 export const isAnyType = (type: AtlasType): type is AnyType =>
@@ -59,7 +59,7 @@ export class BooleanType extends ObjectType {
   static init = (): BooleanType => new BooleanType();
   init: typeof BooleanType.init = () => BooleanType.init();
 
-  toString = (): string => "boolean";
+  toString = (): string => this.type;
 }
 
 export const isBooleanType = (type: AtlasType): type is BooleanType =>
@@ -75,7 +75,7 @@ export class NumberType extends ObjectType {
   static init = (): NumberType => new NumberType();
   init: typeof NumberType.init = () => NumberType.init();
 
-  toString = (): string => "number";
+  toString = (): string => this.type;
 }
 
 export const isNumberType = (type: AtlasType): type is NumberType =>
@@ -91,7 +91,7 @@ export class StringType extends ObjectType {
   static init = (): StringType => new StringType();
   init: typeof StringType.init = () => StringType.init();
 
-  toString = (): string => "string";
+  toString = (): string => this.type;
 }
 
 export const isStringType = (type: AtlasType): type is StringType =>
@@ -107,7 +107,7 @@ export class NullType extends ObjectType {
   static init = (): NullType => new NullType();
   init: typeof NullType.init = () => NullType.init();
 
-  toString = (): string => "null";
+  toString = (): string => this.type;
 }
 
 export const isNullType = (type: AtlasType): type is NullType =>
@@ -124,7 +124,7 @@ export class RecordType extends ObjectType {
     if (isAnyType(candidate)) return true;
     if (!(candidate instanceof RecordType)) return false;
 
-    return Object.entries(candidate.fields).every(([name, type]) => {
+    return [...candidate.fields.entries()].every(([name, type]) => {
       const compare = this.fields.get(name);
       if (compare) return compare.isSubtype(type);
       return false;
@@ -132,7 +132,12 @@ export class RecordType extends ObjectType {
   }
 
   toString = (): string => {
-    return "record";
+    const props: string[] = [];
+    for (const [name, type] of this.fields.entries()) {
+      props.push(`"${name}": ${type.toString()}`);
+    }
+
+    return `{ ${props.join(", ")} }`;
   };
 
   static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {

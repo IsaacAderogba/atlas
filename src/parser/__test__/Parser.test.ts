@@ -93,19 +93,6 @@ describe("Parser statements", () => {
     });
   });
 
-  it("parses while increment statements", () => {
-    const { parser } = setupTests("while (4 + 4; 4) {}");
-
-    const { statements } = parser.parse();
-    expect(statements[0]).toMatchObject({
-      keyword: { lexeme: "while", type: "WHILE" },
-      body: { statements: [] },
-      increment: {
-        token: { lexeme: "4", type: "NUMBER" },
-      },
-    });
-  });
-
   it("parses if statements", () => {
     const { parser } = setupTests("if (4 + 4) 4");
 
@@ -419,21 +406,12 @@ describe("Parser errors", () => {
       const { parser } = setupTests(expr);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toEqual(
-        SyntaxErrors.expectedLeftParen()
-      );
+      expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedLeftParen());
     });
   });
 
   it("errors with expected right paren", () => {
-    const expressions = [
-      "( 4 + 4",
-      "if (4 == 4",
-      "while (4 == 4",
-      "while (4 == 4; 4",
-      "while (4 == 4; true ? true : false",
-      "f (param",
-    ];
+    const expressions = ["( 4 + 4", "if (4 == 4", "while (4 == 4", "f (param"];
 
     expressions.forEach(expr => {
       const { parser } = setupTests(expr);
@@ -471,28 +449,13 @@ describe("Parser errors", () => {
     });
   });
 
-  it("errors with expected expression", () => {
-    const expressions = ["4 +", "while (true;) {}"];
-
-    expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
-
-      const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toEqual(
-        SyntaxErrors.expectedExpression()
-      );
-    });
-  });
-
   it("errors with expected parameter", () => {
     const tests = ["f ("];
     tests.forEach(test => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toEqual(
-        SyntaxErrors.expectedParameter()
-      );
+      expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedParameter());
     });
   });
 
@@ -512,9 +475,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("var x");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toEqual(
-      SyntaxErrors.expectedAssignment()
-    );
+    expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedAssignment());
   });
 
   it("errors with expected left brace", () => {
@@ -524,9 +485,7 @@ describe("Parser errors", () => {
       const { parser } = setupTests(test);
 
       const { errors } = parser.parse();
-      expect(errors[0].sourceMessage).toEqual(
-        SyntaxErrors.expectedLeftBrace()
-      );
+      expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedLeftBrace());
     });
   });
 
@@ -556,9 +515,7 @@ describe("Parser errors", () => {
     const { parser } = setupTests("4;");
 
     const { errors } = parser.parse();
-    expect(errors[0].sourceMessage).toEqual(
-      SyntaxErrors.invalidSemiColon()
-    );
+    expect(errors[0].sourceMessage).toEqual(SyntaxErrors.invalidSemiColon());
   });
 });
 

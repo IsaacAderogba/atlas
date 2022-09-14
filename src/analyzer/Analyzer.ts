@@ -212,7 +212,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitWhileStmt(stmt: WhileStmt): void {
     this.analyzeExpr(stmt.condition);
-    if (stmt.increment) this.analyzeExpr(stmt.increment);
 
     this.loopDepth++;
     this.analyzeStmt(stmt.body);

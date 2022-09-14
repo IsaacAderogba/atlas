@@ -191,7 +191,6 @@ export class WhileStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
     readonly condition: Expr,
-    readonly increment: Expr | undefined,
     readonly body: Stmt
   ) {}
 

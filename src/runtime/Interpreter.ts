@@ -144,13 +144,9 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     ) {
       try {
         this.execute(stmt.body);
-        if (stmt.increment) this.evaluate(stmt.increment);
       } catch (err) {
         if (err instanceof Break) break;
-        if (err instanceof Continue) {
-          if (stmt.increment) this.evaluate(stmt.increment);
-          continue;
-        }
+        if (err instanceof Continue) continue;
         throw err;
       }
     }
