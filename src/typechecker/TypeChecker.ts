@@ -45,6 +45,7 @@ import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
+import { AtlasString } from "../primitives/AtlasString";
 import Types, { AtlasType } from "../primitives/AtlasType";
 import { ClassType, FunctionType, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
@@ -273,7 +274,7 @@ export class TypeChecker
 
   visitRecordExpr(expr: RecordExpr): AtlasType {
     const properties = expr.entries.map(entry => ({
-      name: entry.key.lexeme,
+      name: (entry.key.literal as AtlasString).value,
       type: this.checkExpr(entry.value),
     }));
 

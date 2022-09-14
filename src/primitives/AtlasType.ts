@@ -118,7 +118,14 @@ export class RecordType extends ObjectType {
   }
 
   isSubtype(candidate: AtlasType): boolean {
-    return isAnyType(candidate);
+    if (isAnyType(candidate)) return true;
+    if (!(candidate instanceof RecordType)) return false;
+
+    return candidate.properties.every(({ name, type }) => {
+      const compare = this.properties.find(prop => prop.name === name);
+      if (compare) return compare.type.isSubtype(type);
+      return false;
+    });
   }
 
   toString = (): string => {
@@ -142,6 +149,11 @@ export class RecordType extends ObjectType {
   };
 
   init: typeof RecordType.init = (...props) => RecordType.init(...props);
+}
+
+function propType(type: RecordType, name: string): AtlasType | undefined {
+  const prop = type.properties.find(({ name: propName }) => propName === name);
+  return prop?.type;
 }
 
 export const isRecordType = (type: AtlasType): type is RecordType =>

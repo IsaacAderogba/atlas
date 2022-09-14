@@ -48,6 +48,24 @@ describe("Typechecker inference", () => {
     expect(tester.evalTypeWorkflow("4").isSubtype(Types.Null)).toEqual(false);
   });
 
+  it("infers record", () => {
+    const { tester } = setupTester();
+
+    tester.typeCheckWorkflow(`
+      var x = {
+        "foo": "bar",
+        "1": 2
+      }
+    `);
+
+    expect(
+      Types.Record.init([
+        { name: "foo", type: Types.String },
+        { name: "1", type: Types.Number },
+      ]).isSubtype(tester.evalTypeWorkflow("x"))
+    ).toEqual(true);
+  });
+
   it("infers unary expressions", () => {
     const types = [
       { source: "!!true", subtype: Types.Boolean },

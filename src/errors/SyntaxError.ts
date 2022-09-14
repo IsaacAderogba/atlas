@@ -150,7 +150,7 @@ export class SyntaxErrors {
   static expectedString(): SourceMessage {
     return this.formatError({
       title: "expected string",
-      body: "a strin was expected",
+      body: "a string was expected",
     });
   }
 

@@ -9,8 +9,11 @@ import { TypeChecker } from "../src/typechecker/TypeChecker";
 import { Token } from "../src/ast/Token";
 import { Expr } from "../src/ast/Expr";
 import { AtlasType } from "../src/primitives/AtlasType";
+import { SourceError } from "../src/errors/SourceError";
+import { ConsoleReporter } from "../src/reporter/ConsoleReporter";
 
 class Tester {
+  private reporter = new ConsoleReporter();
   public interpreter = new Interpreter();
   public typechecker = new TypeChecker();
 
@@ -29,6 +32,8 @@ class Tester {
 
   typeCheckWorkflow(source: string): ReturnType<TypeChecker["typeCheck"]> {
     const { statements } = this.parseWorkflow(source);
+    const { errors } = this.analyze(statements);
+    if (this.reportErrors(source, errors)) throw new Error("Analysis error");
     return this.typechecker.typeCheck(statements);
   }
 
@@ -65,6 +70,19 @@ class Tester {
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
     const analyzer = new Analyzer(this.interpreter, statements);
     return analyzer.analyze();
+  }
+
+  private reportErrors(source: string, errors: SourceError[]): boolean {
+    let hasError = false;
+
+    errors.forEach(({ sourceMessage, sourceRange }) => {
+      if (sourceMessage.type === "error") {
+        hasError = true;
+        this.reporter.rangeError(source, sourceRange, sourceMessage);
+      }
+    });
+
+    return hasError;
   }
 }
 
