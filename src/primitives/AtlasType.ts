@@ -170,7 +170,9 @@ export interface CallableType {
 export const isCallableType = (
   value: AtlasType
 ): value is CallableType & AtlasType =>
-  value instanceof FunctionType || value instanceof NativeFnType;
+  value instanceof FunctionType ||
+  value instanceof NativeFnType ||
+  value instanceof ClassType;
 
 interface FunctionTypeProps {
   params: AtlasType[];
@@ -249,6 +251,81 @@ export class NativeFnType extends ObjectType implements CallableType {
   }
 }
 
+export class ClassType extends ObjectType implements CallableType {
+  readonly type = "Class";
+
+  constructor(public name: string, properties: ObjectTypeProps) {
+    super({ ...properties });
+  }
+
+  arity(): number {
+    return this.findMethod("init")?.arity() || 0;
+  }
+
+  get params(): AtlasType[] {
+    return this.findMethod("init")?.params || [];
+  }
+
+  get returns(): AtlasType {
+    return new InstanceType(this, new Map(this.fields));
+  }
+
+  findMethod(name: string): (CallableType & AtlasType) | undefined {
+    return this.methods.get(name);
+  }
+
+  isSubtype(_candidate: AtlasType): boolean {
+    throw new Error();
+  }
+
+  static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
+    new ClassType(name, properties);
+
+  init: typeof ClassType.init = (...props) => ClassType.init(...props);
+
+  toString(): string {
+    // todo
+    return this.name;
+  }
+}
+
+export class InstanceType extends ObjectType {
+  readonly type = "Instance";
+
+  constructor(
+    readonly classType: ClassType,
+    readonly fields: Map<string, AtlasType>
+  ) {
+    super();
+  }
+
+  get(name: Token): AtlasType | undefined {
+    const field = this.fields.get(name.lexeme);
+    if (field) return field;
+
+    const method = this.classType.findMethod(name.lexeme);
+    if (method) return method;
+
+    return super.get(name);
+  }
+
+  isSubtype(_candidate: AtlasType): boolean {
+    throw new Error();
+  }
+
+  static init = (
+    classType: ClassType,
+    fields: Map<string, AtlasType>
+  ): InstanceType => new InstanceType(classType, fields);
+
+  init: typeof InstanceType.init = (...props) => InstanceType.init(...props);
+
+  toString(): string {
+    // todo
+    return this.type;
+  }
+}
+
 export type AtlasType =
   | AnyType
   | BooleanType
@@ -257,7 +334,9 @@ export type AtlasType =
   | NullType
   | RecordType
   | FunctionType
-  | NativeFnType;
+  | NativeFnType
+  | ClassType
+  | InstanceType;
 
 export const Types = {
   Any: AnyType.init(),
@@ -268,4 +347,6 @@ export const Types = {
   Record: RecordType.init({}),
   Function: FunctionType.init({ params: [], returns: NullType.init() }),
   NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
+  Class: ClassType.init("Class"),
+  InstanceType: InstanceType.init(ClassType.init("Class"), new Map()),
 } as const;
