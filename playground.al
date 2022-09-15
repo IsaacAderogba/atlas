@@ -1,5 +1,6 @@
-type Int = Number
-type ID = Int
-type Index = ID
+type Func = (Number) -> Number
 
-var a: Index = ""
+
+var func: Func = f() {
+  
+}

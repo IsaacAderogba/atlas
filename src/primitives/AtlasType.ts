@@ -14,11 +14,15 @@ export abstract class ObjectType {
 
   constructor(properties: ObjectTypeProps = {}) {
     for (const [name, value] of Object.entries(properties)) {
-      if (isCallableType(value)) {
-        this.methods.set(name, value);
-      } else {
-        this.fields.set(name, value);
-      }
+      this.setProp(name, value);
+    }
+  }
+
+  setProp(name: string, value: AtlasType): void {
+    if (isCallableType(value)) {
+      this.methods.set(name, value);
+    } else {
+      this.fields.set(name, value);
     }
   }
 
@@ -274,8 +278,9 @@ export class ClassType extends ObjectType implements CallableType {
     return this.methods.get(name);
   }
 
-  isSubtype(_candidate: AtlasType): boolean {
-    throw new Error();
+  isSubtype(candidate: AtlasType): boolean {
+    if (this === candidate) return true;
+    return false;
   }
 
   static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
@@ -288,6 +293,9 @@ export class ClassType extends ObjectType implements CallableType {
     return this.name;
   }
 }
+
+export const isClassType = (type: unknown): type is ClassType =>
+  type instanceof ClassType;
 
 export class InstanceType extends ObjectType {
   readonly type = "Instance";

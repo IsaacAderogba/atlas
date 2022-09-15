@@ -137,8 +137,51 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitClassStmt(_stmt: ClassStmt): void {
-    throw new Error("Method not implemented.");
+  visitClassStmt(stmt: ClassStmt): void {
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.CLASS;
+    const classType = Types.Class.init(stmt.name.lexeme);
+    this.defineValue(stmt.name, classType);
+    this.beginScope();
+
+    // prepare for type synthesis and checking
+    const fields: Property[] = [];
+    const methods: Property[] = [];
+    for (const prop of stmt.properties) {
+      const props = isFunctionExpr(prop.initializer) ? methods : fields;
+      props.push(prop);
+    }
+
+    // type check and define fields in scope
+    for (const prop of fields) {
+      classType.setProp(prop.name.lexeme, this.checkProperty(prop));
+    }
+
+    // create this type now that fields have been bound
+    const thisInstance = classType.returns;
+    this.getScope().valueScope.set("this", thisInstance);
+    this.getScope().typeScope.set("this", {
+      type: thisInstance,
+      state: VariableState.SETTLED,
+    });
+
+    // type functions
+    for (const { type, name } of methods) {
+      const value = type
+        ? this.checkTypeExpr(type)
+        : this.error(name, TypeCheckErrors.requiredFunctionAnnotation());
+      classType.setProp(name.lexeme, value);
+    }
+
+    // check functions
+    for (const prop of methods) {
+      const isInit = prop.name.lexeme === "init";
+      const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
+      this.checkProperty(prop, method);
+    }
+
+    this.endScope();
+    this.currentClass = enclosingClass;
   }
 
   visitContinueStmt(_stmt: ContinueStmt): void {
@@ -176,14 +219,16 @@ export class TypeChecker
 
   private checkProperty(
     { initializer: expr, name, type }: Property,
-    enumType: FunctionEnum
-  ): void {
-    if (isFunctionExpr(expr) && isCallableTypeExpr(type)) {
-      const expected = this.visitCallableTypeExpr(type);
+    enumType: FunctionEnum = FunctionEnum.FUNCTION
+  ): AtlasType {
+    if (isFunctionExpr(expr) && type) {
+      const expected = this.checkTypeExpr(type);
       this.declareValue(name, expected);
-      this.defineValue(name, this.checkFunction({ expr, enumType, expected }));
+      const value = this.checkFunction({ expr, enumType, expected });
+      this.defineValue(name, value);
+      return value;
     } else if (isFunctionExpr(expr)) {
-      this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
+      return this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
     } else {
       let narrowed: AtlasType;
       if (type) {
@@ -193,6 +238,7 @@ export class TypeChecker
       }
 
       this.defineValue(name, narrowed);
+      return narrowed;
     }
   }
 
