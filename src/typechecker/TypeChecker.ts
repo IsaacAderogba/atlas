@@ -52,7 +52,12 @@ import {
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
 import { AtlasString } from "../primitives/AtlasString";
-import { Types, AtlasType, isCallableType, isAnyType } from "../primitives/AtlasType";
+import {
+  Types,
+  AtlasType,
+  isCallableType,
+  isAnyType,
+} from "../primitives/AtlasType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
@@ -173,25 +178,22 @@ export class TypeChecker
     { initializer: expr, name, type }: Property,
     enumType: FunctionEnum
   ): void {
-    if (isFunctionExpr(expr)) {
-      const expected = isCallableTypeExpr(type)
-        ? this.checkTypeExpr(type)
-        : this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
-
-      return this.defineValue(
-        name,
-        this.checkFunction({ expr, enumType, expected })
-      );
-    }
-
-    let narrowed: AtlasType;
-    if (type) {
-      narrowed = this.checkExprSubtype(expr, this.checkTypeExpr(type));
+    if (isFunctionExpr(expr) && isCallableTypeExpr(type)) {
+      const expected = this.visitCallableTypeExpr(type);
+      this.declareValue(name, expected);
+      this.defineValue(name, this.checkFunction({ expr, enumType, expected }));
+    } else if (isFunctionExpr(expr)) {
+      this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
     } else {
-      narrowed = this.checkExpr(expr);
-    }
+      let narrowed: AtlasType;
+      if (type) {
+        narrowed = this.checkExprSubtype(expr, this.checkTypeExpr(type));
+      } else {
+        narrowed = this.checkExpr(expr);
+      }
 
-    this.defineValue(name, narrowed);
+      this.defineValue(name, narrowed);
+    }
   }
 
   private checkFunction(current: CurrentFunction): AtlasType {
@@ -270,7 +272,7 @@ export class TypeChecker
 
   visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
     const calleeType = this.checkExpr(callee);
-    
+
     if (isAnyType(calleeType)) return calleeType;
     if (!isCallableType(calleeType)) {
       return this.error(callee, TypeCheckErrors.expectedCallableType());
@@ -456,6 +458,10 @@ export class TypeChecker
       source,
       TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
     );
+  }
+
+  private declareValue(name: Token, type: AtlasType): void {
+    this.getScope().valueScope.set(name.lexeme, type);
   }
 
   private defineValue(name: Token, type: AtlasType): void {
