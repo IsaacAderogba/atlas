@@ -46,8 +46,8 @@ export class AnyType extends ObjectType {
   toString = (): string => this.type;
 }
 
-export const isAnyType = (type: AtlasType): type is AnyType =>
-  type.type === "Any";
+export const isAnyType = (value: unknown): value is AnyType =>
+  value instanceof AnyType;
 
 export class BooleanType extends ObjectType {
   readonly type = "Boolean";
@@ -199,6 +199,24 @@ export class FunctionType extends CallableType {
   }
 }
 
+export class NativeFnType extends CallableType {
+  readonly type = "NativeFn";
+
+  constructor(props: CallableTypeProps) {
+    super(props);
+  }
+
+  static init = (props: CallableTypeProps): NativeFnType =>
+    new NativeFnType(props);
+
+  init: typeof NativeFnType.init = (...props) => NativeFnType.init(...props);
+
+  toString(): string {
+    const args = this.params.map(p => p.toString());
+    return `(${args.join(", ")}) -> ${this.returns.toString()}`;
+  }
+}
+
 export type AtlasType =
   | AnyType
   | BooleanType
@@ -206,9 +224,10 @@ export type AtlasType =
   | StringType
   | NullType
   | RecordType
-  | FunctionType;
+  | FunctionType
+  | NativeFnType;
 
-export default {
+export const Types = {
   Any: AnyType.init(),
   Null: NullType.init(),
   Boolean: BooleanType.init(),
@@ -216,4 +235,5 @@ export default {
   String: StringType.init(),
   Record: RecordType.init({}),
   Function: FunctionType.init({ params: [], returns: NullType.init() }),
-};
+  NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
+} as const;

@@ -1,5 +1,5 @@
-var foo: (Number, Number) -> String = f(x, y) {
-  return "foo"
+var x: (String) -> Null = f(x) {
+  print("succeeded")
 }
 
-foo("1", "2")
+x(print(4))

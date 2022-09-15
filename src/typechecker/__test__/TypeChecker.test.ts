@@ -1,4 +1,4 @@
-import Types from "../../primitives/AtlasType";
+import { Types } from "../../primitives/AtlasType";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { describe, expect, it } from "vitest";
 

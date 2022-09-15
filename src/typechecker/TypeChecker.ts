@@ -52,7 +52,7 @@ import {
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
 import { AtlasString } from "../primitives/AtlasString";
-import Types, { AtlasType, isCallableType } from "../primitives/AtlasType";
+import { Types, AtlasType, isCallableType, isAnyType } from "../primitives/AtlasType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
@@ -270,7 +270,8 @@ export class TypeChecker
 
   visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
     const calleeType = this.checkExpr(callee);
-
+    
+    if (isAnyType(calleeType)) return calleeType;
     if (!isCallableType(calleeType)) {
       return this.error(callee, TypeCheckErrors.expectedCallableType());
     }
