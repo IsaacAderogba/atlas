@@ -155,19 +155,35 @@ describe("Typechecker inference", () => {
         return 2 
       }
     `);
-    expect(
-      Types.Function.init({ params: [Types.Number], returns: Types.Number })
-    );
-  });
-});
 
-describe("Typechecker annotations", () => {
+    expect(
+      Types.Function.init({
+        params: [Types.Number],
+        returns: Types.Number,
+      }).isSubtype(tester.evalTypeWorkflow("x"))
+    ).toEqual(true);
+  });
+
   it("annotates function expressions", () => {
     const { tester } = setupTester();
 
     tester.typeCheckWorkflow("var x: (Number) -> Number = f(x) { return 1 }");
     expect(
-      Types.Function.init({ params: [Types.Number], returns: Types.Number })
+      Types.Function.init({
+        params: [Types.Number],
+        returns: Types.Number,
+      }).isSubtype(tester.evalTypeWorkflow("x"))
+    ).toEqual(true);
+  });
+});
+
+describe("Typechecker statements", () => {
+  it("aliases types", () => {
+    const { tester } = setupTester();
+
+    tester.typeCheckWorkflow("type Foo = String");
+    expect(Types.String.isSubtype(tester.evalTypeExprWorkflow("Foo"))).toEqual(
+      true
     );
   });
 });
@@ -396,5 +412,21 @@ describe("Typechecker errors", () => {
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.requiredFunctionAnnotation()
     );
+  });
+
+  it("errors with prohibited type redeclaration", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("type String = Number");
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.prohibitedTypeRedeclaration()
+    );
+  });
+
+  it("warns with unused type", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("type Foo = Number");
+    expect(errors[0].sourceMessage).toEqual(TypeCheckErrors.unusedType());
   });
 });

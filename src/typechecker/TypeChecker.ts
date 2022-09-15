@@ -219,8 +219,8 @@ export class TypeChecker
     return this.checkSubtype(expr, actual, expected);
   }
 
-  visitTypeStmt(_stmt: TypeStmt): void {
-    throw new Error("Method not implemented.");
+  visitTypeStmt(stmt: TypeStmt): void {
+    this.defineType(stmt.name, this.checkTypeExpr(stmt.type));
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -288,7 +288,7 @@ export class TypeChecker
     calleeType.params.forEach((type, i) => {
       const expr = args[i];
       if (isFunctionExpr(expr)) {
-        this.visitFunctionExpr(expr, type)
+        this.visitFunctionExpr(expr, type);
       } else {
         this.checkExprSubtype(expr, type);
       }
@@ -430,11 +430,11 @@ export class TypeChecker
   private lookupType(name: Token): AtlasType {
     for (const scope of this.scopes) {
       const entry = scope.typeScope.get(name.lexeme);
-      if (entry) return entry.type;
+      if (entry) return this.settleType(name, entry.type);
     }
 
     const entry = this.globalScope.typeScope.get(name.lexeme);
-    if (entry) return entry.type;
+    if (entry) return this.settleType(name, entry.type);
 
     return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
   }
@@ -463,6 +463,29 @@ export class TypeChecker
       source,
       TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
     );
+  }
+
+  private defineType(name: Token, type: AtlasType): void {
+    const scope = this.getScope();
+
+    if (scope.typeScope.has(name.lexeme)) {
+      this.error(name, TypeCheckErrors.prohibitedTypeRedeclaration());
+    } else {
+      scope.typeScope.set(name.lexeme, {
+        type,
+        source: name,
+        state: VariableState.DEFINED,
+      });
+    }
+  }
+
+  private settleType(name: Token, type: AtlasType): AtlasType {
+    this.getScope().typeScope.set(name.lexeme, {
+      type,
+      state: VariableState.SETTLED,
+      source: name,
+    });
+    return type;
   }
 
   private declareValue(name: Token, type: AtlasType): void {

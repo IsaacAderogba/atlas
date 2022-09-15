@@ -42,6 +42,11 @@ class Tester {
     return this.typechecker.checkExpr(expression);
   }
 
+  evalTypeExprWorkflow(source: string): AtlasType {
+    const expression = this.testExpress(source);
+    return this.typechecker.checkExpr(expression);
+  }
+
   parseWorkflow(source: string): ReturnType<Parser["parse"]> {
     const { tokens } = this.scan(source);
     return this.parse(tokens);
