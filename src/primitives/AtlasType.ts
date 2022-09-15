@@ -10,15 +10,26 @@ export abstract class ObjectType {
   abstract isSubtype(candidate: AtlasType): boolean;
 
   fields = new Map<string, AtlasType>();
+  methods = new Map<string, CallableType & AtlasType>();
 
   constructor(properties: ObjectTypeProps = {}) {
     for (const [name, value] of Object.entries(properties)) {
-      this.fields.set(name, value);
+      if (isCallableType(value)) {
+        this.methods.set(name, value);
+      } else {
+        this.fields.set(name, value);
+      }
     }
   }
 
   get(name: Token): AtlasType | undefined {
-    return this.fields.get(name.lexeme);
+    const value = this.fields.get(name.lexeme);
+    if (value) return value;
+
+    const method = this.methods.get(name.lexeme);
+    if (method) return method;
+
+    return undefined;
   }
 
   set(name: Token, value: AtlasType): void {
@@ -150,24 +161,35 @@ export class RecordType extends ObjectType {
 export const isRecordType = (type: AtlasType): type is RecordType =>
   type.type === "Record";
 
-interface CallableTypeProps {
+export interface CallableType {
+  arity(): number;
   params: AtlasType[];
   returns: AtlasType;
 }
-export abstract class CallableType extends ObjectType {
+
+export const isCallableType = (
+  value: AtlasType
+): value is CallableType & AtlasType =>
+  value instanceof FunctionType || value instanceof NativeFnType;
+
+interface FunctionTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
+export class FunctionType extends ObjectType implements CallableType {
+  readonly type = "Function";
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: CallableTypeProps) {
+  constructor(props: FunctionTypeProps) {
     super();
-
     this.params = props.params;
     this.returns = props.returns;
   }
 
   isSubtype(candidate: AtlasType): boolean {
     if (isAnyType(candidate)) return true;
-    if (!(candidate instanceof CallableType)) return false;
+    if (!isCallableType(candidate)) return false;
     if (this.arity() !== candidate.arity()) return false;
     if (!this.returns.isSubtype(candidate.returns)) return false;
     return this.params.every((a, i) => candidate.params[i].isSubtype(a));
@@ -176,19 +198,8 @@ export abstract class CallableType extends ObjectType {
   arity(): number {
     return this.params.length;
   }
-}
 
-export const isCallableType = (value: unknown): value is CallableType =>
-  value instanceof CallableType;
-
-export class FunctionType extends CallableType {
-  readonly type = "Function";
-
-  constructor(props: CallableTypeProps) {
-    super(props);
-  }
-
-  static init = (props: CallableTypeProps): FunctionType =>
+  static init = (props: FunctionTypeProps): FunctionType =>
     new FunctionType(props);
 
   init: typeof FunctionType.init = (...props) => FunctionType.init(...props);
@@ -199,14 +210,35 @@ export class FunctionType extends CallableType {
   }
 }
 
-export class NativeFnType extends CallableType {
-  readonly type = "NativeFn";
+interface NativeFnTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
 
-  constructor(props: CallableTypeProps) {
-    super(props);
+export class NativeFnType extends ObjectType implements CallableType {
+  readonly type = "NativeFn";
+  public params: AtlasType[];
+  public returns: AtlasType;
+
+  constructor(props: NativeFnTypeProps) {
+    super();
+    this.params = props.params;
+    this.returns = props.returns;
   }
 
-  static init = (props: CallableTypeProps): NativeFnType =>
+  isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
+    if (!isCallableType(candidate)) return false;
+    if (this.arity() !== candidate.arity()) return false;
+    if (!this.returns.isSubtype(candidate.returns)) return false;
+    return this.params.every((a, i) => candidate.params[i].isSubtype(a));
+  }
+
+  arity(): number {
+    return this.params.length;
+  }
+
+  static init = (props: NativeFnTypeProps): NativeFnType =>
     new NativeFnType(props);
 
   init: typeof NativeFnType.init = (...props) => NativeFnType.init(...props);
