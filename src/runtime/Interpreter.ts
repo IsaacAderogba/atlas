@@ -101,12 +101,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   visitClassStmt(stmt: ClassStmt): void {
     this.environment.define(stmt.name.lexeme, new AtlasNull());
 
-    const statics: { [key: string]: AtlasValue } = {};
-    for (const { name, initializer: expr } of stmt.statics) {
-      statics[name.lexeme] = this.evaluate(expr);
-    }
-    const staticClass = new AtlasClass(stmt.name.lexeme, statics);
-
     const props: { [key: string]: AtlasValue } = {};
     for (const { name, initializer: expr } of stmt.properties) {
       const value =
@@ -116,7 +110,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
       props[name.lexeme] = value;
     }
-    const atlasClass = new AtlasClass(stmt.name.lexeme, props, staticClass);
+    const atlasClass = new AtlasClass(stmt.name.lexeme, props);
 
     this.environment.assign(stmt.name, atlasClass);
   }

@@ -137,13 +137,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
     this.beginScope();
     this.getScope().set("this", { state: VariableState.SETTLED });
-    for (const prop of stmt.statics) {
-      this.analyzeProperty(prop, FunctionEnum.METHOD);
-    }
-    this.endScope();
-
-    this.beginScope();
-    this.getScope().set("this", { state: VariableState.SETTLED });
     for (const prop of stmt.properties) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;

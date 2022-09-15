@@ -9,17 +9,11 @@ import { RuntimeErrors } from "../errors/RuntimeError";
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
   name: string;
-  staticClass?: AtlasClass;
 
-  constructor(
-    name: string,
-    properties: AtlasObjectProps = {},
-    staticClass?: AtlasClass
-  ) {
+  constructor(name: string, properties: AtlasObjectProps = {}) {
     super({ ...properties });
 
     this.name = name;
-    this.staticClass = staticClass;
   }
 
   arity(): number {
@@ -30,24 +24,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return this;
   }
 
-  get(name: Token): AtlasValue {
-    if (this.staticClass) {
-      const field = this.staticClass.fields.get(name.lexeme);
-      if (field) return field;
-
-      const method = this.staticClass.methods.get(name.lexeme);
-      if (method) return method.bind(this);
-    }
-
-    throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
-  }
-
-  set(name: Token, value: AtlasValue): void {
-    if (this.staticClass) {
-      this.staticClass.fields.set(name.lexeme, value);
-      return;
-    }
-
+  set(name: Token): void {
     throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 

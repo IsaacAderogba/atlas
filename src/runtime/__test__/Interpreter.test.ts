@@ -142,25 +142,6 @@ describe("Interpreter statements", () => {
     expect(result).toMatchObject({ type: "String", value: "foobar" });
   });
 
-  it("interprets static calls", () => {
-    const { interpreter, interpret } = setupTests(`
-      class Foo {
-        static bar = f() {
-          return "bar"
-        }
-      }
-      
-      var x = Foo.bar()
-    `);
-    interpret();
-
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({ type: "String", value: "bar" });
-  });
-
   it("interprets this expressions", () => {
     const { interpreter, interpret } = setupTests(`
       class Foo {

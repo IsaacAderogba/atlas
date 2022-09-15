@@ -48,7 +48,6 @@ export type TokenType =
   | "NULL"
   | "OR"
   | "RETURN"
-  | "STATIC"
   | "SUPER"
   | "THIS"
   | "TRUE"
