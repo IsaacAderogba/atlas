@@ -108,7 +108,7 @@ export class Parser {
 
     let parameters: Parameter[] = [];
     if (this.match("LEFT_BRACKET")) {
-      parameters = this.parameters();
+      parameters = this.parameters("RIGHT_BRACKET");
       this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
     }
 
@@ -124,7 +124,7 @@ export class Parser {
 
     let parameters: Parameter[] = [];
     if (this.match("LEFT_BRACKET")) {
-      parameters = this.parameters();
+      parameters = this.parameters("RIGHT_BRACKET");
       this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
     }
 
@@ -396,7 +396,7 @@ export class Parser {
     const async = this.match("STAR") ? this.previous() : undefined;
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
 
-    const parameters = this.parameters();
+    const parameters = this.parameters("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
@@ -495,7 +495,9 @@ export class Parser {
   }
 
   private subTypeExpr(): TypeExpr {
-    if (this.match("LEFT_PAREN")) return this.callableTypeExpr();
+    if (this.check("LEFT_PAREN") || this.check("LEFT_BRACKET")) {
+      return this.callableTypeExpr();
+    }
 
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
 
@@ -511,7 +513,13 @@ export class Parser {
   }
 
   private callableTypeExpr(): TypeExpr {
-    const open = this.previous();
+    let parameters: Parameter[] = [];
+    if (this.match("LEFT_BRACKET")) {
+      parameters = this.parameters("RIGHT_BRACKET");
+      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+    }
+
+    const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen())
     const generics = this.generics("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
@@ -519,7 +527,7 @@ export class Parser {
     this.consume("GREATER", SyntaxErrors.expectedRightCaret());
     const returnType = this.typeExpr();
 
-    return new CallableTypeExpr(open, generics, returnType);
+    return new CallableTypeExpr(parameters, open, generics, returnType);
   }
 
   private expressions(type: TokenType): Expr[] {
@@ -562,9 +570,9 @@ export class Parser {
     return generics;
   }
 
-  private parameters(): Parameter[] {
+  private parameters(type: TokenType): Parameter[] {
     const params: Parameter[] = [];
-    if (!this.check("RIGHT_PAREN")) {
+    if (!this.check(type)) {
       do {
         params.push(this.parameter());
       } while (this.match("COMMA"));

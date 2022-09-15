@@ -55,6 +55,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static requiredFunctionAnnotation(): SourceMessage {
+    return this.formatError({
+      title: "required function annotation",
+      body: "callable annotations are required for functions",
+    });
+  }
+
   static undefinedType(type: string): SourceMessage {
     return this.formatError({
       title: "undefined type",

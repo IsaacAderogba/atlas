@@ -73,9 +73,9 @@ describe("Typechecker inference", () => {
       var x = { "foo": { "foo": "bar" } }
     `);
 
-    expect(Types.String.isSubtype(tester.evalTypeWorkflow("x.foo.foo"))).toEqual(
-      true
-    );
+    expect(
+      Types.String.isSubtype(tester.evalTypeWorkflow("x.foo.foo"))
+    ).toEqual(true);
   });
 
   it("infers unary expressions", () => {
@@ -141,6 +141,34 @@ describe("Typechecker inference", () => {
       tester.typeCheckWorkflow(source);
       expect(type.isSubtype(tester.evalTypeWorkflow("x"))).toEqual(true);
     });
+  });
+
+  it("infers function expressions", () => {
+    const { tester } = setupTester();
+
+    tester.typeCheckWorkflow(`
+      var x: (Number) -> Number = f(x) { 
+        return 1
+      }
+      
+      x = f(x) { 
+        return 2 
+      }
+    `);
+    expect(
+      Types.Function.init({ params: [Types.Number], returns: Types.Number })
+    );
+  });
+});
+
+describe("Typechecker annotations", () => {
+  it("annotates function expressions", () => {
+    const { tester } = setupTester();
+
+    tester.typeCheckWorkflow("var x: (Number) -> Number = f(x) { return 1 }");
+    expect(
+      Types.Function.init({ params: [Types.Number], returns: Types.Number })
+    );
   });
 });
 
@@ -254,6 +282,86 @@ describe("Typechecker errors", () => {
     const { errors } = tester.typeCheckWorkflow("while (4 + 4) {}");
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+    );
+  });
+
+  it("errors with invalid subtype for function annotations", () => {
+    const types = [
+      {
+        // function specifies an argument while declaration doesn't
+        source: "var x: () -> Null = f(y) { }",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Function.init({
+            params: [],
+            returns: Types.Null,
+          }).toString(),
+          Types.Function.init({
+            params: [Types.Any],
+            returns: Types.Null,
+          }).toString()
+        ),
+      },
+      {
+        // declaration specifies an argument while function doesn't
+        source: "var x: (Number) -> Null = f() { }",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Function.init({
+            params: [Types.Number],
+            returns: Types.Null,
+          }).toString(),
+          Types.Function.init({
+            params: [],
+            returns: Types.Null,
+          }).toString()
+        ),
+      },
+      {
+        // function returns incorrect output
+        source: "var x: () -> String = f() { }",
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Function.init({ params: [], returns: Types.String }).toString(),
+          Types.Function.init({ params: [], returns: Types.Null }).toString()
+        ),
+      },
+    ];
+
+    types.forEach(({ source, error }) => {
+      const { tester } = setupTester();
+
+      const { errors } = tester.typeCheckWorkflow(source);
+      expect(errors[0].sourceMessage).toEqual(error);
+    });
+  });
+
+  it("errors with invalid subtype for function inference", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow(`
+    var x: (Number) -> Number = f(x) { 
+      return 1
+    }
+    
+    x = f() { 
+      return 2 
+    }
+  `);
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.invalidSubtype(
+        Types.Function.init({
+          params: [Types.Number],
+          returns: Types.Number,
+        }).toString(),
+        Types.Function.init({ params: [], returns: Types.Number }).toString()
+      )
+    );
+  });
+
+  it("errors with required function annotation", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow("f() {}");
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.requiredFunctionAnnotation()
     );
   });
 });

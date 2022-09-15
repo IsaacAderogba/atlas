@@ -131,6 +131,12 @@ export class RecordType extends ObjectType {
     });
   }
 
+  static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
+    return new RecordType(entries);
+  };
+
+  init: typeof RecordType.init = (...props) => RecordType.init(...props);
+
   toString = (): string => {
     const props: string[] = [];
     for (const [name, type] of this.fields.entries()) {
@@ -139,16 +145,59 @@ export class RecordType extends ObjectType {
 
     return `{ ${props.join(", ")} }`;
   };
-
-  static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
-    return new RecordType(entries);
-  };
-
-  init: typeof RecordType.init = (...props) => RecordType.init(...props);
 }
 
 export const isRecordType = (type: AtlasType): type is RecordType =>
   type.type === "Record";
+
+interface CallableTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
+export abstract class CallableType extends ObjectType {
+  public params: AtlasType[];
+  public returns: AtlasType;
+
+  constructor(props: CallableTypeProps) {
+    super();
+
+    this.params = props.params;
+    this.returns = props.returns;
+  }
+
+  isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
+    if (!(candidate instanceof CallableType)) return false;
+    if (this.arity() !== candidate.arity()) return false;
+    if (!this.returns.isSubtype(candidate.returns)) return false;
+    return this.params.every((a, i) => candidate.params[i].isSubtype(a));
+  }
+
+  arity(): number {
+    return this.params.length;
+  }
+}
+
+export const isCallableType = (value: unknown): value is CallableType =>
+  value instanceof CallableType;
+
+export class FunctionType extends CallableType {
+  readonly type = "Function";
+
+  constructor(props: CallableTypeProps) {
+    super(props);
+  }
+
+  static init = (props: CallableTypeProps): FunctionType =>
+    new FunctionType(props);
+
+  init: typeof FunctionType.init = (...props) => FunctionType.init(...props);
+
+  toString(): string {
+    const args = this.params.map(p => p.toString());
+    return `(${args.join(", ")}) -> ${this.returns.toString()}`;
+  }
+}
 
 export type AtlasType =
   | AnyType
@@ -156,7 +205,8 @@ export type AtlasType =
   | NumberType
   | StringType
   | NullType
-  | RecordType;
+  | RecordType
+  | FunctionType;
 
 export default {
   Any: AnyType.init(),
@@ -165,4 +215,5 @@ export default {
   Number: NumberType.init(),
   String: StringType.init(),
   Record: RecordType.init({}),
+  Function: FunctionType.init({ params: [], returns: NullType.init() }),
 };

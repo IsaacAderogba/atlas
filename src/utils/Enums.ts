@@ -1,4 +1,4 @@
-export enum FunctionType {
+export enum FunctionEnum {
   NONE = "NONE",
   FUNCTION = "FUNCTION",
   INIT = "INIT",

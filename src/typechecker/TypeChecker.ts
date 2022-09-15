@@ -11,6 +11,8 @@ import {
   GenericTypeExpr,
   GetExpr,
   GroupingExpr,
+  isCallableTypeExpr,
+  isFunctionExpr,
   ListExpr,
   LiteralExpr,
   LogicalExpr,
@@ -46,8 +48,8 @@ import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
 import { AtlasString } from "../primitives/AtlasString";
-import Types, { AtlasType } from "../primitives/AtlasType";
-import { ClassType, FunctionType, VariableState } from "../utils/Enums";
+import Types, { AtlasType, isCallableType } from "../primitives/AtlasType";
+import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 
@@ -68,6 +70,13 @@ class TypeCheckerScope {
   }
 }
 
+type CurrentFunction = {
+  enumType: FunctionEnum;
+  expr: FunctionExpr;
+  expected: AtlasType;
+  returns?: AtlasType;
+};
+
 export class TypeChecker
   implements
     ExprVisitor<AtlasType>,
@@ -83,16 +92,16 @@ export class TypeChecker
     valueScope: Scope.fromGlobals(typeGlobals, (_, type) => type),
   });
 
-  private currentFunction = FunctionType.NONE;
+  private currentFunction?: CurrentFunction;
   private currentClass = ClassType.NONE;
   private errors: TypeCheckError[] = [];
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    this.withScope(() => {
-      for (const statement of statements) {
-        this.checkStmt(statement);
-      }
-    }, this.globalScope);
+    this.beginScope(this.globalScope);
+    for (const statement of statements) {
+      this.checkStmt(statement);
+    }
+    this.endScope();
 
     return { errors: this.errors };
   }
@@ -110,9 +119,9 @@ export class TypeChecker
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    this.withScope(() => {
-      for (const statement of stmt.statements) this.checkStmt(statement);
-    });
+    this.beginScope();
+    for (const statement of stmt.statements) this.checkStmt(statement);
+    this.endScope();
   }
 
   visitBreakStmt(_stmt: BreakStmt): void {
@@ -147,31 +156,61 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitReturnStmt(_stmt: ReturnStmt): void {
-    throw new Error("Method not implemented.");
+  visitReturnStmt(stmt: ReturnStmt): void {
+    const value = this.checkExpr(stmt.value);
+    if (this.currentFunction) this.currentFunction.returns = value;
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    this.typeCheckProperty(stmt.property, FunctionType.FUNCTION);
+    this.checkProperty(stmt.property, FunctionEnum.FUNCTION);
   }
 
-  private typeCheckProperty(
-    { initializer, name, type }: Property,
-    _funcType: FunctionType
+  private checkProperty(
+    { initializer: expr, name, type }: Property,
+    enumType: FunctionEnum
   ): void {
-    if (initializer instanceof FunctionExpr) {
-      // todo
-      return;
+    if (isFunctionExpr(expr)) {
+      const expected = isCallableTypeExpr(type)
+        ? this.checkTypeExpr(type)
+        : this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
+
+      return this.defineValue(
+        name,
+        this.checkFunction({ expr, enumType, expected })
+      );
     }
 
     let narrowed: AtlasType;
     if (type) {
-      narrowed = this.checkExprSubtype(initializer, this.checkTypeExpr(type));
+      narrowed = this.checkExprSubtype(expr, this.checkTypeExpr(type));
     } else {
-      narrowed = this.checkExpr(initializer);
+      narrowed = this.checkExpr(expr);
     }
 
     this.defineValue(name, narrowed);
+  }
+
+  private checkFunction(current: CurrentFunction): AtlasType {
+    const enclosingFunction = this.currentFunction;
+    this.currentFunction = current;
+    this.beginScope();
+
+    const { expr, expected } = current;
+
+    const expectedParams = isCallableType(expected) ? expected.params : [];
+    const params = expr.params.map(({ name }, i) => {
+      this.defineValue(name, expectedParams[i] || Types.Any);
+      return expectedParams[i] || Types.Any;
+    });
+
+    for (const statement of expr.body.statements) this.checkStmt(statement);
+    const returns = this.currentFunction.returns || Types.Null;
+    const actual = Types.Function.init({ params, returns });
+
+    this.endScope();
+    this.currentFunction = enclosingFunction;
+
+    return this.checkSubtype(expr, actual, expected);
   }
 
   visitTypeStmt(_stmt: TypeStmt): void {
@@ -186,7 +225,9 @@ export class TypeChecker
 
   visitAssignExpr(expr: AssignExpr): AtlasType {
     const expected = this.lookupValue(expr.name);
-    const actual = this.checkExpr(expr.value);
+    const actual = isFunctionExpr(expr.value)
+      ? this.visitFunctionExpr(expr.value, expected)
+      : this.checkExpr(expr.value);
     return this.checkSubtype(expr.value, actual, expected);
   }
 
@@ -227,8 +268,15 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitFunctionExpr(_expr: FunctionExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitFunctionExpr(
+    expr: FunctionExpr,
+    expected = this.error(expr, TypeCheckErrors.requiredFunctionAnnotation())
+  ): AtlasType {
+    return this.checkFunction({
+      expr,
+      enumType: FunctionEnum.FUNCTION,
+      expected,
+    });
   }
 
   visitGetExpr(expr: GetExpr): AtlasType {
@@ -318,8 +366,12 @@ export class TypeChecker
     return this.lookupValue(expr.name);
   }
 
-  visitCallableTypeExpr(_typeExpr: CallableTypeExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
+    this.beginScope();
+    const params = typeExpr.paramTypes.map(p => this.checkTypeExpr(p));
+    const returns = this.checkTypeExpr(typeExpr.returnType);
+    this.endScope();
+    return Types.Function.init({ params, returns });
   }
 
   visitCompositeTypeExpr(_typeExpr: CompositeTypeExpr): AtlasType {
@@ -388,14 +440,11 @@ export class TypeChecker
     this.getScope().valueScope.set(name.lexeme, type);
   }
 
-  private withScope(
-    onScope: () => void,
-    newScope = new TypeCheckerScope()
-  ): void {
+  private beginScope(newScope = new TypeCheckerScope()): void {
     this.scopes.push(newScope);
+  }
 
-    onScope();
-
+  private endScope(): void {
     const scope = this.scopes.pop();
     if (scope && this.currentClass === ClassType.NONE) {
       for (const { state, source } of scope.typeScope.values()) {

@@ -97,6 +97,9 @@ export class FunctionExpr implements BaseExpr {
   }
 }
 
+export const isFunctionExpr = (value: unknown): value is FunctionExpr =>
+  value instanceof FunctionExpr;
+
 export class GetExpr implements BaseExpr {
   constructor(readonly object: Expr, readonly name: Token) {}
 
@@ -311,8 +314,9 @@ interface BaseTypeExpr extends SourceRangeable {
 
 export class CallableTypeExpr {
   constructor(
+    readonly params: Parameter[],
     readonly open: Token,
-    readonly generics: TypeExpr[],
+    readonly paramTypes: TypeExpr[],
     readonly returnType: TypeExpr
   ) {}
 
@@ -326,6 +330,9 @@ export class CallableTypeExpr {
     return new SourceRange(start, end);
   }
 }
+
+export const isCallableTypeExpr = (value: unknown): value is CallableTypeExpr =>
+  value instanceof CallableTypeExpr;
 
 export class CompositeTypeExpr implements BaseTypeExpr {
   constructor(

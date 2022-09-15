@@ -37,10 +37,10 @@ import { globals } from "../globals";
 import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
-import { ClassType, FunctionType, VariableState } from "../utils/Enums";
+import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
-type CurrentFunction = { type: FunctionType; expr: FunctionExpr };
+type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly scopes: Stack<AnalyzerScope> = new Stack();
@@ -90,9 +90,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.currentFunction = enclosingFunction;
   }
 
-  private analyzeProperty(prop: Property, type: FunctionType): void {
+  private analyzeProperty(prop: Property, type: FunctionEnum): void {
     if (prop.initializer instanceof FunctionExpr) {
-      if (type === FunctionType.INIT && prop.initializer.async) {
+      if (type === FunctionEnum.INIT && prop.initializer.async) {
         this.error(prop.name, SemanticErrors.prohibitedAsyncInit());
       }
 
@@ -138,7 +138,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.beginScope();
     this.getScope().set("this", { state: VariableState.SETTLED });
     for (const prop of stmt.statics) {
-      this.analyzeProperty(prop, FunctionType.METHOD);
+      this.analyzeProperty(prop, FunctionEnum.METHOD);
     }
     this.endScope();
 
@@ -146,7 +146,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.getScope().set("this", { state: VariableState.SETTLED });
     for (const prop of stmt.properties) {
       const isInit = prop.name.lexeme === "init";
-      const method = isInit ? FunctionType.INIT : FunctionType.METHOD;
+      const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
 
       this.analyzeProperty(prop, method);
     }
@@ -186,11 +186,11 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       const { type, expr } = this.currentFunction;
 
       switch (type) {
-        case FunctionType.INIT:
+        case FunctionEnum.INIT:
           this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
           break;
-        case FunctionType.FUNCTION:
-        case FunctionType.METHOD:
+        case FunctionEnum.FUNCTION:
+        case FunctionEnum.METHOD:
           if (expr.async) {
             this.error(stmt.keyword, SemanticErrors.prohibitedAsyncReturn());
           }
@@ -207,7 +207,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    this.analyzeProperty(stmt.property, FunctionType.FUNCTION);
+    this.analyzeProperty(stmt.property, FunctionEnum.FUNCTION);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -245,7 +245,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitFunctionExpr(expr: FunctionExpr): void {
-    this.analyzeFunction(expr, { expr, type: FunctionType.FUNCTION });
+    this.analyzeFunction(expr, { expr, type: FunctionEnum.FUNCTION });
   }
 
   visitLiteralExpr(): void {

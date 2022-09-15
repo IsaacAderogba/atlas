@@ -56,7 +56,7 @@ parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
 typeExpr          -> compositeTypeExpr ;
 compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
 subTypeExpr       -> callableType | genericType | IDENTIFIER ;
-callableTypeExpr  -> "(" generics ")" "->" typeExpr ;
+callableTypeExpr  -> ( "[" parameters "]" )? "(" generics ")" "->" typeExpr ;
 genericType       -> IDENTIFIER ( "[" generics "]" )? ;
 
 generics          -> typeExpr ( "," typeExpr )* ;
