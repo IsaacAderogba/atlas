@@ -48,6 +48,20 @@ export class TypeCheckErrors {
     return this.formatError({ title: "unexpected logical operator", body: "" });
   }
 
+  static mismatchedArity(expected: number, actual: number): SourceMessage {
+    return this.formatError({
+      title: "mismatched arity",
+      body: `expected ${expected} arguments but got ${actual}`,
+    });
+  }
+
+  static expectedCallableType(): SourceMessage {
+    return this.formatError({
+      title: "expected callable type",
+      body: "callable type such as a function or method was expected",
+    });
+  }
+
   static prohibitedTypeRedeclaration(): SourceMessage {
     return this.formatError({
       title: "prohibited type redeclaration",

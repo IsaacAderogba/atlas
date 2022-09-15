@@ -63,6 +63,7 @@ export class CallExpr implements BaseExpr {
   constructor(
     readonly callee: Expr,
     readonly generics: TypeExpr[],
+    readonly open: Token,
     readonly args: Expr[],
     readonly close: Token
   ) {}

@@ -333,6 +333,39 @@ describe("Typechecker errors", () => {
     });
   });
 
+  it("errors for invalid call expressions", () => {
+    const types = [
+      {
+        error: TypeCheckErrors.mismatchedArity(1, 0),
+        source: `
+          var x: (Number) -> Null = f(x) { }
+          x()
+        `,
+      },
+      {
+        error: TypeCheckErrors.expectedCallableType(),
+        source: `""()`,
+      },
+      {
+        error: TypeCheckErrors.invalidSubtype(
+          Types.Number.toString(),
+          Types.String.toString()
+        ),
+        source: `
+          var x: (Number) -> Null = f(x) { }
+          x("")
+        `,
+      },
+    ];
+
+    types.forEach(({ source, error }) => {
+      const { tester } = setupTester();
+
+      const { errors } = tester.typeCheckWorkflow(source);
+      expect(errors[0].sourceMessage).toEqual(error);
+    });
+  });
+
   it("errors with invalid subtype for function inference", () => {
     const { tester } = setupTester();
 

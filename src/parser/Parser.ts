@@ -343,7 +343,10 @@ export class Parser {
           this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
         }
 
-        this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+        const open = this.consume(
+          "LEFT_PAREN",
+          SyntaxErrors.expectedLeftParen()
+        );
 
         const args = this.expressions("RIGHT_PAREN");
         const close = this.consume(
@@ -351,7 +354,7 @@ export class Parser {
           SyntaxErrors.expectedRightParen()
         );
 
-        expr = new CallExpr(expr, generics, args, close);
+        expr = new CallExpr(expr, generics, open, args, close);
       } else if (this.match("DOT")) {
         const name = this.consume(
           "IDENTIFIER",
@@ -519,7 +522,7 @@ export class Parser {
       this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
     }
 
-    const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen())
+    const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const generics = this.generics("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 

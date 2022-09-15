@@ -44,7 +44,11 @@ import {
   WhileStmt,
 } from "../ast/Stmt";
 import { Token } from "../ast/Token";
-import { SourceMessage, SourceRangeable } from "../errors/SourceError";
+import {
+  SourceMessage,
+  SourceRange,
+  SourceRangeable,
+} from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
 import { AtlasString } from "../primitives/AtlasString";
@@ -264,8 +268,25 @@ export class TypeChecker
     }
   }
 
-  visitCallExpr(_expr: CallExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
+    const calleeType = this.checkExpr(callee);
+
+    if (!isCallableType(calleeType)) {
+      return this.error(callee, TypeCheckErrors.expectedCallableType());
+    }
+
+    if (calleeType.arity() !== args.length) {
+      return this.error(
+        new SourceRange(open, close),
+        TypeCheckErrors.mismatchedArity(calleeType.arity(), args.length)
+      );
+    }
+
+    calleeType.params.forEach((type, i) => {
+      this.checkExprSubtype(args[i], type);
+    });
+
+    return calleeType.returns;
   }
 
   visitFunctionExpr(
