@@ -286,7 +286,12 @@ export class TypeChecker
     }
 
     calleeType.params.forEach((type, i) => {
-      this.checkExprSubtype(args[i], type);
+      const expr = args[i];
+      if (isFunctionExpr(expr)) {
+        this.visitFunctionExpr(expr, type)
+      } else {
+        this.checkExprSubtype(expr, type);
+      }
     });
 
     return calleeType.returns;

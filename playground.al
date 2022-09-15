@@ -1,7 +1,7 @@
-var countDown: (Number) -> Number = f(num) {
-  if (num == 0) return 0
-  print(num)
-  return countDown(num - 1)
+var count: ((Number) -> Number) -> Null = f(func) {
+  print(func(1))
 }
 
-countDown(5)
+count(f(number) {
+  return number
+})
