@@ -50,13 +50,10 @@ import {
 } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { typeGlobals } from "../globals";
+import { isAnyType } from "../primitives/AnyType";
+import { isCallableType } from "../primitives/AtlasCallable";
 import { AtlasString } from "../primitives/AtlasString";
-import {
-  Types,
-  AtlasType,
-  isCallableType,
-  isAnyType,
-} from "../primitives/AtlasType";
+import { Types, AtlasType } from "../primitives/AtlasType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";

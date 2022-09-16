@@ -1,4 +1,6 @@
-import { AtlasObject } from "./AtlasObject";
+import { isAnyType } from "./AnyType";
+import { AtlasObject, ObjectType } from "./AtlasObject";
+import { AtlasType } from "./AtlasType";
 
 export class AtlasBoolean extends AtlasObject {
   readonly type = "Boolean";
@@ -14,3 +16,19 @@ export class AtlasBoolean extends AtlasObject {
 
 export const atlasBoolean = (value: true | false): AtlasBoolean =>
   new AtlasBoolean(value);
+
+export class BooleanType extends ObjectType {
+  readonly type = "Boolean";
+
+  isSubtype(candidate: AtlasType): boolean {
+    return isAnyType(candidate) || isBooleanType(candidate);
+  }
+
+  static init = (): BooleanType => new BooleanType();
+  init: typeof BooleanType.init = () => BooleanType.init();
+
+  toString = (): string => this.type;
+}
+
+export const isBooleanType = (type: AtlasType): type is BooleanType =>
+  type.type === "Boolean";

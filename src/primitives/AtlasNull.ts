@@ -1,4 +1,6 @@
-import { AtlasObject } from "./AtlasObject";
+import { isAnyType } from "./AnyType";
+import { AtlasObject, ObjectType } from "./AtlasObject";
+import { AtlasType } from "./AtlasType";
 
 export class AtlasNull extends AtlasObject {
   readonly type = "Null";
@@ -12,4 +14,20 @@ export class AtlasNull extends AtlasObject {
   }
 }
 
-export const atlasNull = (): AtlasNull => new AtlasNull()
+export const atlasNull = (): AtlasNull => new AtlasNull();
+
+export class NullType extends ObjectType {
+  readonly type = "Null";
+
+  isSubtype(candidate: AtlasType): boolean {
+    return isAnyType(candidate) || isNullType(candidate);
+  }
+
+  static init = (): NullType => new NullType();
+  init: typeof NullType.init = () => NullType.init();
+
+  toString = (): string => this.type;
+}
+
+export const isNullType = (type: AtlasType): type is NullType =>
+  type.type === "Null";

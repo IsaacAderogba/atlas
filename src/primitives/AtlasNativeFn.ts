@@ -1,7 +1,9 @@
-import { AtlasCallable } from "./AtlasCallable";
+import { AtlasCallable, CallableType, isCallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject } from "./AtlasObject";
+import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
+import { AtlasType } from "./AtlasType";
+import { isAnyType } from "./AnyType";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
@@ -42,3 +44,42 @@ export const toNativeFunctions = (funcs: {
 
   return convertedFuncs;
 };
+
+interface NativeFnTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
+
+export class NativeFnType extends ObjectType implements CallableType {
+  readonly type = "NativeFn";
+  public params: AtlasType[];
+  public returns: AtlasType;
+
+  constructor(props: NativeFnTypeProps) {
+    super();
+    this.params = props.params;
+    this.returns = props.returns;
+  }
+
+  isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
+    if (!isCallableType(candidate)) return false;
+    if (this.arity() !== candidate.arity()) return false;
+    if (!this.returns.isSubtype(candidate.returns)) return false;
+    return this.params.every((a, i) => candidate.params[i].isSubtype(a));
+  }
+
+  arity(): number {
+    return this.params.length;
+  }
+
+  static init = (props: NativeFnTypeProps): NativeFnType =>
+    new NativeFnType(props);
+
+  init: typeof NativeFnType.init = (...props) => NativeFnType.init(...props);
+
+  toString(): string {
+    const args = this.params.map(p => p.toString());
+    return `(${args.join(", ")}) -> ${this.returns.toString()}`;
+  }
+}

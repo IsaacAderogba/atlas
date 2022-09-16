@@ -19,6 +19,15 @@ export const isCallable = (
   );
 };
 
-export const isCallableType = (_value: AtlasType): boolean => {
-  return false;
-};
+export interface CallableType {
+  arity(): number;
+  params: AtlasType[];
+  returns: AtlasType;
+}
+
+export const isCallableType = (
+  value: AtlasType
+): value is CallableType & AtlasType =>
+  value.type === "Function" ||
+  value.type === "NativeFn" ||
+  value.type === "Class";

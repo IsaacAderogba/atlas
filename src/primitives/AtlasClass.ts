@@ -1,10 +1,12 @@
-import { AtlasInstance } from "./AtlasInstance";
+import { AtlasInstance, InstanceType } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
+import { AtlasObject, AtlasObjectProps, ObjectType, ObjectTypeProps } from "./AtlasObject";
 import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
-import { AtlasCallable } from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
+import { AtlasType } from "./AtlasType";
+import { isAnyType } from "./AnyType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -44,3 +46,46 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return this.name;
   }
 }
+
+export class ClassType extends ObjectType implements CallableType {
+  readonly type = "Class";
+
+  constructor(public name: string, properties: ObjectTypeProps) {
+    super({ ...properties });
+  }
+
+  arity(): number {
+    return this.findMethod("init")?.arity() || 0;
+  }
+
+  get params(): AtlasType[] {
+    return this.findMethod("init")?.params || [];
+  }
+
+  get returns(): AtlasType {
+    return new InstanceType(this, new Map(this.fields));
+  }
+
+  findMethod(name: string): (CallableType & AtlasType) | undefined {
+    return this.methods.get(name);
+  }
+
+  isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
+    if (this === candidate) return true;
+    return false;
+  }
+
+  static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
+    new ClassType(name, properties);
+
+  init: typeof ClassType.init = (...props) => ClassType.init(...props);
+
+  toString(): string {
+    // todo
+    return this.name;
+  }
+}
+
+export const isClassType = (type: unknown): type is ClassType =>
+  type instanceof ClassType;
