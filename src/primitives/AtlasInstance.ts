@@ -1,7 +1,7 @@
 import { Token } from "../ast/Token";
-import { AtlasClass } from "./AtlasClass";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject } from "./AtlasObject";
+import { AtlasClass } from "./AtlasClass";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;

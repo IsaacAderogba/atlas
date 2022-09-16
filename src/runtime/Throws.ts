@@ -1,4 +1,4 @@
-import { AtlasValue } from "../primitives/AtlasValue";
+import { AtlasValue } from "./AtlasValue";
 
 export class Return {
   constructor(readonly value: AtlasValue) {

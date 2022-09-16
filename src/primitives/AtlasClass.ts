@@ -1,10 +1,10 @@
-import { AtlasCallable } from "./AtlasCallable";
 import { AtlasInstance } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
-import { Interpreter } from "../runtime/Interpreter";
 import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
+import { AtlasCallable } from "./AtlasCallable";
+import { Interpreter } from "../runtime/Interpreter";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";

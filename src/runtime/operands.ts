@@ -1,4 +1,4 @@
-import { AtlasValue } from "../primitives/AtlasValue";
+import { AtlasValue } from "./AtlasValue";
 
 export const areEqualValues = (
   left: AtlasValue,

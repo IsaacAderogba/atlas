@@ -1,7 +1,7 @@
 import { AtlasCallable } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
-import { Interpreter } from "../runtime/Interpreter";
 import { AtlasObject } from "./AtlasObject";
+import { Interpreter } from "../runtime/Interpreter";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";

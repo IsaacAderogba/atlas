@@ -2,7 +2,7 @@
 import { Stmt } from "../src/ast/Stmt";
 import { Parser } from "../src/parser/Parser";
 import { Scanner } from "../src/parser/Scanner";
-import { AtlasValue } from "../src/primitives/AtlasValue";
+import { AtlasValue } from "../src/runtime/AtlasValue";
 import { Interpreter } from "../src/runtime/Interpreter";
 import { Analyzer } from "../src/analyzer/Analyzer";
 import { TypeChecker } from "../src/typechecker/TypeChecker";

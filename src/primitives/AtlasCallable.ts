@@ -1,7 +1,7 @@
 import { AtlasObject } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
+import { AtlasType } from "../primitives/AtlasType";
 import { Interpreter } from "../runtime/Interpreter";
-import { AtlasType } from "./AtlasType";
 
 export interface AtlasCallable {
   arity(): number;
