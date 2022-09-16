@@ -1,12 +1,17 @@
 import { AtlasInstance, InstanceType } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject, AtlasObjectProps, ObjectType, ObjectTypeProps } from "./AtlasObject";
+import {
+  AtlasObject,
+  AtlasObjectProps,
+  ObjectType,
+  ObjectTypeProps,
+} from "./AtlasObject";
 import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { isAnyType } from "./AnyType";
+import { isInterfaceSubtype } from "./InterfaceType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -63,17 +68,23 @@ export class ClassType extends ObjectType implements CallableType {
   }
 
   get returns(): AtlasType {
-    return new InstanceType(this, new Map(this.fields));
+    return new InstanceType(this);
+  }
+
+  findField(name: string): AtlasType | undefined {
+    return this.fields.get(name);
   }
 
   findMethod(name: string): (CallableType & AtlasType) | undefined {
     return this.methods.get(name);
   }
 
+  findProp(name: string): AtlasType | undefined {
+    return this.findField(name) || this.findMethod(name);
+  }
+
   isSubtype(candidate: AtlasType): boolean {
-    if (isAnyType(candidate)) return true;
-    if (this === candidate) return true;
-    return false;
+    return isInterfaceSubtype(this, candidate);
   }
 
   static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>

@@ -1,5 +1,9 @@
 import { FunctionExpr } from "../ast/Expr";
-import { AtlasCallable, CallableType, isCallableType } from "./AtlasCallable";
+import {
+  AtlasCallable,
+  CallableType,
+  isCallableSubtype,
+} from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -7,7 +11,6 @@ import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
-import { isAnyType } from "./AnyType";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";
@@ -81,11 +84,7 @@ export class FunctionType extends ObjectType implements CallableType {
   }
 
   isSubtype(candidate: AtlasType): boolean {
-    if (isAnyType(candidate)) return true;
-    if (!isCallableType(candidate)) return false;
-    if (this.arity() !== candidate.arity()) return false;
-    if (!this.returns.isSubtype(candidate.returns)) return false;
-    return this.params.every((a, i) => candidate.params[i].isSubtype(a));
+    return isCallableSubtype(this, candidate);
   }
 
   arity(): number {

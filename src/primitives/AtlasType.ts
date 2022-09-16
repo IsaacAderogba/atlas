@@ -8,6 +8,7 @@ import { NullType } from "./AtlasNull";
 import { NumberType } from "./AtlasNumber";
 import { RecordType } from "./AtlasRecord";
 import { StringType } from "./AtlasString";
+import { InterfaceType } from "./InterfaceType";
 
 export type AtlasType =
   | AnyType
@@ -19,7 +20,8 @@ export type AtlasType =
   | FunctionType
   | NativeFnType
   | ClassType
-  | InstanceType;
+  | InstanceType
+  | InterfaceType;
 
 export const Types = {
   Any: AnyType.init(),
@@ -31,5 +33,6 @@ export const Types = {
   Function: FunctionType.init({ params: [], returns: NullType.init() }),
   NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
   Class: ClassType.init("Class"),
-  Instance: InstanceType.init(ClassType.init("Class"), new Map()),
+  Instance: InstanceType.init(ClassType.init("Class")),
+  Interface: InterfaceType.init(),
 } as const;

@@ -1,7 +1,7 @@
-import { isAnyType } from "./AnyType";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
+import { isInterfaceSubtype } from "./InterfaceType";
 
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
@@ -24,14 +24,7 @@ export class RecordType extends ObjectType {
   }
 
   isSubtype(candidate: AtlasType): boolean {
-    if (isAnyType(candidate)) return true;
-    if (!(candidate instanceof RecordType)) return false;
-
-    return [...candidate.fields.entries()].every(([name, type]) => {
-      const compare = this.fields.get(name);
-      if (compare) return compare.isSubtype(type);
-      return false;
-    });
+    return isInterfaceSubtype(this, candidate);
   }
 
   static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {

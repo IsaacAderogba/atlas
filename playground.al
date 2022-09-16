@@ -1,11 +1,16 @@
 class Foo {
+  bar = "" // inferred
 
-}
+  init: (String) -> this = f(name) {
+    this.bar = name // explicit
+    this.create(this.bar)
+  }
 
-class Bar {
+  create: (String) -> Null = f(name) {
+    print("created " # name)
+  }
 
-}
-
-var func: (Foo) -> Bar = f(foo) {
-  return Bar()
+  foo: (String) -> this = f(foo) {
+    return this
+  }
 }

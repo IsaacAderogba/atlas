@@ -31,7 +31,6 @@ import {
   BreakStmt,
   ClassStmt,
   ContinueStmt,
-  ErrorStmt,
   ExpressionStmt,
   IfStmt,
   InterfaceStmt,
