@@ -42,6 +42,7 @@ import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { Property, Parameter, Entry, TypeProperty } from "../ast/Node";
+import { Keywords } from "./Keywords";
 
 export class Parser {
   private tokens: Token[];
@@ -500,7 +501,7 @@ export class Parser {
       return this.callableTypeExpr();
     }
 
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const name = this.name();
 
     let generics: TypeExpr[] = [];
     if (this.match("LEFT_BRACKET")) {
@@ -594,6 +595,15 @@ export class Parser {
     const initializer = this.expression();
 
     return new Property(name, type, initializer);
+  }
+
+  private name(): Token {
+    if (this.match("IDENTIFIER")) return this.previous();
+    for (const [_, keyword] of Keywords) {
+      if (this.match(keyword)) return this.previous();
+    }
+
+    throw this.error(this.peek(), SyntaxErrors.expectedIdentifier());
   }
 
   private match(...types: TokenType[]): boolean {

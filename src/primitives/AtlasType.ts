@@ -279,6 +279,7 @@ export class ClassType extends ObjectType implements CallableType {
   }
 
   isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
     if (this === candidate) return true;
     return false;
   }
@@ -317,8 +318,11 @@ export class InstanceType extends ObjectType {
     return super.get(name);
   }
 
-  isSubtype(_candidate: AtlasType): boolean {
-    throw new Error();
+  isSubtype(candidate: AtlasType): boolean {
+    if (isAnyType(candidate)) return true;
+    if (!isInstanceType(candidate)) return false;
+    if (this.classType === candidate.classType) return true;
+    return false;
   }
 
   static init = (
@@ -333,6 +337,9 @@ export class InstanceType extends ObjectType {
     return this.type;
   }
 }
+
+export const isInstanceType = (type: unknown): type is InstanceType =>
+  type instanceof InstanceType;
 
 export type AtlasType =
   | AnyType

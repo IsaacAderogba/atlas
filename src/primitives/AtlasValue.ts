@@ -1,6 +1,6 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
-import { atlasBoolean, AtlasBoolean } from "./AtlasBoolean";
+import { AtlasBoolean } from "./AtlasBoolean";
 import { AtlasClass } from "./AtlasClass";
 import { AtlasFunction } from "./AtlasFunction";
 import { AtlasInstance } from "./AtlasInstance";
@@ -26,9 +26,8 @@ export type AtlasValue =
 export const Boolean = new AtlasClass(
   "Boolean",
   toNativeFunctions({
-    init: (value: AtlasValue) => {
-      if (value.type === "Boolean") return atlasBoolean(value.value);
-      throw new NativeError(RuntimeErrors.expectedBoolean());
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
     },
   })
 );
@@ -36,16 +35,17 @@ export const Boolean = new AtlasClass(
 export const Null = new AtlasClass(
   "Null",
   toNativeFunctions({
-    init: () => new AtlasNull(),
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
+    },
   })
 );
 
 export const Number = new AtlasClass(
   "Number",
   toNativeFunctions({
-    init: (value: AtlasValue) => {
-      if (value.type === "Number") return new AtlasNumber(value.value);
-      throw new NativeError(RuntimeErrors.expectedNumber());
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
     },
   })
 );
@@ -54,7 +54,7 @@ export const List = new AtlasClass(
   "List",
   toNativeFunctions({
     init: () => {
-      return new AtlasList();
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
     },
   })
 );
@@ -63,7 +63,7 @@ export const Record = new AtlasClass(
   "Record",
   toNativeFunctions({
     init: () => {
-      return new AtlasRecord();
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
     },
   })
 );
@@ -71,9 +71,8 @@ export const Record = new AtlasClass(
 export const String = new AtlasClass(
   "String",
   toNativeFunctions({
-    init: (value: AtlasValue) => {
-      if (value.type === "String") return new AtlasString(value.value);
-      throw new NativeError(RuntimeErrors.expectedString());
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
     },
   })
 );

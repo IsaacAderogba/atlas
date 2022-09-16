@@ -45,7 +45,7 @@ export class SyntaxErrors {
   static expectedIdentifier(): SourceMessage {
     return this.formatError({
       title: "expected identifier",
-      body: "a variable name was expected",
+      body: "an identifier name was expected",
     });
   }
 

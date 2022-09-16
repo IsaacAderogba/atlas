@@ -11,7 +11,6 @@ import {
   GenericTypeExpr,
   GetExpr,
   GroupingExpr,
-  isCallableTypeExpr,
   isFunctionExpr,
   ListExpr,
   LiteralExpr,
@@ -165,7 +164,7 @@ export class TypeChecker
       state: VariableState.SETTLED,
     });
 
-    // type functions
+    // *only* type functions
     for (const { type, name } of methods) {
       const value = type
         ? this.checkTypeExpr(type)
@@ -173,11 +172,11 @@ export class TypeChecker
       classType.setProp(name.lexeme, value);
     }
 
-    // check functions
+    // with all functions typed, we can finally check them
     for (const prop of methods) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
-      this.checkProperty(prop, method);
+      classType.setProp(prop.name.lexeme, this.checkProperty(prop, method));
     }
 
     this.endScope();
@@ -256,8 +255,17 @@ export class TypeChecker
     });
 
     for (const statement of expr.body.statements) this.checkStmt(statement);
-    const returns = this.currentFunction.returns || Types.Null;
-    const actual = Types.Function.init({ params, returns });
+
+    const returns =
+      this.currentClass === ClassType.CLASS &&
+      this.currentFunction.enumType === FunctionEnum.INIT
+        ? this.lookupScopedValue("this")
+        : this.currentFunction.returns;
+
+    const actual = Types.Function.init({
+      params,
+      returns: returns || Types.Null,
+    });
 
     this.endScope();
     this.currentFunction = enclosingFunction;
@@ -417,8 +425,8 @@ export class TypeChecker
     throw new Error("Method not implemented.");
   }
 
-  visitThisExpr(_expr: ThisExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitThisExpr(expr: ThisExpr): AtlasType {
+    return this.lookupValue(expr.keyword)
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
@@ -462,14 +470,8 @@ export class TypeChecker
   }
 
   private lookupValue(name: Token): AtlasType {
-    for (const scope of this.scopes) {
-      const type = scope.valueScope.get(name.lexeme);
-      if (type) return type;
-    }
-
-    const type = this.globalScope.valueScope.get(name.lexeme);
+    const type = this.lookupScopedValue(name.lexeme);
     if (type) return type;
-
     return this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
   }
 
@@ -483,6 +485,18 @@ export class TypeChecker
     if (entry) return this.settleType(name, entry.type);
 
     return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
+  }
+
+  private lookupScopedValue(name: string): AtlasType | undefined {
+    for (const scope of this.scopes) {
+      const type = scope.valueScope.get(name);
+      if (type) return type;
+    }
+
+    const type = this.globalScope.valueScope.get(name);
+    if (type) return type;
+
+    return undefined;
   }
 
   private lookupField({ name, object }: GetExpr | SetExpr): AtlasType {
