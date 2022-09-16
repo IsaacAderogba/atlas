@@ -2,13 +2,13 @@ import { AtlasBoolean, atlasBoolean } from "../primitives/AtlasBoolean";
 import { AtlasNativeFn } from "../primitives/AtlasNativeFn";
 import { atlasNull } from "../primitives/AtlasNull";
 import { Types } from "../primitives/AtlasType";
-import { AtlasValue, primitives } from "../primitives/AtlasValue";
+import { AtlasValue, Values } from "../primitives/AtlasValue";
 
 const isInstance = new AtlasNativeFn(
   (value: AtlasValue, atlasClass: AtlasValue): AtlasBoolean => {
     if (atlasClass.type !== "Class") return atlasBoolean(false);
 
-    const currentClass = primitives[value.type];
+    const currentClass = Values[value.type];
     if (currentClass === atlasClass) return atlasBoolean(true);
 
     return atlasBoolean(false);
@@ -21,7 +21,7 @@ const isInstanceType = Types.NativeFn.init({
 });
 
 const typeOf = new AtlasNativeFn(
-  (value: AtlasValue) => primitives[value.type] ?? atlasNull()
+  (value: AtlasValue) => Values[value.type] ?? atlasNull()
 );
 
 const typeOfType = Types.NativeFn.init({

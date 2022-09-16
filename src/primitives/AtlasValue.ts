@@ -113,7 +113,7 @@ export const NativeFn = new AtlasClass(
   })
 );
 
-export const primitives = {
+export const Values = {
   Boolean,
   Class,
   Function,

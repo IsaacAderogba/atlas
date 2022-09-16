@@ -1,7 +1,7 @@
 import { AtlasNumber } from "./primitives/AtlasNumber";
 import { AtlasString } from "./primitives/AtlasString";
 import { AtlasNativeFn } from "./primitives/AtlasNativeFn";
-import { primitives } from "./primitives/AtlasValue";
+import { Values } from "./primitives/AtlasValue";
 import { identity, identityTypes } from "./natives/identity";
 import { AtlasType, Types } from "./primitives/AtlasType";
 
@@ -26,7 +26,7 @@ export const globals = {
   clock,
   print,
   ...identity,
-  ...primitives,
+  ...Values,
 };
 
 export const typeGlobals: { [key: string]: AtlasType } = {
