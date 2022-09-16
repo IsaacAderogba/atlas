@@ -4,16 +4,17 @@ import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { Token } from "./Token";
 import { Entry, Parameter } from "./Node";
 import type { BlockStmt } from "./Stmt";
+import { AtlasType } from "../primitives/AtlasType";
 
 interface BaseExpr extends SourceRangeable {
-  accept<T>(visitor: ExprVisitor<T>): T;
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T;
 }
 
 export class AssignExpr implements BaseExpr {
   constructor(readonly name: Token, readonly value: Expr) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitAssignExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitAssignExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -30,8 +31,8 @@ export class TernaryExpr implements BaseExpr {
     readonly elseBranch: Expr
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitTernaryExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitTernaryExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -48,8 +49,8 @@ export class BinaryExpr implements BaseExpr {
     readonly right: Expr
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitBinaryExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitBinaryExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -68,8 +69,8 @@ export class CallExpr implements BaseExpr {
     readonly close: Token
   ) {}
 
-  accept<R>(visitor: ExprVisitor<R>): R {
-    return visitor.visitCallExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitCallExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -87,8 +88,8 @@ export class FunctionExpr implements BaseExpr {
     readonly body: BlockStmt
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitFunctionExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitFunctionExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -104,8 +105,8 @@ export const isFunctionExpr = (value: unknown): value is FunctionExpr =>
 export class GetExpr implements BaseExpr {
   constructor(readonly object: Expr, readonly name: Token) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitGetExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitGetExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -122,8 +123,8 @@ export class GroupingExpr implements BaseExpr {
     readonly close: Token
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitGroupingExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitGroupingExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -140,8 +141,8 @@ export class SetExpr {
     readonly value: Expr
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitSetExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitSetExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -154,8 +155,8 @@ export class SetExpr {
 export class ThisExpr {
   constructor(readonly keyword: Token) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitThisExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitThisExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -168,8 +169,8 @@ export class ThisExpr {
 export class UnaryExpr implements BaseExpr {
   constructor(readonly operator: Token, readonly right: Expr) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitUnaryExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitUnaryExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -182,8 +183,8 @@ export class UnaryExpr implements BaseExpr {
 export class LiteralExpr implements BaseExpr {
   constructor(readonly token: Token, readonly value: AtlasValue) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitLiteralExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitLiteralExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -200,8 +201,8 @@ export class ListExpr implements BaseExpr {
     readonly close: Token
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitListExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitListExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -218,8 +219,8 @@ export class LogicalExpr implements BaseExpr {
     readonly right: Expr
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitLogicalExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitLogicalExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -248,8 +249,8 @@ export class RecordExpr implements BaseExpr {
     readonly close: Token
   ) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitRecordExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitRecordExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -262,8 +263,8 @@ export class RecordExpr implements BaseExpr {
 export class VariableExpr {
   constructor(readonly name: Token) {}
 
-  accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitVariableExpr(this);
+  accept<T>(visitor: ExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitVariableExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -292,25 +293,25 @@ export type Expr =
   | VariableExpr;
 
 export interface ExprVisitor<T> {
-  visitAssignExpr(expr: AssignExpr): T;
-  visitBinaryExpr(expr: BinaryExpr): T;
-  visitCallExpr(expr: CallExpr): T;
-  visitFunctionExpr(expr: FunctionExpr): T;
-  visitGetExpr(expr: GetExpr): T;
-  visitTernaryExpr(expr: TernaryExpr): T;
-  visitGroupingExpr(expr: GroupingExpr): T;
-  visitLiteralExpr(expr: LiteralExpr): T;
-  visitListExpr(expr: ListExpr): T;
-  visitLogicalExpr(expr: LogicalExpr): T;
-  visitRecordExpr(expr: RecordExpr): T;
-  visitSetExpr(expr: SetExpr): T;
-  visitThisExpr(expr: ThisExpr): T;
-  visitUnaryExpr(expr: UnaryExpr): T;
-  visitVariableExpr(expr: VariableExpr): T;
+  visitAssignExpr(expr: AssignExpr, type?: AtlasType): T;
+  visitBinaryExpr(expr: BinaryExpr, type?: AtlasType): T;
+  visitCallExpr(expr: CallExpr, type?: AtlasType): T;
+  visitFunctionExpr(expr: FunctionExpr, type?: AtlasType): T;
+  visitGetExpr(expr: GetExpr, type?: AtlasType): T;
+  visitTernaryExpr(expr: TernaryExpr, type?: AtlasType): T;
+  visitGroupingExpr(expr: GroupingExpr, type?: AtlasType): T;
+  visitLiteralExpr(expr: LiteralExpr, type?: AtlasType): T;
+  visitListExpr(expr: ListExpr, type?: AtlasType): T;
+  visitLogicalExpr(expr: LogicalExpr, type?: AtlasType): T;
+  visitRecordExpr(expr: RecordExpr, type?: AtlasType): T;
+  visitSetExpr(expr: SetExpr, type?: AtlasType): T;
+  visitThisExpr(expr: ThisExpr, type?: AtlasType): T;
+  visitUnaryExpr(expr: UnaryExpr, type?: AtlasType): T;
+  visitVariableExpr(expr: VariableExpr, type?: AtlasType): T;
 }
 
 interface BaseTypeExpr extends SourceRangeable {
-  accept<T>(visitor: TypeExprVisitor<T>): T;
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T;
 }
 
 export class CallableTypeExpr {
@@ -321,8 +322,8 @@ export class CallableTypeExpr {
     readonly returnType: TypeExpr
   ) {}
 
-  accept<R>(visitor: TypeExprVisitor<R>): R {
-    return visitor.visitCallableTypeExpr(this);
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitCallableTypeExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -342,8 +343,8 @@ export class CompositeTypeExpr implements BaseTypeExpr {
     readonly right: TypeExpr
   ) {}
 
-  accept<T>(visitor: TypeExprVisitor<T>): T {
-    return visitor.visitCompositeTypeExpr(this);
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitCompositeTypeExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -356,8 +357,8 @@ export class CompositeTypeExpr implements BaseTypeExpr {
 export class GenericTypeExpr implements BaseTypeExpr {
   constructor(readonly name: Token, readonly generics: TypeExpr[]) {}
 
-  accept<R>(visitor: TypeExprVisitor<R>): R {
-    return visitor.visitGenericTypeExpr(this);
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitGenericTypeExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -370,8 +371,8 @@ export class GenericTypeExpr implements BaseTypeExpr {
 export class SubTypeExpr implements BaseTypeExpr {
   constructor(readonly name: Token) {}
 
-  accept<R>(visitor: TypeExprVisitor<R>): R {
-    return visitor.visitSubTypeExpr(this);
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitSubTypeExpr(this, type);
   }
 
   sourceRange(): SourceRange {
@@ -388,8 +389,8 @@ export type TypeExpr =
   | SubTypeExpr;
 
 export interface TypeExprVisitor<T> {
-  visitCallableTypeExpr(typeExpr: CallableTypeExpr): T;
-  visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): T;
-  visitGenericTypeExpr(typeExpr: GenericTypeExpr): T;
-  visitSubTypeExpr(typeExpr: SubTypeExpr): T;
+  visitCallableTypeExpr(typeExpr: CallableTypeExpr, type?: AtlasType): T;
+  visitCompositeTypeExpr(typeExpr: CompositeTypeExpr, type?: AtlasType): T;
+  visitGenericTypeExpr(typeExpr: GenericTypeExpr, type?: AtlasType): T;
+  visitSubTypeExpr(typeExpr: SubTypeExpr, type?: AtlasType): T;
 }

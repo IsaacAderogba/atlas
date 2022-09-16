@@ -130,17 +130,12 @@ export class Parser {
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const props: TypeProperty[] = [];
 
-    if (!this.check("RIGHT_BRACE")) {
-      do {
-        const key = this.consume(
-          "IDENTIFIER",
-          SyntaxErrors.expectedIdentifier()
-        );
-        this.consume("EQUAL", SyntaxErrors.expectedAssignment());
-        const value = this.typeExpr();
+    while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
+      const key = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+      this.consume("COLON", SyntaxErrors.expectedColon());
+      const value = this.typeExpr();
 
-        props.push(new TypeProperty(key, value));
-      } while (this.match("COMMA"));
+      props.push(new TypeProperty(key, value));
     }
 
     const close = this.consume(

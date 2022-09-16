@@ -84,6 +84,7 @@ export class ClassType extends ObjectType implements CallableType {
   }
 
   isSubtype(candidate: AtlasType): boolean {
+    if (this === candidate) return true;
     return isInterfaceSubtype(this, candidate);
   }
 
@@ -93,8 +94,7 @@ export class ClassType extends ObjectType implements CallableType {
   init: typeof ClassType.init = (...props) => ClassType.init(...props);
 
   toString(): string {
-    // todo
-    return this.name;
+    return `${this.name}`;
   }
 }
 

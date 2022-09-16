@@ -3,19 +3,27 @@ import { AtlasType } from "./AtlasType";
 
 export class InterfaceType extends ObjectType {
   readonly type = "Interface";
+  name: string;
 
-  constructor(entries: { [key: string]: AtlasType } = {}) {
+  constructor(name: string, entries: { [key: string]: AtlasType } = {}) {
     super(entries);
+    this.name = name;
   }
 
   isSubtype(candidate: AtlasType): boolean {
     return isInterfaceSubtype(this, candidate);
   }
 
-  static init = (): InterfaceType => new InterfaceType();
-  init: typeof InterfaceType.init = () => InterfaceType.init();
+  static init = (
+    name: string,
+    entries: { [key: string]: AtlasType } = {}
+  ): InterfaceType => {
+    return new InterfaceType(name, entries);
+  };
 
-  toString = (): string => this.type;
+  init: typeof InterfaceType.init = (...props) => InterfaceType.init(...props);
+
+  toString = (): string => `${this.name} ${toInterfaceString(this)}`;
 }
 
 export const isInterfaceType = (
@@ -41,9 +49,24 @@ export const isInterfaceSubtype = (
 
   const methods = [...candidate.methods.entries()].every(([name, type]) => {
     const compare = target.methods.get(name);
+    console.log("compare", name, compare, type)
     if (compare) return compare.isSubtype(type);
     return false;
   });
 
   return fields && methods;
+};
+
+export const toInterfaceString = (target: AtlasType): string => {
+  const props: string[] = [];
+
+  for (const [name, type] of target.fields) {
+    props.push(`"${name}": ${type.toString()}`);
+  }
+
+  for (const [name, type] of target.methods) {
+    props.push(`"${name}": ${type.toString()}`);
+  }
+
+  return `{ ${props.join(", ")} }`;
 };

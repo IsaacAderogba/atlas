@@ -60,6 +60,6 @@ callableTypeExpr  -> ( "[" parameters "]" )? "(" generics ")" "->" typeExpr ;
 genericType       -> IDENTIFIER ( "[" generics "]" )? ;
 
 generics          -> typeExpr ( "," typeExpr )* ;
-typeProperty      -> IDENTIFIER "=" typeExpr ;
+typeProperty      -> IDENTIFIER ":" typeExpr ;
 
 name              -> IDENTIFIER | KEYWORD ;

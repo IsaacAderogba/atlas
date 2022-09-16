@@ -34,5 +34,5 @@ export const Types = {
   NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
   Class: ClassType.init("Class"),
   Instance: InstanceType.init(ClassType.init("Class")),
-  Interface: InterfaceType.init(),
+  Interface: InterfaceType.init("Interface"),
 } as const;

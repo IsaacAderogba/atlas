@@ -1,7 +1,7 @@
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { isInterfaceSubtype } from "./InterfaceType";
+import { isInterfaceSubtype, toInterfaceString } from "./InterfaceType";
 
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
@@ -34,12 +34,7 @@ export class RecordType extends ObjectType {
   init: typeof RecordType.init = (...props) => RecordType.init(...props);
 
   toString = (): string => {
-    const props: string[] = [];
-    for (const [name, type] of this.fields.entries()) {
-      props.push(`"${name}": ${type.toString()}`);
-    }
-
-    return `{ ${props.join(", ")} }`;
+    return toInterfaceString(this);
   };
 }
 

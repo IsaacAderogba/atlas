@@ -137,6 +137,7 @@ export class TypeChecker
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(stmt.name.lexeme);
     this.defineValue(stmt.name, classType);
+    this.settleType(stmt.name, classType);
     this.beginScope();
 
     // prepare for type synthesis and checking
@@ -195,8 +196,18 @@ export class TypeChecker
     if (stmt.elseBranch) this.checkStmt(stmt.elseBranch);
   }
 
-  visitInterfaceStmt(_stmt: InterfaceStmt): void {
-    throw new Error("Method not implemented.");
+  visitInterfaceStmt(stmt: InterfaceStmt): void {
+    const interfaceType = Types.Interface.init(stmt.name.lexeme);
+
+    this.beginScope();
+    stmt.entries.forEach(({ key, value }) => {
+      const type = this.checkTypeExpr(value);
+      this.settleType(key, type);
+      interfaceType.setProp(key.lexeme, type);
+    });
+    this.endScope();
+
+    this.settleType(stmt.name, interfaceType);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -501,6 +512,7 @@ export class TypeChecker
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
     const actualType = this.checkExpr(expr);
+    console.log("expr", actualType, expectedType)
     return this.checkSubtype(expr, actualType, expectedType);
   }
 

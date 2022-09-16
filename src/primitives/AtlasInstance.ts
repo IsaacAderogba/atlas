@@ -53,7 +53,6 @@ export class InstanceType extends ObjectType {
 
   isSubtype(candidate: AtlasType): boolean {
     if (this === candidate) return true;
-    console.log(this, candidate);
     return isInterfaceSubtype(this, candidate);
   }
 
@@ -63,7 +62,7 @@ export class InstanceType extends ObjectType {
   init: typeof InstanceType.init = (...props) => InstanceType.init(...props);
 
   toString(): string {
-    return `${this.classType.name} instance`;
+    return `${this.classType.name}`;
   }
 }
 
