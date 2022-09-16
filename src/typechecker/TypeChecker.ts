@@ -133,7 +133,7 @@ export class TypeChecker
   }
 
   visitBreakStmt(_stmt: BreakStmt): void {
-    throw new Error("Method not implemented.");
+    // no op
   }
 
   visitClassStmt(stmt: ClassStmt): void {
@@ -184,11 +184,7 @@ export class TypeChecker
   }
 
   visitContinueStmt(_stmt: ContinueStmt): void {
-    throw new Error("Method not implemented.");
-  }
-
-  visitErrorStmt?(_stmt: ErrorStmt): void {
-    throw new Error("Method not implemented.");
+    // no op
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
@@ -421,12 +417,13 @@ export class TypeChecker
     return Types.Record.init(entries);
   }
 
-  visitSetExpr(_expr: SetExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitSetExpr(expr: SetExpr): AtlasType {
+    const expected = this.lookupField(expr);
+    return this.checkExprSubtype(expr.value, expected);
   }
 
   visitThisExpr(expr: ThisExpr): AtlasType {
-    return this.lookupValue(expr.keyword)
+    return this.lookupValue(expr.keyword);
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
@@ -502,7 +499,6 @@ export class TypeChecker
   private lookupField({ name, object }: GetExpr | SetExpr): AtlasType {
     const objectType = this.checkExpr(object);
     const memberType = objectType.get(name);
-
     if (memberType) return memberType;
     return this.error(name, TypeCheckErrors.undefinedProperty(name.lexeme));
   }

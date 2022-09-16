@@ -333,8 +333,7 @@ export class InstanceType extends ObjectType {
   init: typeof InstanceType.init = (...props) => InstanceType.init(...props);
 
   toString(): string {
-    // todo
-    return this.type;
+    return this.classType.name;
   }
 }
 
@@ -363,5 +362,5 @@ export const Types = {
   Function: FunctionType.init({ params: [], returns: NullType.init() }),
   NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
   Class: ClassType.init("Class"),
-  InstanceType: InstanceType.init(ClassType.init("Class"), new Map()),
+  Instance: InstanceType.init(ClassType.init("Class"), new Map()),
 } as const;
