@@ -38,7 +38,6 @@ import {
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
-import { Token } from "../ast/Token";
 import {
   SourceMessage,
   SourceRange,
@@ -51,23 +50,21 @@ import { AtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
-import { Stack } from "../utils/Stack";
-import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
+import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 
 export class TypeChecker implements TypeVisitor {
-  private readonly scopes: Stack<TypeCheckerScope> = new Stack();
-  private readonly globalScope = globalTypeScope();
-  private currentFunction?: CurrentFunction;
-  private currentClass = ClassType.NONE;
+  private readonly lookup = new TypeCheckerLookup(this);
   private errors: TypeCheckError[] = [];
+  currentFunction?: CurrentFunction;
+  currentClass = ClassType.NONE;
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    this.beginScope(this.globalScope);
+    this.lookup.beginScope(this.lookup.globalScope);
     for (const statement of statements) {
       this.acceptStmt(statement);
     }
-    this.endScope();
+    this.lookup.endScope();
 
     return { errors: this.errors };
   }
@@ -85,9 +82,9 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
-    this.beginScope();
+    this.lookup.beginScope();
     for (const statement of stmt.statements) this.acceptStmt(statement);
-    this.endScope();
+    this.lookup.endScope();
   }
 
   visitBreakStmt(_stmt: BreakStmt): void {
@@ -98,9 +95,9 @@ export class TypeChecker implements TypeVisitor {
     const enclosingClass = this.currentClass;
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(stmt.name.lexeme);
-    this.defineValue(stmt.name, classType);
-    this.settleType(stmt.name, classType);
-    this.beginScope();
+    this.lookup.defineValue(stmt.name, classType);
+    this.lookup.settleType(stmt.name, classType);
+    this.lookup.beginScope();
 
     // prepare for type synthesis and checking
     const fields: Property[] = [];
@@ -117,8 +114,8 @@ export class TypeChecker implements TypeVisitor {
 
     // create this type now that fields have been bound
     const thisInstance = classType.returns;
-    this.getScope().valueScope.set("this", thisInstance);
-    this.getScope().typeScope.set("this", {
+    this.lookup.getScope().valueScope.set("this", thisInstance);
+    this.lookup.getScope().typeScope.set("this", {
       type: thisInstance,
       state: VariableState.SETTLED,
     });
@@ -138,7 +135,7 @@ export class TypeChecker implements TypeVisitor {
       classType.setProp(prop.name.lexeme, this.checkProperty(prop, method));
     }
 
-    this.endScope();
+    this.lookup.endScope();
     this.currentClass = enclosingClass;
   }
 
@@ -161,15 +158,15 @@ export class TypeChecker implements TypeVisitor {
   visitInterfaceStmt(stmt: InterfaceStmt): void {
     const interfaceType = Types.Interface.init(stmt.name.lexeme);
 
-    this.beginScope();
+    this.lookup.beginScope();
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
-      this.settleType(key, type);
+      this.lookup.settleType(key, type);
       interfaceType.setProp(key.lexeme, type);
     });
-    this.endScope();
+    this.lookup.endScope();
 
-    this.settleType(stmt.name, interfaceType);
+    this.lookup.settleType(stmt.name, interfaceType);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -181,65 +178,8 @@ export class TypeChecker implements TypeVisitor {
     this.checkProperty(stmt.property, FunctionEnum.FUNCTION);
   }
 
-  private checkProperty(
-    { initializer: expr, name, type }: Property,
-    enumType: FunctionEnum = FunctionEnum.FUNCTION
-  ): AtlasType {
-    if (isFunctionExpr(expr) && type) {
-      const expected = this.acceptTypeExpr(type);
-      this.declareValue(name, expected);
-      const value = this.checkFunction({ expr, enumType, expected });
-      this.defineValue(name, value);
-      return value;
-    } else if (isFunctionExpr(expr)) {
-      return this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
-    } else {
-      let narrowed: AtlasType;
-      if (type) {
-        narrowed = this.checkExprSubtype(expr, this.acceptTypeExpr(type));
-      } else {
-        narrowed = this.acceptExpr(expr);
-      }
-
-      this.defineValue(name, narrowed);
-      return narrowed;
-    }
-  }
-
-  private checkFunction(current: CurrentFunction): AtlasType {
-    const enclosingFunction = this.currentFunction;
-    this.currentFunction = current;
-    this.beginScope();
-
-    const { expr, expected } = current;
-
-    const expectedParams = isCallableType(expected) ? expected.params : [];
-    const params = expr.params.map(({ name }, i) => {
-      this.defineValue(name, expectedParams[i] || Types.Any);
-      return expectedParams[i] || Types.Any;
-    });
-
-    for (const statement of expr.body.statements) this.acceptStmt(statement);
-
-    const returns =
-      this.currentClass === ClassType.CLASS &&
-      this.currentFunction.enumType === FunctionEnum.INIT
-        ? this.lookupScopedValue("this")
-        : this.currentFunction.returns;
-
-    const actual = Types.Function.init({
-      params,
-      returns: returns || Types.Null,
-    });
-
-    this.endScope();
-    this.currentFunction = enclosingFunction;
-
-    return this.checkSubtype(expr, actual, expected);
-  }
-
   visitTypeStmt(stmt: TypeStmt): void {
-    this.defineType(stmt.name, this.acceptTypeExpr(stmt.type));
+    this.lookup.defineType(stmt.name, this.acceptTypeExpr(stmt.type));
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
@@ -249,7 +189,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasType {
-    const expected = this.lookupValue(expr.name);
+    const expected = this.lookup.value(expr.name);
     const actual = this.acceptExpr(expr.value, expected);
     return this.checkSubtype(expr.value, actual, expected);
   }
@@ -326,7 +266,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGetExpr(expr: GetExpr): AtlasType {
-    return this.lookupField(expr);
+    return this.lookup.field(expr);
   }
 
   visitTernaryExpr(_expr: TernaryExpr): AtlasType {
@@ -387,12 +327,12 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {
-    const expected = this.lookupField(expr);
+    const expected = this.lookup.field(expr);
     return this.checkExprSubtype(expr.value, expected);
   }
 
   visitThisExpr(expr: ThisExpr): AtlasType {
-    return this.lookupValue(expr.keyword);
+    return this.lookup.value(expr.keyword);
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
@@ -412,14 +352,14 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasType {
-    return this.lookupValue(expr.name);
+    return this.lookup.value(expr.name);
   }
 
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
-    this.beginScope();
+    this.lookup.beginScope();
     const params = typeExpr.paramTypes.map(p => this.acceptTypeExpr(p));
     const returns = this.acceptTypeExpr(typeExpr.returnType);
-    this.endScope();
+    this.lookup.endScope();
     return Types.Function.init({ params, returns });
   }
 
@@ -432,44 +372,64 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
-    return this.lookupType(typeExpr.name);
+    return this.lookup.type(typeExpr.name);
   }
 
-  private lookupValue(name: Token): AtlasType {
-    const type = this.lookupScopedValue(name.lexeme);
-    if (type) return type;
-    return this.error(name, TypeCheckErrors.undefinedValue(name.lexeme));
-  }
+  private checkProperty(
+    { initializer: expr, name, type }: Property,
+    enumType: FunctionEnum = FunctionEnum.FUNCTION
+  ): AtlasType {
+    if (isFunctionExpr(expr) && type) {
+      const expected = this.acceptTypeExpr(type);
+      this.lookup.declareValue(name, expected);
+      const value = this.checkFunction({ expr, enumType, expected });
+      this.lookup.defineValue(name, value);
+      return value;
+    } else if (isFunctionExpr(expr)) {
+      return this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
+    } else {
+      let narrowed: AtlasType;
+      if (type) {
+        narrowed = this.checkExprSubtype(expr, this.acceptTypeExpr(type));
+      } else {
+        narrowed = this.acceptExpr(expr);
+      }
 
-  private lookupType(name: Token): AtlasType {
-    for (const scope of this.scopes) {
-      const entry = scope.typeScope.get(name.lexeme);
-      if (entry) return this.settleType(name, entry.type);
+      this.lookup.defineValue(name, narrowed);
+      return narrowed;
     }
-
-    const entry = this.globalScope.typeScope.get(name.lexeme);
-    if (entry) return this.settleType(name, entry.type);
-
-    return this.error(name, TypeCheckErrors.undefinedType(name.lexeme));
   }
 
-  private lookupScopedValue(name: string): AtlasType | undefined {
-    for (const scope of this.scopes) {
-      const type = scope.valueScope.get(name);
-      if (type) return type;
-    }
+  private checkFunction(current: CurrentFunction): AtlasType {
+    const enclosingFunction = this.currentFunction;
+    this.currentFunction = current;
+    this.lookup.beginScope();
 
-    const type = this.globalScope.valueScope.get(name);
-    if (type) return type;
+    const { expr, expected } = current;
 
-    return undefined;
-  }
+    const expectedParams = isCallableType(expected) ? expected.params : [];
+    const params = expr.params.map(({ name }, i) => {
+      this.lookup.defineValue(name, expectedParams[i] || Types.Any);
+      return expectedParams[i] || Types.Any;
+    });
 
-  private lookupField({ name, object }: GetExpr | SetExpr): AtlasType {
-    const objectType = this.acceptExpr(object);
-    const memberType = objectType.get(name);
-    if (memberType) return memberType;
-    return this.error(name, TypeCheckErrors.undefinedProperty(name.lexeme));
+    for (const statement of expr.body.statements) this.acceptStmt(statement);
+
+    const returns =
+      this.currentClass === ClassType.CLASS &&
+      this.currentFunction.enumType === FunctionEnum.INIT
+        ? this.lookup.scopedValue("this")
+        : this.currentFunction.returns;
+
+    const actual = Types.Function.init({
+      params,
+      returns: returns || Types.Null,
+    });
+
+    this.lookup.endScope();
+    this.currentFunction = enclosingFunction;
+
+    return this.checkSubtype(expr, actual, expected);
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
@@ -490,59 +450,7 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  private defineType(name: Token, type: AtlasType): void {
-    const scope = this.getScope();
-
-    if (scope.typeScope.has(name.lexeme)) {
-      this.error(name, TypeCheckErrors.prohibitedTypeRedeclaration());
-    } else {
-      scope.typeScope.set(name.lexeme, {
-        type,
-        source: name,
-        state: VariableState.DEFINED,
-      });
-    }
-  }
-
-  private settleType(name: Token, type: AtlasType): AtlasType {
-    this.getScope().typeScope.set(name.lexeme, {
-      type,
-      state: VariableState.SETTLED,
-      source: name,
-    });
-    return type;
-  }
-
-  private declareValue(name: Token, type: AtlasType): void {
-    this.getScope().valueScope.set(name.lexeme, type);
-  }
-
-  private defineValue(name: Token, type: AtlasType): void {
-    this.getScope().valueScope.set(name.lexeme, type);
-  }
-
-  private beginScope(newScope = new TypeCheckerScope()): void {
-    this.scopes.push(newScope);
-  }
-
-  private endScope(): void {
-    const scope = this.scopes.pop();
-    if (scope && this.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.typeScope.values()) {
-        if (state === VariableState.DEFINED && source) {
-          this.error(source, TypeCheckErrors.unusedType());
-        }
-      }
-    }
-  }
-
-  private getScope(): TypeCheckerScope {
-    const scope = this.scopes.peek();
-    if (!scope) throw new Error("Expected scope");
-    return scope;
-  }
-
-  private error(source: SourceRangeable, message: SourceMessage): AtlasType {
+  error(source: SourceRangeable, message: SourceMessage): AtlasType {
     const error = new TypeCheckError(message, source.sourceRange());
     this.errors.push(error);
     return Types.Any;
