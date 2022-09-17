@@ -3,9 +3,10 @@ interface Foo {
   foo: String
 }
 
-var foo: Foo = {
-  "bar": f() {
-    return null
-  },
-  "foo": ""
+class FooClass {
+  bar: () -> Null = f() {}
+
+  foo = ""
 }
+
+var foo: Foo = FooClass()

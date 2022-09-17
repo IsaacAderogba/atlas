@@ -49,7 +49,6 @@ export const isInterfaceSubtype = (
 
   const methods = [...candidate.methods.entries()].every(([name, type]) => {
     const compare = target.methods.get(name);
-    console.log("compare", name, compare, type)
     if (compare) return compare.isSubtype(type);
     return false;
   });

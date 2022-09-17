@@ -6,7 +6,6 @@ import {
   CallExpr,
   CompositeTypeExpr,
   Expr,
-  ExprVisitor,
   FunctionExpr,
   GenericTypeExpr,
   GetExpr,
@@ -21,7 +20,6 @@ import {
   TernaryExpr,
   ThisExpr,
   TypeExpr,
-  TypeExprVisitor,
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
@@ -36,7 +34,6 @@ import {
   InterfaceStmt,
   ReturnStmt,
   Stmt,
-  StmtVisitor,
   TypeStmt,
   VarStmt,
   WhileStmt,
@@ -48,54 +45,19 @@ import {
   SourceRangeable,
 } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
-import { typeGlobals } from "../globals";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
 import { AtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
+import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
-import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
+import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
+import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 
-class TypeCheckerScope {
-  readonly typeScope: Scope<{
-    type: AtlasType;
-    state: VariableState;
-    source?: SourceRangeable;
-  }>;
-  readonly valueScope: Scope<AtlasType>;
-
-  constructor({
-    typeScope = new Scope(),
-    valueScope = new Scope(),
-  }: Partial<TypeCheckerScope> = {}) {
-    this.typeScope = typeScope;
-    this.valueScope = valueScope;
-  }
-}
-
-type CurrentFunction = {
-  enumType: FunctionEnum;
-  expr: FunctionExpr;
-  expected: AtlasType;
-  returns?: AtlasType;
-};
-
-export class TypeChecker
-  implements
-    ExprVisitor<AtlasType>,
-    TypeExprVisitor<AtlasType>,
-    StmtVisitor<void>
-{
+export class TypeChecker implements TypeVisitor {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
-  private readonly globalScope = new TypeCheckerScope({
-    typeScope: Scope.fromGlobals(Types, (_, type) => ({
-      type,
-      state: VariableState.SETTLED,
-    })),
-    valueScope: Scope.fromGlobals(typeGlobals, (_, type) => type),
-  });
-
+  private readonly globalScope = globalTypeScope();
   private currentFunction?: CurrentFunction;
   private currentClass = ClassType.NONE;
   private errors: TypeCheckError[] = [];
@@ -103,28 +65,28 @@ export class TypeChecker
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     this.beginScope(this.globalScope);
     for (const statement of statements) {
-      this.checkStmt(statement);
+      this.acceptStmt(statement);
     }
     this.endScope();
 
     return { errors: this.errors };
   }
 
-  checkStmt(statement: Stmt): void {
+  acceptStmt(statement: Stmt): void {
     statement.accept(this);
   }
 
-  checkExpr(expression: Expr): AtlasType {
-    return expression.accept(this);
+  acceptExpr(expression: Expr, expectedType?: AtlasType): AtlasType {
+    return expression.accept(this, expectedType);
   }
 
-  checkTypeExpr(typeExpr: TypeExpr): AtlasType {
-    return typeExpr.accept(this);
+  acceptTypeExpr(typeExpr: TypeExpr, expectedType?: AtlasType): AtlasType {
+    return typeExpr.accept(this, expectedType);
   }
 
   visitBlockStmt(stmt: BlockStmt): void {
     this.beginScope();
-    for (const statement of stmt.statements) this.checkStmt(statement);
+    for (const statement of stmt.statements) this.acceptStmt(statement);
     this.endScope();
   }
 
@@ -164,7 +126,7 @@ export class TypeChecker
     // *only* type functions
     for (const { type, name } of methods) {
       const value = type
-        ? this.checkTypeExpr(type)
+        ? this.acceptTypeExpr(type)
         : this.error(name, TypeCheckErrors.requiredFunctionAnnotation());
       classType.setProp(name.lexeme, value);
     }
@@ -185,15 +147,15 @@ export class TypeChecker
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
-    this.checkExpr(stmt.expression);
+    this.acceptExpr(stmt.expression);
   }
 
   visitIfStmt(stmt: IfStmt): void {
-    const conditionActual = this.checkExpr(stmt.condition);
+    const conditionActual = this.acceptExpr(stmt.condition);
     this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
 
-    this.checkStmt(stmt.thenBranch);
-    if (stmt.elseBranch) this.checkStmt(stmt.elseBranch);
+    this.acceptStmt(stmt.thenBranch);
+    if (stmt.elseBranch) this.acceptStmt(stmt.elseBranch);
   }
 
   visitInterfaceStmt(stmt: InterfaceStmt): void {
@@ -201,7 +163,7 @@ export class TypeChecker
 
     this.beginScope();
     stmt.entries.forEach(({ key, value }) => {
-      const type = this.checkTypeExpr(value);
+      const type = this.acceptTypeExpr(value);
       this.settleType(key, type);
       interfaceType.setProp(key.lexeme, type);
     });
@@ -211,7 +173,7 @@ export class TypeChecker
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
-    const value = this.checkExpr(stmt.value);
+    const value = this.acceptExpr(stmt.value, this.currentFunction?.expected);
     if (this.currentFunction) this.currentFunction.returns = value;
   }
 
@@ -224,7 +186,7 @@ export class TypeChecker
     enumType: FunctionEnum = FunctionEnum.FUNCTION
   ): AtlasType {
     if (isFunctionExpr(expr) && type) {
-      const expected = this.checkTypeExpr(type);
+      const expected = this.acceptTypeExpr(type);
       this.declareValue(name, expected);
       const value = this.checkFunction({ expr, enumType, expected });
       this.defineValue(name, value);
@@ -234,9 +196,9 @@ export class TypeChecker
     } else {
       let narrowed: AtlasType;
       if (type) {
-        narrowed = this.checkExprSubtype(expr, this.checkTypeExpr(type));
+        narrowed = this.checkExprSubtype(expr, this.acceptTypeExpr(type));
       } else {
-        narrowed = this.checkExpr(expr);
+        narrowed = this.acceptExpr(expr);
       }
 
       this.defineValue(name, narrowed);
@@ -257,7 +219,7 @@ export class TypeChecker
       return expectedParams[i] || Types.Any;
     });
 
-    for (const statement of expr.body.statements) this.checkStmt(statement);
+    for (const statement of expr.body.statements) this.acceptStmt(statement);
 
     const returns =
       this.currentClass === ClassType.CLASS &&
@@ -277,20 +239,18 @@ export class TypeChecker
   }
 
   visitTypeStmt(stmt: TypeStmt): void {
-    this.defineType(stmt.name, this.checkTypeExpr(stmt.type));
+    this.defineType(stmt.name, this.acceptTypeExpr(stmt.type));
   }
 
   visitWhileStmt(stmt: WhileStmt): void {
-    const conditionActual = this.checkExpr(stmt.condition);
+    const conditionActual = this.acceptExpr(stmt.condition);
     this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
-    this.checkStmt(stmt.body);
+    this.acceptStmt(stmt.body);
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasType {
     const expected = this.lookupValue(expr.name);
-    const actual = isFunctionExpr(expr.value)
-      ? this.visitFunctionExpr(expr.value, expected)
-      : this.checkExpr(expr.value);
+    const actual = this.acceptExpr(expr.value, expected);
     return this.checkSubtype(expr.value, actual, expected);
   }
 
@@ -316,8 +276,8 @@ export class TypeChecker
         return Types.Boolean;
       case "EQUAL_EQUAL":
       case "BANG_EQUAL":
-        this.checkExpr(expr.left);
-        this.checkExpr(expr.right);
+        this.acceptExpr(expr.left);
+        this.acceptExpr(expr.right);
         return Types.Boolean;
       default:
         return this.error(
@@ -328,7 +288,7 @@ export class TypeChecker
   }
 
   visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
-    const calleeType = this.checkExpr(callee);
+    const calleeType = this.acceptExpr(callee);
 
     if (isAnyType(calleeType)) return calleeType;
     if (!isCallableType(calleeType)) {
@@ -414,11 +374,13 @@ export class TypeChecker
     }
   }
 
-  visitRecordExpr(expr: RecordExpr): AtlasType {
+  visitRecordExpr(expr: RecordExpr, expected?: AtlasType): AtlasType {
     const entries: { [key: string]: AtlasType } = {};
 
+    const type = expected && isInterfaceType(expected) ? expected : undefined;
     expr.entries.forEach(({ key, value }) => {
-      entries[(key.literal as AtlasString).value] = this.checkExpr(value);
+      const token = key.clone({ lexeme: (key.literal as AtlasString).value });
+      entries[token.lexeme] = this.acceptExpr(value, type?.get(token));
     });
 
     return Types.Record.init(entries);
@@ -455,8 +417,8 @@ export class TypeChecker
 
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
     this.beginScope();
-    const params = typeExpr.paramTypes.map(p => this.checkTypeExpr(p));
-    const returns = this.checkTypeExpr(typeExpr.returnType);
+    const params = typeExpr.paramTypes.map(p => this.acceptTypeExpr(p));
+    const returns = this.acceptTypeExpr(typeExpr.returnType);
     this.endScope();
     return Types.Function.init({ params, returns });
   }
@@ -504,15 +466,14 @@ export class TypeChecker
   }
 
   private lookupField({ name, object }: GetExpr | SetExpr): AtlasType {
-    const objectType = this.checkExpr(object);
+    const objectType = this.acceptExpr(object);
     const memberType = objectType.get(name);
     if (memberType) return memberType;
     return this.error(name, TypeCheckErrors.undefinedProperty(name.lexeme));
   }
 
   private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
-    const actualType = this.checkExpr(expr);
-    console.log("expr", actualType, expectedType)
+    const actualType = this.acceptExpr(expr, expectedType);
     return this.checkSubtype(expr, actualType, expectedType);
   }
 

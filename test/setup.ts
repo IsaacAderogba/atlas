@@ -2,7 +2,6 @@
 import { Stmt } from "../src/ast/Stmt";
 import { Parser } from "../src/parser/Parser";
 import { Scanner } from "../src/parser/Scanner";
-import { AtlasValue } from "../src/runtime/AtlasValue";
 import { Interpreter } from "../src/runtime/Interpreter";
 import { Analyzer } from "../src/analyzer/Analyzer";
 import { TypeChecker } from "../src/typechecker/TypeChecker";
@@ -11,6 +10,7 @@ import { Expr } from "../src/ast/Expr";
 import { AtlasType } from "../src/primitives/AtlasType";
 import { SourceError } from "../src/errors/SourceError";
 import { ConsoleReporter } from "../src/reporter/ConsoleReporter";
+import { AtlasValue } from "../src/primitives/AtlasValue";
 
 class Tester {
   private reporter = new ConsoleReporter();
@@ -39,12 +39,12 @@ class Tester {
 
   evalTypeWorkflow(source: string): AtlasType {
     const expression = this.testExpress(source);
-    return this.typechecker.checkExpr(expression);
+    return this.typechecker.acceptExpr(expression);
   }
 
   evalTypeExprWorkflow(source: string): AtlasType {
     const expression = this.testExpress(source);
-    return this.typechecker.checkExpr(expression);
+    return this.typechecker.acceptExpr(expression);
   }
 
   parseWorkflow(source: string): ReturnType<Parser["parse"]> {

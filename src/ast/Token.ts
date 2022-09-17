@@ -21,4 +21,14 @@ export class Token implements SourceRangeable {
 
     return new SourceRange(start, end);
   }
+
+  clone({
+    type = this.type,
+    lexeme = this.lexeme,
+    literal = this.literal,
+    line = this.line,
+    column = this.column,
+  }: Partial<Token> = {}): Token {
+    return new Token(type, lexeme, literal, line, column);
+  }
 }

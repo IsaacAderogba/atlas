@@ -524,7 +524,7 @@ describe("Type statements", () => {
     const { tester } = setupTester();
 
     const { statements } = tester.parseWorkflow(
-      "interface Foo { bar = String }"
+      "interface Foo { bar : String }"
     );
     expect(statements[0]).toMatchObject({
       close: { lexeme: "}", type: "RIGHT_BRACE" },
