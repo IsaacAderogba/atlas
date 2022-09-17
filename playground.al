@@ -1,10 +1,15 @@
 interface Foo {
-  bar: (Number) -> Null
+  bar: String
 }
 
 class FooClass implements Foo {
-  bar: (Number) -> Null = f(num) {}
-
-  foo = ""
+  bar: String = ""
 }
 
+class BarClass {
+  bar: String = ""
+}
+
+var func: (Foo) -> Null = f(fooLike) {}
+
+func(BarClass())
