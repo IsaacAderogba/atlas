@@ -1,12 +1,9 @@
 interface Foo {
-  bar: () -> Null
-  foo: String
+  bar: (Number) -> Null
 }
 
 class FooClass {
   bar: () -> Null = f() {}
-
-  foo = ""
 }
 
 var foo: Foo = FooClass()
