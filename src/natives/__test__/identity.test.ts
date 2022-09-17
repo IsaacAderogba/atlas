@@ -2,20 +2,20 @@ import { describe, it, expect } from "vitest";
 import { Boolean } from "../../primitives/AtlasValue";
 
 describe("identity", () => {
-  it("tests `isInstance` results", () => {
+  it("tests `instanceOf` results", () => {
     const tests = [
       {
-        source: "var x = isInstance(true, Boolean)",
+        source: "var x = instanceOf(true, Boolean)",
         variable: "x",
         value: true,
       },
       {
-        source: "var x = isInstance(false, Boolean)",
+        source: "var x = instanceOf(false, Boolean)",
         variable: "x",
         value: true,
       },
       {
-        source: "var x = isInstance('false', Boolean)",
+        source: "var x = instanceOf('false', Boolean)",
         variable: "x",
         value: false,
       },
