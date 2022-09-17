@@ -2,8 +2,9 @@ interface Foo {
   bar: (Number) -> Null
 }
 
-class FooClass {
-  bar: () -> Null = f() {}
+class FooClass implements Foo {
+  bar: (Number) -> Null = f(num) {}
+
+  foo = ""
 }
 
-var foo: Foo = FooClass()

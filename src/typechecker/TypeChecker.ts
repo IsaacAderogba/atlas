@@ -91,18 +91,18 @@ export class TypeChecker implements TypeVisitor {
     // no op
   }
 
-  visitClassStmt(stmt: ClassStmt): void {
+  visitClassStmt({ name, properties, typeExpr }: ClassStmt): void {
     const enclosingClass = this.currentClass;
     this.currentClass = ClassType.CLASS;
-    const classType = Types.Class.init(stmt.name.lexeme);
-    this.lookup.defineValue(stmt.name, classType);
-    this.lookup.settleType(stmt.name, classType);
+    const classType = Types.Class.init(name.lexeme);
+    this.lookup.defineValue(name, classType);
+    this.lookup.settleType(name, classType);
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
     const fields: Property[] = [];
     const methods: Property[] = [];
-    for (const prop of stmt.properties) {
+    for (const prop of properties) {
       const props = isFunctionExpr(prop.initializer) ? methods : fields;
       props.push(prop);
     }
@@ -133,6 +133,15 @@ export class TypeChecker implements TypeVisitor {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
       classType.setProp(prop.name.lexeme, this.checkProperty(prop, method));
+    }
+
+    // assert the type if an `implements` keyword was used
+    if (typeExpr) {
+      this.checkSubtype(
+        new SourceRange(name.sourceRange().start, typeExpr.sourceRange().end),
+        classType,
+        this.acceptTypeExpr(typeExpr)
+      );
     }
 
     this.lookup.endScope();
