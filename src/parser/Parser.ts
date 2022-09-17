@@ -331,9 +331,9 @@ export class Parser {
 
     while (true) {
       if (this.check("LEFT_PAREN") || this.check("LEFT_BRACKET")) {
-        let generics: TypeExpr[] = [];
+        let typeExprs: TypeExpr[] = [];
         if (this.match("LEFT_BRACKET")) {
-          generics = this.generics("RIGHT_BRACKET");
+          typeExprs = this.typeExprs("RIGHT_BRACKET");
           this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
         }
 
@@ -348,7 +348,7 @@ export class Parser {
           SyntaxErrors.expectedRightParen()
         );
 
-        expr = new CallExpr(expr, generics, open, args, close);
+        expr = new CallExpr(expr, typeExprs, open, args, close);
       } else if (this.match("DOT")) {
         const name = this.consume(
           "IDENTIFIER",
@@ -498,13 +498,13 @@ export class Parser {
 
     const name = this.name();
 
-    let generics: TypeExpr[] = [];
+    let typeExprs: TypeExpr[] = [];
     if (this.match("LEFT_BRACKET")) {
-      generics = this.generics("RIGHT_BRACKET");
+      typeExprs = this.typeExprs("RIGHT_BRACKET");
       this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
     }
 
-    if (generics.length > 0) return new GenericTypeExpr(name, generics);
+    if (typeExprs.length > 0) return new GenericTypeExpr(name, typeExprs);
 
     return new SubTypeExpr(name);
   }
@@ -517,14 +517,14 @@ export class Parser {
     }
 
     const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
-    const generics = this.generics("RIGHT_PAREN");
+    const typeExprs = this.typeExprs("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("MINUS", SyntaxErrors.expectedDash());
     this.consume("GREATER", SyntaxErrors.expectedRightCaret());
     const returnType = this.typeExpr();
 
-    return new CallableTypeExpr(parameters, open, generics, returnType);
+    return new CallableTypeExpr(parameters, open, typeExprs, returnType);
   }
 
   private expressions(type: TokenType): Expr[] {
@@ -555,16 +555,16 @@ export class Parser {
     return entries;
   }
 
-  private generics(type: TokenType): TypeExpr[] {
-    const generics: TypeExpr[] = [];
+  private typeExprs(type: TokenType): TypeExpr[] {
+    const typeExprs: TypeExpr[] = [];
 
     if (!this.check(type)) {
       do {
-        generics.push(this.typeExpr());
+        typeExprs.push(this.typeExpr());
       } while (this.match("COMMA"));
     }
 
-    return generics;
+    return typeExprs;
   }
 
   private parameters(type: TokenType): Parameter[] {

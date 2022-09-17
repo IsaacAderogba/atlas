@@ -601,7 +601,7 @@ describe("Type statements", () => {
     const { statements } = tester.parseWorkflow("type Foo = String[Bar]");
     expect(statements[0]).toMatchObject({
       type: {
-        generics: [
+        typeExprs: [
           {
             name: { lexeme: "Bar", type: "IDENTIFIER" },
           },
@@ -662,7 +662,7 @@ describe("Type annotations", () => {
           name: { lexeme: "foo", type: "IDENTIFIER" },
         },
         close: { lexeme: ")", type: "RIGHT_PAREN" },
-        generics: [
+        typeExprs: [
           {
             name: { lexeme: "String", type: "IDENTIFIER" },
           },

@@ -42,6 +42,7 @@ export class ClassStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
     readonly name: Token,
+    // readonly parameters: Parameter[],
     readonly open: Token,
     readonly properties: Property[],
     readonly close: Token

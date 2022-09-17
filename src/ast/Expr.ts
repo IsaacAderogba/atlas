@@ -63,7 +63,7 @@ export class BinaryExpr implements BaseExpr {
 export class CallExpr implements BaseExpr {
   constructor(
     readonly callee: Expr,
-    readonly generics: TypeExpr[],
+    readonly typeExprs: TypeExpr[],
     readonly open: Token,
     readonly args: Expr[],
     readonly close: Token
@@ -355,7 +355,7 @@ export class CompositeTypeExpr implements BaseTypeExpr {
 }
 
 export class GenericTypeExpr implements BaseTypeExpr {
-  constructor(readonly name: Token, readonly generics: TypeExpr[]) {}
+  constructor(readonly name: Token, readonly typeExprs: TypeExpr[]) {}
 
   accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
     return visitor.visitGenericTypeExpr(this, type);

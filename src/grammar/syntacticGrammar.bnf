@@ -3,7 +3,7 @@ declaration    -> classDecl
                 | varDecl
                 | statement
                 | errorStmt ;
-classDecl      -> "class" IDENTIFIER "{" property* "}" ;
+classDecl      -> "class" IDENTIFIER ( "[" parameters "]" )? ( "implements" typeExpr )? "{" property* "}" ;
 varDecl        -> "var" property ;
 interfaceDecl  -> "interface" IDENTIFIER ( "[" parameters "]" )? "{" typeProperty* "}" ;
 typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? "=" typeExpr ;
@@ -32,7 +32,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( ( "[" generics "]" )? "(" expressions? ")" | "." accessor )* ;
+call           -> primary ( ( "[" typeExprs "]" )? "(" expressions? ")" | "." accessor )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | record | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 list           -> "[" expressions* "]" ;
@@ -56,10 +56,10 @@ parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
 typeExpr          -> compositeTypeExpr ;
 compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
 subTypeExpr       -> callableType | genericType | name ;
-callableTypeExpr  -> ( "[" parameters "]" )? "(" generics ")" "->" typeExpr ;
-genericType       -> IDENTIFIER ( "[" generics "]" )? ;
+callableTypeExpr  -> ( "[" parameters "]" )? "(" typeExprs ")" "->" typeExpr ;
+genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
 
-generics          -> typeExpr ( "," typeExpr )* ;
+typeExprs         -> typeExpr ( "," typeExpr )* ;
 typeProperty      -> IDENTIFIER ":" typeExpr ;
 
 name              -> IDENTIFIER | KEYWORD ;
