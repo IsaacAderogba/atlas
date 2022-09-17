@@ -45,6 +45,7 @@ export type TokenType =
   | "FOR"
   | "IF"
   | "INTERFACE"
+  | "IMPLEMENTS"
   | "NULL"
   | "OR"
   | "RETURN"

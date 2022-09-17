@@ -86,6 +86,8 @@ export class Parser {
   private classDeclaration(): ClassStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const parameters = this.typeParameters();
+    const typeExpr = this.match("IMPLEMENTS") ? this.typeExpr() : undefined;
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const props: Property[] = [];
@@ -98,19 +100,21 @@ export class Parser {
       SyntaxErrors.expectedRightBrace()
     );
 
-    return new ClassStmt(keyword, name, open, props, close);
+    return new ClassStmt(
+      keyword,
+      name,
+      parameters,
+      typeExpr,
+      open,
+      props,
+      close
+    );
   }
 
   private typeDeclaration(): Stmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-
-    let parameters: Parameter[] = [];
-    if (this.match("LEFT_BRACKET")) {
-      parameters = this.parameters("RIGHT_BRACKET");
-      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
-    }
-
+    const parameters = this.typeParameters();
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const type = this.typeExpr();
 
@@ -120,13 +124,7 @@ export class Parser {
   private interfaceDeclaration(): InterfaceStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-
-    let parameters: Parameter[] = [];
-    if (this.match("LEFT_BRACKET")) {
-      parameters = this.parameters("RIGHT_BRACKET");
-      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
-    }
-
+    const parameters = this.typeParameters();
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const props: TypeProperty[] = [];
 
@@ -510,12 +508,7 @@ export class Parser {
   }
 
   private callableTypeExpr(): TypeExpr {
-    let parameters: Parameter[] = [];
-    if (this.match("LEFT_BRACKET")) {
-      parameters = this.parameters("RIGHT_BRACKET");
-      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
-    }
-
+    const parameters = this.typeParameters();
     const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const typeExprs = this.typeExprs("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
@@ -565,6 +558,15 @@ export class Parser {
     }
 
     return typeExprs;
+  }
+
+  private typeParameters(): Parameter[] {
+    let parameters: Parameter[] = [];
+    if (this.match("LEFT_BRACKET")) {
+      parameters = this.parameters("RIGHT_BRACKET");
+      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+    }
+    return parameters;
   }
 
   private parameters(type: TokenType): Parameter[] {

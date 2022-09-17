@@ -105,6 +105,8 @@ describe("Scanner tokens", () => {
       { char: "var", type: "VAR" },
       { char: "while", type: "WHILE" },
       { char: "identifier", type: "IDENTIFIER" },
+      { char: "interface", type: "INTERFACE" },
+      { char: "implements", type: "IMPLEMENTS" },
     ];
 
     charTypes.forEach(({ char, type }) => {
