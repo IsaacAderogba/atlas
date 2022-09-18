@@ -1,3 +1,4 @@
+import { isAliasType } from "../primitives/AliasType";
 import { isAnyType } from "../primitives/AnyType";
 import { isBooleanType } from "../primitives/AtlasBoolean";
 import { isCallableType } from "../primitives/AtlasCallable";
@@ -12,6 +13,9 @@ import { isUnionType } from "../primitives/UnionType";
 export const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
   if (a === b) return true;
   if (isAnyType(a) || isAnyType(b)) return true;
+
+  if (isAliasType(a)) return isSubtype(a.wrapped, b);
+  if (isAliasType(b)) return isSubtype(a, b.wrapped);
 
   if (isUnionType(a)) return a.types.every(a => isSubtype(a, b));
   if (isUnionType(b)) return b.types.some(b => isSubtype(a, b));

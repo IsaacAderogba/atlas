@@ -195,7 +195,8 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitTypeStmt(stmt: TypeStmt): void {
-    this.lookup.defineType(stmt.name, this.acceptTypeExpr(stmt.type));
+    const alias = Types.Alias.init(stmt.name.lexeme, this.acceptTypeExpr(stmt.type));
+    this.lookup.defineType(stmt.name, alias);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {

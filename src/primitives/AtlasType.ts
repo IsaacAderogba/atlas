@@ -1,3 +1,4 @@
+import { AliasType } from "./AliasType";
 import { AnyType } from "./AnyType";
 import { BooleanType } from "./AtlasBoolean";
 import { ClassType } from "./AtlasClass";
@@ -14,6 +15,7 @@ import { UnionType } from "./UnionType";
 
 export type AtlasType =
   | AnyType
+  | AliasType
   | BooleanType
   | NumberType
   | StringType
@@ -32,6 +34,7 @@ const Class = new ClassType("Class", {});
 
 export const Types = {
   Any,
+  Alias: new AliasType("Alias", Any),
   Null: new NullType(),
   Boolean: new BooleanType(),
   Number: new NumberType(),
