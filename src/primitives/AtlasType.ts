@@ -9,6 +9,7 @@ import { NumberType } from "./AtlasNumber";
 import { RecordType } from "./AtlasRecord";
 import { StringType } from "./AtlasString";
 import { InterfaceType } from "./InterfaceType";
+import { UnionType } from "./UnionType";
 
 export type AtlasType =
   | AnyType
@@ -21,7 +22,8 @@ export type AtlasType =
   | NativeFnType
   | ClassType
   | InstanceType
-  | InterfaceType;
+  | InterfaceType
+  | UnionType;
 
 export const Types = {
   Any: AnyType.init(),
@@ -35,4 +37,5 @@ export const Types = {
   Class: ClassType.init("Class"),
   Instance: InstanceType.init(ClassType.init("Class")),
   Interface: InterfaceType.init("Interface"),
+  Union: UnionType.init([]),
 } as const;

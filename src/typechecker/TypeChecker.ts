@@ -252,12 +252,7 @@ export class TypeChecker implements TypeVisitor {
     }
 
     calleeType.params.forEach((type, i) => {
-      const expr = args[i];
-      if (isFunctionExpr(expr)) {
-        this.visitFunctionExpr(expr, type);
-      } else {
-        this.checkExprSubtype(expr, type);
-      }
+      this.checkExprSubtype(args[i], type);
     });
 
     return calleeType.returns;
@@ -372,8 +367,18 @@ export class TypeChecker implements TypeVisitor {
     return Types.Function.init({ params, returns });
   }
 
-  visitCompositeTypeExpr(_typeExpr: CompositeTypeExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): AtlasType {
+    switch (typeExpr.operator.type) {
+      case "PIPE":
+        const left = this.acceptTypeExpr(typeExpr.left);
+        const right = this.acceptTypeExpr(typeExpr.right);
+        return Types.Union.init([left, right]);
+      default:
+        return this.error(
+          typeExpr.operator,
+          TypeCheckErrors.unexpectedCompositeOperator()
+        );
+    }
   }
 
   visitGenericTypeExpr(_typeExpr: GenericTypeExpr): AtlasType {

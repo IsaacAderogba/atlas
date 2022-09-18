@@ -44,6 +44,10 @@ export class TypeCheckErrors {
     return this.formatError({ title: "unexpected unary operator", body: "" });
   }
 
+  static unexpectedCompositeOperator(): SourceMessage {
+    return this.formatError({ title: "unexpected composite operator", body: "" });
+  }
+
   static unexpectedLogicalOperator(): SourceMessage {
     return this.formatError({ title: "unexpected logical operator", body: "" });
   }

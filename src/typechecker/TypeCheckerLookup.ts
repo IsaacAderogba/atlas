@@ -51,6 +51,7 @@ export class TypeCheckerLookup {
 
   field({ name, object }: GetExpr | SetExpr): AtlasType {
     const objectType = this.typechecker.acceptExpr(object);
+    
     const memberType = objectType.get(name);
     if (memberType) return memberType;
     return this.typechecker.error(

@@ -4,7 +4,7 @@ import { AtlasType } from "./AtlasType";
 export class AnyType extends ObjectType {
   readonly type = "Any";
 
-  isSubtype(_candidate: AtlasType): boolean {
+  isSubtype(): boolean {
     return true;
   }
 
