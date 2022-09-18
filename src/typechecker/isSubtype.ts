@@ -6,15 +6,17 @@ import { isNumberType } from "../primitives/AtlasNumber";
 import { isStringType } from "../primitives/AtlasString";
 import { AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
-import { isNeverType } from "../primitives/NeverType";
+import { isIntersectionType } from "../primitives/IntersectionType";
 import { isUnionType } from "../primitives/UnionType";
 
 export const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
-  if (isNeverType(a)) return true;
   if (isAnyType(a) || isAnyType(b)) return true;
 
   if (isUnionType(a)) return a.types.every(a => isSubtype(a, b));
   if (isUnionType(b)) return b.types.some(b => isSubtype(a, b));
+
+  if (isIntersectionType(a)) return a.types.some(a => isSubtype(a, b));
+  if (isIntersectionType(b)) return b.types.every(b => isSubtype(a, b));
 
   if (isNullType(a) && isNullType(b)) return true;
   if (isBooleanType(a) && isBooleanType(b)) return true;
