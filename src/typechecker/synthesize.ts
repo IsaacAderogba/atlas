@@ -2,12 +2,10 @@ import { AtlasType, Types } from "../primitives/AtlasType";
 import { isIntersectionType } from "../primitives/IntersectionType";
 import { isUnionType } from "../primitives/UnionType";
 
-type SynthesizeThreeCallback = (t1: AtlasType, t2: AtlasType) => AtlasType;
-
-function synthesizeThree(
+function synthesizeBinary(
   t1: AtlasType,
   t2: AtlasType,
-  fn: SynthesizeThreeCallback
+  fn: (t1: AtlasType, t2: AtlasType) => AtlasType
 ): AtlasType {
   if (isUnionType(t1) || isUnionType(t2)) {
     const t1s = isUnionType(t1) ? t1.types : [t1];
@@ -34,8 +32,6 @@ function synthesizeThree(
   }
 }
 
-type SynthesizeTwoCallback = (t: AtlasType) => AtlasType;
-
 function synthesizeTwo(
   t: AtlasType,
   fn: (t: AtlasType) => AtlasType
@@ -49,18 +45,14 @@ function synthesizeTwo(
   }
 }
 
-export type SyntheiszeCallback =
-  | SynthesizeThreeCallback
-  | SynthesizeTwoCallback;
-
-export const synthesize: typeof synthesizeTwo & typeof synthesizeThree = (
+export const synthesize: typeof synthesizeTwo & typeof synthesizeBinary = (
   ...args: any[]
 ) => {
   switch (args.length) {
     case 2:
       return synthesizeTwo(args[0], args[1]);
     case 3:
-      return synthesizeThree(args[0], args[1], args[2]);
+      return synthesizeBinary(args[0], args[1], args[2]);
     default:
       throw new Error("Error");
   }
