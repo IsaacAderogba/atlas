@@ -1,13 +1,4 @@
-interface Foo {
-    foo: String
-}
-
-interface Bar {
-    bar: String
-}
-
-type FooBar = Foo & Bar
-
-class FooBarImpl implements FooBar {
-    bar = ""
+var foo: () -> String = f() {
+    if (true) return 0
+    return ""
 }

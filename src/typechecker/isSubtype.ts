@@ -49,3 +49,4 @@ export const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
 
   return false;
 };
+

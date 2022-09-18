@@ -180,7 +180,14 @@ export class TypeChecker implements TypeVisitor {
 
   visitReturnStmt(stmt: ReturnStmt): void {
     const value = this.acceptExpr(stmt.value, this.currentFunction?.expected);
-    if (this.currentFunction) this.currentFunction.returns = value;
+    if (this.currentFunction && this.currentFunction.returns) {
+      this.currentFunction.returns = Types.Union.init([
+        this.currentFunction.returns,
+        value,
+      ]);
+    } else if (this.currentFunction) {
+      this.currentFunction.returns = value;
+    }
   }
 
   visitVarStmt(stmt: VarStmt): void {
