@@ -32,7 +32,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( ( "[" typeExprs "]" )? "(" expressions? ")" | "." accessor )* ;
+call           -> primary ( ( "[" typeExprs "]" )? "(" expressions? ")" | "." name )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | record | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 list           -> "[" expressions* "]" ;
@@ -49,7 +49,7 @@ errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while
 entries        -> entry ( "," entry )* ;
 entry          -> STRING ":" expression ;
 expressions    -> expression ( "," expression )* ;
-property       -> IDENTIFIER ( ":" typeExpr )? "=" expression ;
+property       -> name ( ":" typeExpr )? "=" expression ;
 parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
 
 
@@ -60,6 +60,6 @@ callableTypeExpr  -> ( "[" parameters "]" )? "(" typeExprs ")" "->" typeExpr ;
 genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
 
 typeExprs         -> typeExpr ( "," typeExpr )* ;
-typeProperty      -> IDENTIFIER ":" typeExpr ;
+typeProperty      -> name ":" typeExpr ;
 
 name              -> IDENTIFIER | KEYWORD ;

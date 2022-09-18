@@ -92,7 +92,7 @@ export class Parser {
 
     const props: Property[] = [];
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      props.push(this.property());
+      props.push(this.property(() => this.name()));
     }
 
     const close = this.consume(
@@ -129,7 +129,7 @@ export class Parser {
     const props: TypeProperty[] = [];
 
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      const key = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+      const key = this.name();
       this.consume("COLON", SyntaxErrors.expectedColon());
       const value = this.typeExpr();
 
@@ -145,7 +145,12 @@ export class Parser {
   }
 
   private varDeclaration(): VarStmt {
-    return new VarStmt(this.previous(), this.property());
+    return new VarStmt(
+      this.previous(),
+      this.property(() =>
+        this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier())
+      )
+    );
   }
 
   private statement(): Stmt {
@@ -348,11 +353,7 @@ export class Parser {
 
         expr = new CallExpr(expr, typeExprs, open, args, close);
       } else if (this.match("DOT")) {
-        const name = this.consume(
-          "IDENTIFIER",
-          SyntaxErrors.expectedIdentifier()
-        );
-        expr = new GetExpr(expr, name);
+        expr = new GetExpr(expr, this.name());
       } else {
         break;
       }
@@ -573,20 +574,19 @@ export class Parser {
     const params: Parameter[] = [];
     if (!this.check(type)) {
       do {
-        params.push(this.parameter());
+        const name = new Parameter(
+          this.consume("IDENTIFIER", SyntaxErrors.expectedParameter())
+        );
+
+        params.push(name);
       } while (this.match("COMMA"));
     }
 
     return params;
   }
 
-  private parameter(): Parameter {
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedParameter());
-    return new Parameter(name);
-  }
-
-  private property(): Property {
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+  private property(consume: () => Token): Property {
+    const name = consume();
     const type = this.match("COLON") ? this.typeExpr() : undefined;
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
