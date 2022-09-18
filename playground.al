@@ -1,2 +1,2 @@
-type Foo = String | Number
-var foo: Foo = ""
+type Foo = String | String
+var foo: Foo = 0
