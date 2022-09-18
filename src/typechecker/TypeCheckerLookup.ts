@@ -6,6 +6,7 @@ import { Token } from "../ast/Token";
 import { AtlasType } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
 import { GetExpr, SetExpr } from "../ast/Expr";
+import { synthesize } from "./utils";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
@@ -50,14 +51,14 @@ export class TypeCheckerLookup {
   }
 
   field({ name, object }: GetExpr | SetExpr): AtlasType {
-    const objectType = this.typechecker.acceptExpr(object);
-    
-    const memberType = objectType.get(name);
-    if (memberType) return memberType;
-    return this.typechecker.error(
-      name,
-      TypeCheckErrors.undefinedProperty(name.lexeme)
-    );
+    return synthesize(this.typechecker.acceptExpr(object), objectType => {
+      const memberType = objectType.get(name);
+      if (memberType) return memberType;
+      return this.typechecker.error(
+        name,
+        TypeCheckErrors.undefinedProperty(name.lexeme)
+      );
+    });
   }
 
   defineType(name: Token, type: AtlasType): AtlasType {
@@ -74,7 +75,7 @@ export class TypeCheckerLookup {
         source: name,
         state: VariableState.DEFINED,
       });
-      return type
+      return type;
     }
   }
 

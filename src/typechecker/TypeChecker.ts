@@ -52,6 +52,7 @@ import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
+import { synthesize } from "./utils";
 
 export class TypeChecker implements TypeVisitor {
   private readonly lookup = new TypeCheckerLookup(this);
@@ -74,8 +75,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   acceptExpr(expression: Expr, expectedType?: AtlasType): AtlasType {
-    const type = expression.accept(this, expectedType);
-    return type;
+    return expression.accept(this, expectedType);
   }
 
   acceptTypeExpr(typeExpr: TypeExpr, expectedType?: AtlasType): AtlasType {
@@ -205,60 +205,63 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitBinaryExpr(expr: BinaryExpr): AtlasType {
-    const left = this.acceptExpr(expr.left);
-    const right = this.acceptExpr(expr.right);
-
-    switch (expr.operator.type) {
-      case "HASH":
-        this.checkSubtype(expr.left, left, Types.String);
-        this.checkSubtype(expr.right, right, Types.String);
-        return Types.String;
-      case "PLUS":
-      case "MINUS":
-      case "SLASH":
-      case "STAR":
-        this.checkSubtype(expr.left, left, Types.Number);
-        this.checkSubtype(expr.right, right, Types.Number);
-        return Types.Number;
-      case "GREATER":
-      case "GREATER_EQUAL":
-      case "LESS":
-      case "LESS_EQUAL":
-        this.checkSubtype(expr.left, left, Types.Number);
-        this.checkSubtype(expr.right, right, Types.Number);
-        return Types.Boolean;
-      case "EQUAL_EQUAL":
-      case "BANG_EQUAL":
-        return Types.Boolean;
-      default:
-        return this.error(
-          expr.operator,
-          TypeCheckErrors.unexpectedBinaryOperator()
-        );
-    }
+    return synthesize(
+      this.acceptExpr(expr.left),
+      this.acceptExpr(expr.right),
+      (left, right) => {
+        switch (expr.operator.type) {
+          case "HASH":
+            this.checkSubtype(expr.left, left, Types.String);
+            this.checkSubtype(expr.right, right, Types.String);
+            return Types.String;
+          case "PLUS":
+          case "MINUS":
+          case "SLASH":
+          case "STAR":
+            this.checkSubtype(expr.left, left, Types.Number);
+            this.checkSubtype(expr.right, right, Types.Number);
+            return Types.Number;
+          case "GREATER":
+          case "GREATER_EQUAL":
+          case "LESS":
+          case "LESS_EQUAL":
+            this.checkSubtype(expr.left, left, Types.Number);
+            this.checkSubtype(expr.right, right, Types.Number);
+            return Types.Boolean;
+          case "EQUAL_EQUAL":
+          case "BANG_EQUAL":
+            return Types.Boolean;
+          default:
+            return this.error(
+              expr.operator,
+              TypeCheckErrors.unexpectedBinaryOperator()
+            );
+        }
+      }
+    );
   }
 
   visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
-    const calleeType = this.acceptExpr(callee);
+    return synthesize(this.acceptExpr(callee), calleeType => {
+      if (isAnyType(calleeType)) return calleeType;
+      if (!isCallableType(calleeType)) {
+        return this.error(callee, TypeCheckErrors.expectedCallableType());
+      }
 
-    if (isAnyType(calleeType)) return calleeType;
-    if (!isCallableType(calleeType)) {
-      return this.error(callee, TypeCheckErrors.expectedCallableType());
-    }
+      if (calleeType.arity() !== args.length) {
+        return this.error(
+          new SourceRange(open, close),
+          TypeCheckErrors.mismatchedArity(calleeType.arity(), args.length)
+        );
+      }
 
-    if (calleeType.arity() !== args.length) {
-      return this.error(
-        new SourceRange(open, close),
-        TypeCheckErrors.mismatchedArity(calleeType.arity(), args.length)
-      );
-    }
+      calleeType.params.forEach((expected, i) => {
+        const actual = this.acceptExpr(args[i], expected);
+        this.checkSubtype(args[i], actual, expected);
+      });
 
-    calleeType.params.forEach((expected, i) => {
-      const actual = this.acceptExpr(args[i], expected);
-      this.checkSubtype(args[i], actual, expected);
+      return calleeType.returns;
     });
-
-    return calleeType.returns;
   }
 
   visitFunctionExpr(
@@ -307,21 +310,24 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitLogicalExpr(expr: LogicalExpr): AtlasType {
-    const left = this.acceptExpr(expr.left);
-    const right = this.acceptExpr(expr.right);
-
-    switch (expr.operator.type) {
-      case "OR":
-      case "AND":
-        this.checkSubtype(expr.left, left, Types.Boolean);
-        this.checkSubtype(expr.right, right, Types.Boolean);
-        return Types.Boolean;
-      default:
-        return this.error(
-          expr.operator,
-          TypeCheckErrors.unexpectedLogicalOperator()
-        );
-    }
+    return synthesize(
+      this.acceptExpr(expr.left),
+      this.acceptExpr(expr.right),
+      (left, right) => {
+        switch (expr.operator.type) {
+          case "OR":
+          case "AND":
+            this.checkSubtype(expr.left, left, Types.Boolean);
+            this.checkSubtype(expr.right, right, Types.Boolean);
+            return Types.Boolean;
+          default:
+            return this.error(
+              expr.operator,
+              TypeCheckErrors.unexpectedLogicalOperator()
+            );
+        }
+      }
+    );
   }
 
   visitRecordExpr(expr: RecordExpr, expected?: AtlasType): AtlasType {
@@ -347,21 +353,21 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
-    const right = this.acceptExpr(expr.right);
-
-    switch (expr.operator.type) {
-      case "BANG":
-        this.checkSubtype(expr.right, right, Types.Boolean);
-        return Types.Boolean;
-      case "MINUS":
-        this.checkSubtype(expr.right, right, Types.Number);
-        return Types.Number;
-      default:
-        return this.error(
-          expr.operator,
-          TypeCheckErrors.unexpectedUnaryOperator()
-        );
-    }
+    return synthesize(this.acceptExpr(expr.right), right => {
+      switch (expr.operator.type) {
+        case "BANG":
+          this.checkSubtype(expr.right, right, Types.Boolean);
+          return Types.Boolean;
+        case "MINUS":
+          this.checkSubtype(expr.right, right, Types.Number);
+          return Types.Number;
+        default:
+          return this.error(
+            expr.operator,
+            TypeCheckErrors.unexpectedUnaryOperator()
+          );
+      }
+    });
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasType {

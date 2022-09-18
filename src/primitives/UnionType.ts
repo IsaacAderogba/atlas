@@ -26,7 +26,7 @@ export class UnionType extends ObjectType {
     );
   }
 
-  isSubtype(): boolean {
+  isSubtype(candidate: AtlasType): boolean {
     return true;
   }
 
