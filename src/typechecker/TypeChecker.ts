@@ -403,20 +403,16 @@ export class TypeChecker implements TypeVisitor {
       const expected = this.acceptTypeExpr(type);
       this.lookup.declareValue(name, expected);
       const value = this.checkFunction({ expr, enumType, expected });
-      this.lookup.defineValue(name, value);
-      return value;
+
+      return this.lookup.defineValue(name, value);
     } else if (isFunctionExpr(expr)) {
       return this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
     } else {
-      let narrowed: AtlasType;
-      if (type) {
-        narrowed = this.checkExprSubtype(expr, this.acceptTypeExpr(type));
-      } else {
-        narrowed = this.acceptExpr(expr);
-      }
+      const expected = type ? this.acceptTypeExpr(type) : undefined;
+      let actual = this.acceptExpr(expr, expected);
+      if (expected) actual = this.checkSubtype(expr, actual, expected);
 
-      this.lookup.defineValue(name, narrowed);
-      return narrowed;
+      return this.lookup.defineValue(name, actual);
     }
   }
 

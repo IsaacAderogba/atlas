@@ -60,11 +60,11 @@ export class TypeCheckerLookup {
     );
   }
 
-  defineType(name: Token, type: AtlasType): void {
+  defineType(name: Token, type: AtlasType): AtlasType {
     const scope = this.getScope();
 
     if (scope.typeScope.has(name.lexeme)) {
-      this.typechecker.error(
+      return this.typechecker.error(
         name,
         TypeCheckErrors.prohibitedTypeRedeclaration()
       );
@@ -74,6 +74,7 @@ export class TypeCheckerLookup {
         source: name,
         state: VariableState.DEFINED,
       });
+      return type
     }
   }
 
@@ -86,12 +87,14 @@ export class TypeCheckerLookup {
     return type;
   }
 
-  declareValue(name: Token, type: AtlasType): void {
+  declareValue(name: Token, type: AtlasType): AtlasType {
     this.getScope().valueScope.set(name.lexeme, type);
+    return type;
   }
 
-  defineValue(name: Token, type: AtlasType): void {
+  defineValue(name: Token, type: AtlasType): AtlasType {
     this.getScope().valueScope.set(name.lexeme, type);
+    return type;
   }
 
   beginScope(newScope = new TypeCheckerScope()): void {
