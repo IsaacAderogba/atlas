@@ -94,10 +94,10 @@ export class TypeCheckErrors {
     });
   }
 
-  static undefinedProperty(name: string): SourceMessage {
+  static unknownProperty(name: string): SourceMessage {
     return this.formatError({
-      title: "undefined property",
-      body: `property ${name} is undefined`,
+      title: "unknown property",
+      body: `property ${name} cannot be inferred`,
     });
   }
 

@@ -26,11 +26,17 @@ export class TypeCheckerLookup {
   type(name: Token): AtlasType {
     for (const scope of this.scopes) {
       const entry = scope.typeScope.get(name.lexeme);
-      if (entry) return this.settleType(name, entry.type);
+      if (entry) {
+        entry.state = VariableState.SETTLED;
+        return entry.type;
+      }
     }
 
     const entry = this.globalScope.typeScope.get(name.lexeme);
-    if (entry) return this.settleType(name, entry.type);
+    if (entry) {
+      entry.state = VariableState.SETTLED;
+      return entry.type;
+    }
 
     return this.typechecker.error(
       name,
@@ -56,12 +62,16 @@ export class TypeCheckerLookup {
       if (memberType) return memberType;
       return this.typechecker.error(
         name,
-        TypeCheckErrors.undefinedProperty(name.lexeme)
+        TypeCheckErrors.unknownProperty(name.lexeme)
       );
     });
   }
 
-  defineType(name: Token, type: AtlasType): AtlasType {
+  defineType(
+    name: Token,
+    type: AtlasType,
+    state = VariableState.DEFINED
+  ): AtlasType {
     const scope = this.getScope();
 
     if (scope.typeScope.has(name.lexeme)) {
@@ -70,22 +80,9 @@ export class TypeCheckerLookup {
         TypeCheckErrors.prohibitedTypeRedeclaration()
       );
     } else {
-      scope.typeScope.set(name.lexeme, {
-        type,
-        source: name,
-        state: VariableState.DEFINED,
-      });
+      scope.typeScope.set(name.lexeme, { type, source: name, state });
       return type;
     }
-  }
-
-  settleType(name: Token, type: AtlasType): AtlasType {
-    this.getScope().typeScope.set(name.lexeme, {
-      type,
-      state: VariableState.SETTLED,
-      source: name,
-    });
-    return type;
   }
 
   declareValue(name: Token, type: AtlasType): AtlasType {

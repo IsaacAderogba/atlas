@@ -19,7 +19,7 @@ export class InterfaceType extends ObjectType {
 
   init: typeof InterfaceType.init = (...props) => InterfaceType.init(...props);
 
-  toString = (): string => `${this.name} ${toInterfaceString(this)}`;
+  toString = (): string => `${this.name}`;
 }
 
 export const isInterfaceType = (

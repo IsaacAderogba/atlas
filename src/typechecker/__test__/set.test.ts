@@ -62,7 +62,7 @@ describe("Class errors", () => {
       Foo().ho = "hi"
     `);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.undefinedProperty("ho")
+      TypeCheckErrors.unknownProperty("ho")
     );
   });
 });

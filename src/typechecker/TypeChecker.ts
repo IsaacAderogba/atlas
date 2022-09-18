@@ -98,7 +98,7 @@ export class TypeChecker implements TypeVisitor {
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
     this.lookup.defineValue(name, classType);
-    this.lookup.settleType(name, classType);
+    this.lookup.defineType(name, classType, VariableState.SETTLED);
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
@@ -172,12 +172,12 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.beginScope();
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
-      this.lookup.settleType(key, type);
+      this.lookup.defineType(key, type, VariableState.SETTLED);
       interfaceType.setProp(key.lexeme, type);
     });
     this.lookup.endScope();
 
-    this.lookup.settleType(stmt.name, interfaceType);
+    this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
