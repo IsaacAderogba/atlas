@@ -252,8 +252,9 @@ export class TypeChecker implements TypeVisitor {
       );
     }
 
-    calleeType.params.forEach((type, i) => {
-      this.checkExprSubtype(args[i], type);
+    calleeType.params.forEach((expected, i) => {
+      const actual = this.acceptExpr(args[i], expected);
+      this.checkSubtype(args[i], actual, expected);
     });
 
     return calleeType.returns;
@@ -336,7 +337,8 @@ export class TypeChecker implements TypeVisitor {
 
   visitSetExpr(expr: SetExpr): AtlasType {
     const expected = this.lookup.field(expr);
-    return this.checkExprSubtype(expr.value, expected);
+    const actual = this.acceptExpr(expr.value, expected);
+    return this.checkSubtype(expr.value, actual, expected);
   }
 
   visitThisExpr(expr: ThisExpr): AtlasType {
@@ -446,11 +448,6 @@ export class TypeChecker implements TypeVisitor {
     this.currentFunction = enclosingFunction;
 
     return this.checkSubtype(expr, actual, expected);
-  }
-
-  private checkExprSubtype(expr: Expr, expectedType: AtlasType): AtlasType {
-    const actualType = this.acceptExpr(expr, expectedType);
-    return this.checkSubtype(expr, actualType, expectedType);
   }
 
   private checkSubtype(
