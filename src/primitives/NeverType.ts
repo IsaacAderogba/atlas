@@ -1,4 +1,5 @@
 import { ObjectType } from "./AtlasObject";
+import { AtlasType } from "./AtlasType";
 
 export class NeverType extends ObjectType {
   readonly type = "Never";
@@ -9,5 +10,5 @@ export class NeverType extends ObjectType {
   toString = (): string => this.type;
 }
 
-export const isNeverType = (value: unknown): value is NeverType =>
-  value instanceof NeverType;
+export const isNeverType = (value: AtlasType): value is NeverType =>
+  value.type === "Never"

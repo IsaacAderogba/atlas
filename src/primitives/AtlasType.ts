@@ -9,7 +9,10 @@ import { NumberType } from "./AtlasNumber";
 import { RecordType } from "./AtlasRecord";
 import { StringType } from "./AtlasString";
 import { InterfaceType } from "./InterfaceType";
+import { IntersectionType } from "./IntersectionType";
+import { NeverType } from "./NeverType";
 import { UnionType } from "./UnionType";
+import { UnknownType } from "./UnknownType";
 
 export type AtlasType =
   | AnyType
@@ -20,10 +23,13 @@ export type AtlasType =
   | RecordType
   | FunctionType
   | NativeFnType
+  | NeverType
   | ClassType
   | InstanceType
   | InterfaceType
-  | UnionType;
+  | IntersectionType
+  | UnionType
+  | UnknownType;
 
 export const Types = {
   Any: AnyType.init(),
@@ -34,8 +40,11 @@ export const Types = {
   Record: RecordType.init({}),
   Function: FunctionType.init({ params: [], returns: NullType.init() }),
   NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
+  Never: NeverType.init(),
   Class: ClassType.init("Class"),
   Instance: InstanceType.init(ClassType.init("Class")),
   Interface: InterfaceType.init("Interface"),
+  Intersection: IntersectionType.init([]),
   Union: UnionType.init([]),
+  Unknown: UnknownType.init(),
 } as const;
