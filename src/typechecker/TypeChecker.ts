@@ -38,11 +38,7 @@ import {
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
-import {
-  SourceMessage,
-  SourceRange,
-  SourceRangeable,
-} from "../errors/SourceError";
+import { SourceRange } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
@@ -52,12 +48,11 @@ import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
-import { synthesize } from "./synthesize";
-import { isSubtype } from "./isSubtype";
+import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 
 export class TypeChecker implements TypeVisitor {
-  private readonly lookup = new TypeCheckerLookup(this);
-  private errors: TypeCheckError[] = [];
+  readonly lookup = new TypeCheckerLookup(this);
+  readonly subtyper = new TypeCheckerSubtyper(this);
   currentFunction?: CurrentFunction;
   currentClass = ClassType.NONE;
 
@@ -68,7 +63,7 @@ export class TypeChecker implements TypeVisitor {
     }
     this.lookup.endScope();
 
-    return { errors: this.errors };
+    return { errors: this.subtyper.errors };
   }
 
   acceptStmt(statement: Stmt): void {
@@ -111,7 +106,7 @@ export class TypeChecker implements TypeVisitor {
 
     // type check and define fields in scope
     for (const prop of fields) {
-      classType.setProp(prop.name.lexeme, this.checkProperty(prop));
+      classType.setProp(prop.name.lexeme, this.visitProperty(prop));
     }
 
     // create this type now that fields have been bound
@@ -126,7 +121,10 @@ export class TypeChecker implements TypeVisitor {
     for (const { type, name } of methods) {
       const value = type
         ? this.acceptTypeExpr(type)
-        : this.error(name, TypeCheckErrors.requiredFunctionAnnotation());
+        : this.subtyper.error(
+            name,
+            TypeCheckErrors.requiredFunctionAnnotation()
+          );
       classType.setProp(name.lexeme, value);
     }
 
@@ -134,12 +132,12 @@ export class TypeChecker implements TypeVisitor {
     for (const prop of methods) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
-      classType.setProp(prop.name.lexeme, this.checkProperty(prop, method));
+      classType.setProp(prop.name.lexeme, this.visitProperty(prop, method));
     }
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
-      this.checkSubtype(
+      this.subtyper.check(
         new SourceRange(name.sourceRange().start, typeExpr.sourceRange().end),
         classType,
         this.acceptTypeExpr(typeExpr)
@@ -160,7 +158,7 @@ export class TypeChecker implements TypeVisitor {
 
   visitIfStmt(stmt: IfStmt): void {
     const conditionActual = this.acceptExpr(stmt.condition);
-    this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
+    this.subtyper.check(stmt.condition, conditionActual, Types.Boolean);
 
     this.acceptStmt(stmt.thenBranch);
     if (stmt.elseBranch) this.acceptStmt(stmt.elseBranch);
@@ -186,7 +184,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitVarStmt(stmt: VarStmt): void {
-    this.checkProperty(stmt.property, FunctionEnum.FUNCTION);
+    this.visitProperty(stmt.property, FunctionEnum.FUNCTION);
   }
 
   visitTypeStmt(stmt: TypeStmt): void {
@@ -195,45 +193,45 @@ export class TypeChecker implements TypeVisitor {
 
   visitWhileStmt(stmt: WhileStmt): void {
     const conditionActual = this.acceptExpr(stmt.condition);
-    this.checkSubtype(stmt.condition, conditionActual, Types.Boolean);
+    this.subtyper.check(stmt.condition, conditionActual, Types.Boolean);
     this.acceptStmt(stmt.body);
   }
 
   visitAssignExpr(expr: AssignExpr): AtlasType {
     const expected = this.lookup.value(expr.name);
     const actual = this.acceptExpr(expr.value, expected);
-    return this.checkSubtype(expr.value, actual, expected);
+    return this.subtyper.check(expr.value, actual, expected);
   }
 
   visitBinaryExpr(expr: BinaryExpr): AtlasType {
-    return synthesize(
+    return this.subtyper.synthesize(
       this.acceptExpr(expr.left),
       this.acceptExpr(expr.right),
       (left, right) => {
         switch (expr.operator.type) {
           case "HASH":
-            this.checkSubtype(expr.left, left, Types.String);
-            this.checkSubtype(expr.right, right, Types.String);
+            this.subtyper.check(expr.left, left, Types.String);
+            this.subtyper.check(expr.right, right, Types.String);
             return Types.String;
           case "PLUS":
           case "MINUS":
           case "SLASH":
           case "STAR":
-            this.checkSubtype(expr.left, left, Types.Number);
-            this.checkSubtype(expr.right, right, Types.Number);
+            this.subtyper.check(expr.left, left, Types.Number);
+            this.subtyper.check(expr.right, right, Types.Number);
             return Types.Number;
           case "GREATER":
           case "GREATER_EQUAL":
           case "LESS":
           case "LESS_EQUAL":
-            this.checkSubtype(expr.left, left, Types.Number);
-            this.checkSubtype(expr.right, right, Types.Number);
+            this.subtyper.check(expr.left, left, Types.Number);
+            this.subtyper.check(expr.right, right, Types.Number);
             return Types.Boolean;
           case "EQUAL_EQUAL":
           case "BANG_EQUAL":
             return Types.Boolean;
           default:
-            return this.error(
+            return this.subtyper.error(
               expr.operator,
               TypeCheckErrors.unexpectedBinaryOperator()
             );
@@ -243,14 +241,17 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
-    return synthesize(this.acceptExpr(callee), calleeType => {
+    return this.subtyper.synthesize(this.acceptExpr(callee), calleeType => {
       if (isAnyType(calleeType)) return calleeType;
       if (!isCallableType(calleeType)) {
-        return this.error(callee, TypeCheckErrors.expectedCallableType());
+        return this.subtyper.error(
+          callee,
+          TypeCheckErrors.expectedCallableType()
+        );
       }
 
       if (calleeType.arity() !== args.length) {
-        return this.error(
+        return this.subtyper.error(
           new SourceRange(open, close),
           TypeCheckErrors.mismatchedArity(calleeType.arity(), args.length)
         );
@@ -258,7 +259,7 @@ export class TypeChecker implements TypeVisitor {
 
       calleeType.params.forEach((expected, i) => {
         const actual = this.acceptExpr(args[i], expected);
-        this.checkSubtype(args[i], actual, expected);
+        this.subtyper.check(args[i], actual, expected);
       });
 
       return calleeType.returns;
@@ -267,9 +268,12 @@ export class TypeChecker implements TypeVisitor {
 
   visitFunctionExpr(
     expr: FunctionExpr,
-    expected = this.error(expr, TypeCheckErrors.requiredFunctionAnnotation())
+    expected = this.subtyper.error(
+      expr,
+      TypeCheckErrors.requiredFunctionAnnotation()
+    )
   ): AtlasType {
-    return this.checkFunction({
+    return this.visitFunction({
       expr,
       enumType: FunctionEnum.FUNCTION,
       expected,
@@ -277,7 +281,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGetExpr(expr: GetExpr): AtlasType {
-    return this.lookup.field(expr);
+    return this.visitField(expr);
   }
 
   visitTernaryExpr(_expr: TernaryExpr): AtlasType {
@@ -299,7 +303,7 @@ export class TypeChecker implements TypeVisitor {
       case "String":
         return Types.String;
       default:
-        throw this.error(
+        throw this.subtyper.error(
           expr,
           TypeCheckErrors.unexpectedLiteralType(expr.value.type)
         );
@@ -311,18 +315,18 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitLogicalExpr(expr: LogicalExpr): AtlasType {
-    return synthesize(
+    return this.subtyper.synthesize(
       this.acceptExpr(expr.left),
       this.acceptExpr(expr.right),
       (left, right) => {
         switch (expr.operator.type) {
           case "OR":
           case "AND":
-            this.checkSubtype(expr.left, left, Types.Boolean);
-            this.checkSubtype(expr.right, right, Types.Boolean);
+            this.subtyper.check(expr.left, left, Types.Boolean);
+            this.subtyper.check(expr.right, right, Types.Boolean);
             return Types.Boolean;
           default:
-            return this.error(
+            return this.subtyper.error(
               expr.operator,
               TypeCheckErrors.unexpectedLogicalOperator()
             );
@@ -344,9 +348,9 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {
-    const expected = this.lookup.field(expr);
+    const expected = this.visitField(expr);
     const actual = this.acceptExpr(expr.value, expected);
-    return this.checkSubtype(expr.value, actual, expected);
+    return this.subtyper.check(expr.value, actual, expected);
   }
 
   visitThisExpr(expr: ThisExpr): AtlasType {
@@ -354,16 +358,16 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
-    return synthesize(this.acceptExpr(expr.right), right => {
+    return this.subtyper.synthesize(this.acceptExpr(expr.right), right => {
       switch (expr.operator.type) {
         case "BANG":
-          this.checkSubtype(expr.right, right, Types.Boolean);
+          this.subtyper.check(expr.right, right, Types.Boolean);
           return Types.Boolean;
         case "MINUS":
-          this.checkSubtype(expr.right, right, Types.Number);
+          this.subtyper.check(expr.right, right, Types.Number);
           return Types.Number;
         default:
-          return this.error(
+          return this.subtyper.error(
             expr.operator,
             TypeCheckErrors.unexpectedUnaryOperator()
           );
@@ -390,7 +394,7 @@ export class TypeChecker implements TypeVisitor {
         const right = this.acceptTypeExpr(typeExpr.right);
         return Types.Union.init([left, right]);
       default:
-        return this.error(
+        return this.subtyper.error(
           typeExpr.operator,
           TypeCheckErrors.unexpectedCompositeOperator()
         );
@@ -405,28 +409,43 @@ export class TypeChecker implements TypeVisitor {
     return this.lookup.type(typeExpr.name);
   }
 
-  private checkProperty(
+  // utils
+  visitField({ name, object }: GetExpr | SetExpr): AtlasType {
+    return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
+      const memberType = objectType.get(name);
+      if (memberType) return memberType;
+      return this.subtyper.error(
+        name,
+        TypeCheckErrors.unknownProperty(name.lexeme)
+      );
+    });
+  }
+
+  private visitProperty(
     { initializer: expr, name, type }: Property,
     enumType: FunctionEnum = FunctionEnum.FUNCTION
   ): AtlasType {
     if (isFunctionExpr(expr) && type) {
       const expected = this.acceptTypeExpr(type);
       this.lookup.declareValue(name, expected);
-      const value = this.checkFunction({ expr, enumType, expected });
+      const value = this.visitFunction({ expr, enumType, expected });
 
       return this.lookup.defineValue(name, value);
     } else if (isFunctionExpr(expr)) {
-      return this.error(expr, TypeCheckErrors.requiredFunctionAnnotation());
+      return this.subtyper.error(
+        expr,
+        TypeCheckErrors.requiredFunctionAnnotation()
+      );
     } else {
       const expected = type ? this.acceptTypeExpr(type) : undefined;
       let actual = this.acceptExpr(expr, expected);
-      if (expected) actual = this.checkSubtype(expr, actual, expected);
+      if (expected) actual = this.subtyper.check(expr, actual, expected);
 
       return this.lookup.defineValue(name, actual);
     }
   }
 
-  private checkFunction(current: CurrentFunction): AtlasType {
+  private visitFunction(current: CurrentFunction): AtlasType {
     const enclosingFunction = this.currentFunction;
     this.currentFunction = current;
     this.lookup.beginScope();
@@ -455,25 +474,6 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.endScope();
     this.currentFunction = enclosingFunction;
 
-    return this.checkSubtype(expr, actual, expected);
-  }
-
-  private checkSubtype(
-    source: SourceRangeable,
-    actual: AtlasType,
-    expected: AtlasType
-  ): AtlasType {
-    if (isSubtype(actual, expected)) return expected;
-
-    return this.error(
-      source,
-      TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
-    );
-  }
-
-  error(source: SourceRangeable, message: SourceMessage): AtlasType {
-    const error = new TypeCheckError(message, source.sourceRange());
-    this.errors.push(error);
-    return Types.Any;
+    return this.subtyper.check(expr, actual, expected);
   }
 }

@@ -5,8 +5,6 @@ import { TypeCheckErrors } from "../errors/TypeCheckError";
 import { Token } from "../ast/Token";
 import { AtlasType } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
-import { GetExpr, SetExpr } from "../ast/Expr";
-import { synthesize } from "./synthesize";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
@@ -17,7 +15,7 @@ export class TypeCheckerLookup {
   value(name: Token): AtlasType {
     const type = this.scopedValue(name.lexeme);
     if (type) return type;
-    return this.typechecker.error(
+    return this.typechecker.subtyper.error(
       name,
       TypeCheckErrors.undefinedValue(name.lexeme)
     );
@@ -38,7 +36,7 @@ export class TypeCheckerLookup {
       return entry.type;
     }
 
-    return this.typechecker.error(
+    return this.typechecker.subtyper.error(
       name,
       TypeCheckErrors.undefinedType(name.lexeme)
     );
@@ -56,17 +54,6 @@ export class TypeCheckerLookup {
     return undefined;
   }
 
-  field({ name, object }: GetExpr | SetExpr): AtlasType {
-    return synthesize(this.typechecker.acceptExpr(object), objectType => {
-      const memberType = objectType.get(name);
-      if (memberType) return memberType;
-      return this.typechecker.error(
-        name,
-        TypeCheckErrors.unknownProperty(name.lexeme)
-      );
-    });
-  }
-
   defineType(
     name: Token,
     type: AtlasType,
@@ -75,7 +62,7 @@ export class TypeCheckerLookup {
     const scope = this.getScope();
 
     if (scope.typeScope.has(name.lexeme)) {
-      return this.typechecker.error(
+      return this.typechecker.subtyper.error(
         name,
         TypeCheckErrors.prohibitedTypeRedeclaration()
       );
@@ -104,7 +91,7 @@ export class TypeCheckerLookup {
     if (scope && this.typechecker.currentClass === ClassType.NONE) {
       for (const { state, source } of scope.typeScope.values()) {
         if (state === VariableState.DEFINED && source) {
-          this.typechecker.error(source, TypeCheckErrors.unusedType());
+          this.typechecker.subtyper.error(source, TypeCheckErrors.unusedType());
         }
       }
     }

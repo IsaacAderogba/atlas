@@ -15,3 +15,9 @@ export enum VariableState {
   DEFINED = "DEFINED",
   SETTLED = "SETTLED",
 }
+
+export enum SynthesizeContext {
+  None = "None",
+  Union = "Union",
+  Intersection = "Intersection",
+}
