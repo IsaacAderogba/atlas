@@ -390,9 +390,15 @@ export class TypeChecker implements TypeVisitor {
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): AtlasType {
     switch (typeExpr.operator.type) {
       case "PIPE":
-        const left = this.acceptTypeExpr(typeExpr.left);
-        const right = this.acceptTypeExpr(typeExpr.right);
-        return Types.Union.init([left, right]);
+        return Types.Union.init([
+          this.acceptTypeExpr(typeExpr.left),
+          this.acceptTypeExpr(typeExpr.right),
+        ]);
+      case "AMPERSAND":
+        return Types.Intersection.init([
+          this.acceptTypeExpr(typeExpr.left),
+          this.acceptTypeExpr(typeExpr.right),
+        ]);
       default:
         return this.subtyper.error(
           typeExpr.operator,
