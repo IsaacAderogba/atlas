@@ -52,7 +52,7 @@ import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
-import { synthesize } from "./utils";
+import { synthesize } from "./synthesize";
 
 export class TypeChecker implements TypeVisitor {
   private readonly lookup = new TypeCheckerLookup(this);

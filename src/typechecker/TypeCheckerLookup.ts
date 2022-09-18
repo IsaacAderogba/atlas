@@ -6,7 +6,7 @@ import { Token } from "../ast/Token";
 import { AtlasType } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
 import { GetExpr, SetExpr } from "../ast/Expr";
-import { synthesize } from "./utils";
+import { synthesize } from "./synthesize";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
