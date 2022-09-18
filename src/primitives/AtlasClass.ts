@@ -11,7 +11,6 @@ import { RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { isInterfaceSubtype } from "./InterfaceType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -81,11 +80,6 @@ export class ClassType extends ObjectType implements CallableType {
 
   findProp(name: string): AtlasType | undefined {
     return this.findField(name) || this.findMethod(name);
-  }
-
-  isSubtype(candidate: AtlasType): boolean {
-    if (this === candidate) return true;
-    return isInterfaceSubtype(this, candidate);
   }
 
   static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>

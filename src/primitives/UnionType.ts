@@ -1,4 +1,4 @@
-import { Token } from "../ast/Token";
+import { isSubtype } from "../typechecker/isSubtype";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -15,7 +15,7 @@ export class UnionType extends ObjectType {
     return ts.filter((t1, i1) =>
       ts.every(
         (t2, i2) =>
-          i1 === i2 || !t1.isSubtype(t2) || (t2.isSubtype(t1) && i1 < i2)
+          i1 === i2 || !isSubtype(t1, t2) || (isSubtype(t2, t1) && i1 < i2)
       )
     );
   }
@@ -26,15 +26,11 @@ export class UnionType extends ObjectType {
     );
   }
 
-  isSubtype(candidate: AtlasType): boolean {
-    return true;
-  }
-
   static init = (types: AtlasType[]): UnionType => new UnionType(types);
   init: typeof UnionType.init = (...args) => UnionType.init(...args);
 
   toString = (): string => this.types.map(type => type.toString()).join(" | ");
 }
 
-export const isUnionType = (value: unknown): value is UnionType =>
-  value instanceof UnionType;
+export const isUnionType = (value: AtlasType): value is UnionType =>
+  value.type === "Union";

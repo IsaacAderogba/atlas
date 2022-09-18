@@ -53,6 +53,7 @@ import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { synthesize } from "./synthesize";
+import { isSubtype } from "./isSubtype";
 
 export class TypeChecker implements TypeVisitor {
   private readonly lookup = new TypeCheckerLookup(this);
@@ -462,7 +463,7 @@ export class TypeChecker implements TypeVisitor {
     actual: AtlasType,
     expected: AtlasType
   ): AtlasType {
-    if (actual.isSubtype(expected)) return expected;
+    if (isSubtype(actual, expected)) return expected;
 
     return this.error(
       source,

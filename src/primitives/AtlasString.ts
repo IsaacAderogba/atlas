@@ -1,4 +1,3 @@
-import { isAnyType } from "./AnyType";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -19,10 +18,6 @@ export const atlasString = (value: string): AtlasString =>
 
 export class StringType extends ObjectType {
   readonly type = "String";
-
-  isSubtype(candidate: AtlasType): boolean {
-    return isAnyType(candidate) || isStringType(candidate);
-  }
 
   static init = (): StringType => new StringType();
   init: typeof StringType.init = () => StringType.init();

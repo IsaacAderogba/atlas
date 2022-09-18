@@ -1,19 +1,20 @@
 import { Types } from "../../primitives/AtlasType";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { describe, expect, it } from "vitest";
+import { isSubtype } from "../isSubtype";
 
 describe("Typechecker inference", () => {
   it("infers any", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Any)).toEqual(true);
+    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Any)).toEqual(true);
   });
 
   it("infers numbers", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Number)).toEqual(true);
-    expect(tester.evalTypeWorkflow("'4'").isSubtype(Types.Number)).toEqual(
+    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Number)).toEqual(true);
+    expect(isSubtype(tester.evalTypeWorkflow("'4'"), Types.Number)).toEqual(
       false
     );
   });
@@ -21,22 +22,24 @@ describe("Typechecker inference", () => {
   it("infers strings", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("'foo'").isSubtype(Types.String)).toEqual(
+    expect(isSubtype(tester.evalTypeWorkflow("'foo'"), Types.String)).toEqual(
       true
     );
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.String)).toEqual(false);
+    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.String)).toEqual(
+      false
+    );
   });
 
   it("infers booleans", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("true").isSubtype(Types.Boolean)).toEqual(
+    expect(isSubtype(tester.evalTypeWorkflow("true"), Types.Boolean)).toEqual(
       true
     );
-    expect(tester.evalTypeWorkflow("false").isSubtype(Types.Boolean)).toEqual(
+    expect(isSubtype(tester.evalTypeWorkflow("false"), Types.Boolean)).toEqual(
       true
     );
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Boolean)).toEqual(
+    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Boolean)).toEqual(
       false
     );
   });
@@ -44,8 +47,10 @@ describe("Typechecker inference", () => {
   it("infers null", () => {
     const { tester } = setupTester();
 
-    expect(tester.evalTypeWorkflow("null").isSubtype(Types.Null)).toEqual(true);
-    expect(tester.evalTypeWorkflow("4").isSubtype(Types.Null)).toEqual(false);
+    expect(isSubtype(tester.evalTypeWorkflow("null"), Types.Null)).toEqual(
+      true
+    );
+    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Null)).toEqual(false);
   });
 
   it("infers record", () => {
@@ -59,10 +64,13 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      Types.Record.init({
-        foo: Types.String,
-        "1": Types.Number,
-      }).isSubtype(tester.evalTypeWorkflow("x"))
+      isSubtype(
+        Types.Record.init({
+          foo: Types.String,
+          "1": Types.Number,
+        }),
+        tester.evalTypeWorkflow("x")
+      )
     ).toEqual(true);
   });
 
@@ -74,7 +82,7 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      Types.String.isSubtype(tester.evalTypeWorkflow("x.foo.foo"))
+      isSubtype(Types.String, tester.evalTypeWorkflow("x.foo.foo"))
     ).toEqual(true);
   });
 
@@ -87,7 +95,7 @@ describe("Typechecker inference", () => {
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
 
-      expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
     });
   });
 
@@ -108,8 +116,7 @@ describe("Typechecker inference", () => {
 
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
-
-      expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
     });
   });
 
@@ -122,7 +129,7 @@ describe("Typechecker inference", () => {
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
 
-      expect(tester.evalTypeWorkflow(source).isSubtype(subtype)).toEqual(true);
+      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
     });
   });
 
@@ -139,7 +146,7 @@ describe("Typechecker inference", () => {
       const { tester } = setupTester();
 
       tester.typeCheckWorkflow(source);
-      expect(type.isSubtype(tester.evalTypeWorkflow("x"))).toEqual(true);
+      expect(isSubtype(type, tester.evalTypeWorkflow("x"))).toEqual(true);
     });
   });
 
@@ -157,10 +164,13 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      Types.Function.init({
-        params: [Types.Number],
-        returns: Types.Number,
-      }).isSubtype(tester.evalTypeWorkflow("x"))
+      isSubtype(
+        Types.Function.init({
+          params: [Types.Number],
+          returns: Types.Number,
+        }),
+        tester.evalTypeWorkflow("x")
+      )
     ).toEqual(true);
   });
 
@@ -169,10 +179,13 @@ describe("Typechecker inference", () => {
 
     tester.typeCheckWorkflow("var x: (Number) -> Number = f(x) { return 1 }");
     expect(
-      Types.Function.init({
-        params: [Types.Number],
-        returns: Types.Number,
-      }).isSubtype(tester.evalTypeWorkflow("x"))
+      isSubtype(
+        Types.Function.init({
+          params: [Types.Number],
+          returns: Types.Number,
+        }),
+        tester.evalTypeWorkflow("x")
+      )
     ).toEqual(true);
   });
 });
@@ -182,7 +195,7 @@ describe("Typechecker statements", () => {
     const { tester } = setupTester();
 
     tester.typeCheckWorkflow("type Foo = String");
-    expect(Types.String.isSubtype(tester.evalTypeExprWorkflow("Foo"))).toEqual(
+    expect(isSubtype(Types.String, tester.evalTypeExprWorkflow("Foo"))).toEqual(
       true
     );
   });

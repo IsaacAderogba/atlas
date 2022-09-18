@@ -56,7 +56,6 @@ export type ObjectTypeProps = { [key: string]: AtlasType };
 export abstract class ObjectType {
   abstract type: string;
   abstract toString(): string;
-  abstract isSubtype(candidate: ObjectType): boolean;
 
   internalFields = new Map<string, AtlasType>();
   internalMethods = new Map<string, CallableType & AtlasType>();

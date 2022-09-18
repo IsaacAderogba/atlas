@@ -1,4 +1,3 @@
-import { isAnyType } from "./AnyType";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -16,10 +15,6 @@ export class AtlasNumber extends AtlasObject {
 
 export class NumberType extends ObjectType {
   readonly type = "Number";
-
-  isSubtype(candidate: AtlasType): boolean {
-    return isAnyType(candidate) || isNumberType(candidate);
-  }
 
   static init = (): NumberType => new NumberType();
   init: typeof NumberType.init = () => NumberType.init();

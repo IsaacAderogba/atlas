@@ -1,9 +1,5 @@
 import { FunctionExpr } from "../ast/Expr";
-import {
-  AtlasCallable,
-  CallableType,
-  isCallableSubtype,
-} from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -81,10 +77,6 @@ export class FunctionType extends ObjectType implements CallableType {
     super();
     this.params = props.params;
     this.returns = props.returns;
-  }
-
-  isSubtype(candidate: AtlasType): boolean {
-    return isCallableSubtype(this, candidate);
   }
 
   arity(): number {

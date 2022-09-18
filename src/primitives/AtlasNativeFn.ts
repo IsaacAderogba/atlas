@@ -1,8 +1,4 @@
-import {
-  AtlasCallable,
-  CallableType,
-  isCallableSubtype,
-} from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
@@ -62,10 +58,6 @@ export class NativeFnType extends ObjectType implements CallableType {
     super();
     this.params = props.params;
     this.returns = props.returns;
-  }
-
-  isSubtype(candidate: AtlasType): boolean {
-    return isCallableSubtype(this, candidate);
   }
 
   arity(): number {

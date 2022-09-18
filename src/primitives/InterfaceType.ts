@@ -10,10 +10,6 @@ export class InterfaceType extends ObjectType {
     this.name = name;
   }
 
-  isSubtype(candidate: AtlasType): boolean {
-    return isInterfaceSubtype(this, candidate);
-  }
-
   static init = (
     name: string,
     entries: { [key: string]: AtlasType } = {}
@@ -33,28 +29,6 @@ export const isInterfaceType = (
   value.type === "Record" ||
   value.type === "Class" ||
   value.type === "Instance";
-
-export const isInterfaceSubtype = (
-  target: AtlasType,
-  candidate: AtlasType
-): boolean => {
-  if (candidate.type === "Any") return true;
-  if (!isInterfaceType(candidate)) return false;
-
-  const fields = [...candidate.fields.entries()].every(([name, type]) => {
-    const compare = target.fields.get(name);
-    if (compare) return compare.isSubtype(type);
-    return false;
-  });
-
-  const methods = [...candidate.methods.entries()].every(([name, type]) => {
-    const compare = target.methods.get(name);
-    if (compare) return compare.isSubtype(type);
-    return false;
-  });
-
-  return fields && methods;
-};
 
 export const toInterfaceString = (target: AtlasType): string => {
   const props: string[] = [];

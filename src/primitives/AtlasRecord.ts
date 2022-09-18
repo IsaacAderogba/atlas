@@ -1,7 +1,7 @@
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { isInterfaceSubtype, toInterfaceString } from "./InterfaceType";
+import { toInterfaceString } from "./InterfaceType";
 
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
@@ -21,10 +21,6 @@ export class RecordType extends ObjectType {
 
   constructor(entries: { [key: string]: AtlasType } = {}) {
     super(entries);
-  }
-
-  isSubtype(candidate: AtlasType): boolean {
-    return isInterfaceSubtype(this, candidate);
   }
 
   static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {

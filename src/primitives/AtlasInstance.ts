@@ -3,8 +3,6 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
-import { isInterfaceSubtype } from "./InterfaceType";
-import { isAnyType } from "./AnyType";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
@@ -49,11 +47,6 @@ export class InstanceType extends ObjectType {
 
   get methods(): ObjectType["methods"] {
     return this.classType.methods;
-  }
-
-  isSubtype(candidate: AtlasType): boolean {
-    if (this === candidate) return true;
-    return isInterfaceSubtype(this, candidate);
   }
 
   static init = (classType: ClassType): InstanceType =>
