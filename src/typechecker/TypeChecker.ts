@@ -204,29 +204,30 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitBinaryExpr(expr: BinaryExpr): AtlasType {
+    const left = this.acceptExpr(expr.left);
+    const right = this.acceptExpr(expr.right);
+
     switch (expr.operator.type) {
       case "HASH":
-        this.checkExprSubtype(expr.left, Types.String);
-        this.checkExprSubtype(expr.right, Types.String);
+        this.checkSubtype(expr.left, left, Types.String);
+        this.checkSubtype(expr.right, right, Types.String);
         return Types.String;
       case "PLUS":
       case "MINUS":
       case "SLASH":
       case "STAR":
-        this.checkExprSubtype(expr.left, Types.Number);
-        this.checkExprSubtype(expr.right, Types.Number);
+        this.checkSubtype(expr.left, left, Types.Number);
+        this.checkSubtype(expr.right, right, Types.Number);
         return Types.Number;
       case "GREATER":
       case "GREATER_EQUAL":
       case "LESS":
       case "LESS_EQUAL":
-        this.checkExprSubtype(expr.left, Types.Number);
-        this.checkExprSubtype(expr.right, Types.Number);
+        this.checkSubtype(expr.left, left, Types.Number);
+        this.checkSubtype(expr.right, right, Types.Number);
         return Types.Boolean;
       case "EQUAL_EQUAL":
       case "BANG_EQUAL":
-        this.acceptExpr(expr.left);
-        this.acceptExpr(expr.right);
         return Types.Boolean;
       default:
         return this.error(
@@ -304,11 +305,14 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitLogicalExpr(expr: LogicalExpr): AtlasType {
+    const left = this.acceptExpr(expr.left);
+    const right = this.acceptExpr(expr.right);
+
     switch (expr.operator.type) {
       case "OR":
       case "AND":
-        this.checkExprSubtype(expr.left, Types.Boolean);
-        this.checkExprSubtype(expr.right, Types.Boolean);
+        this.checkSubtype(expr.left, left, Types.Boolean);
+        this.checkSubtype(expr.right, right, Types.Boolean);
         return Types.Boolean;
       default:
         return this.error(
@@ -340,12 +344,14 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitUnaryExpr(expr: UnaryExpr): AtlasType {
+    const right = this.acceptExpr(expr.right);
+
     switch (expr.operator.type) {
       case "BANG":
-        this.checkExprSubtype(expr.right, Types.Boolean);
+        this.checkSubtype(expr.right, right, Types.Boolean);
         return Types.Boolean;
       case "MINUS":
-        this.checkExprSubtype(expr.right, Types.Number);
+        this.checkSubtype(expr.right, right, Types.Number);
         return Types.Number;
       default:
         return this.error(
