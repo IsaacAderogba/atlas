@@ -74,7 +74,8 @@ export class TypeChecker implements TypeVisitor {
   }
 
   acceptExpr(expression: Expr, expectedType?: AtlasType): AtlasType {
-    return expression.accept(this, expectedType);
+    const type = expression.accept(this, expectedType);
+    return type;
   }
 
   acceptTypeExpr(typeExpr: TypeExpr, expectedType?: AtlasType): AtlasType {
