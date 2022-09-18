@@ -1,14 +1,13 @@
 import { isSubtype } from "../typechecker/isSubtype";
 import { ObjectType } from "./AtlasObject";
-import { AtlasType } from "./AtlasType";
+import { AtlasType, Types } from "./AtlasType";
+import { NeverType } from "./NeverType";
 
 export class UnionType extends ObjectType {
   readonly type = "Union";
-  readonly types: AtlasType[];
 
-  constructor(types: AtlasType[]) {
+  constructor(readonly types: AtlasType[]) {
     super();
-    this.types = this.collapseSubtypes(this.flatten(types));
   }
 
   collapseSubtypes(ts: AtlasType[]): AtlasType[] {
@@ -26,8 +25,13 @@ export class UnionType extends ObjectType {
     );
   }
 
-  static init = (types: AtlasType[]): UnionType => new UnionType(types);
-  init: typeof UnionType.init = (...args) => UnionType.init(...args);
+  init = (types: AtlasType[]): AtlasType => {
+    types = this.flatten(types);
+    types = this.collapseSubtypes(types);
+    if (types.length === 0) return Types.Never;
+    if (types.length === 1) return types[0];
+    return new UnionType(types);
+  };
 
   toString = (): string => this.types.map(type => type.toString()).join(" | ");
 }

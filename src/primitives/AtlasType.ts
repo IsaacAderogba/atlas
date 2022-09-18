@@ -31,20 +31,23 @@ export type AtlasType =
   | UnionType
   | UnknownType;
 
+const Any = new AnyType();
+const Class = new ClassType("Class", {});
+
 export const Types = {
-  Any: AnyType.init(),
-  Null: NullType.init(),
-  Boolean: BooleanType.init(),
-  Number: NumberType.init(),
-  String: StringType.init(),
-  Record: RecordType.init({}),
-  Function: FunctionType.init({ params: [], returns: NullType.init() }),
-  NativeFn: NativeFnType.init({ params: [], returns: NullType.init() }),
-  Never: NeverType.init(),
-  Class: ClassType.init("Class"),
-  Instance: InstanceType.init(ClassType.init("Class")),
-  Interface: InterfaceType.init("Interface"),
-  Intersection: IntersectionType.init([]),
-  Union: UnionType.init([]),
-  Unknown: UnknownType.init(),
+  Any,
+  Null: new NullType(),
+  Boolean: new BooleanType(),
+  Number: new NumberType(),
+  String: new StringType(),
+  Record: new RecordType({}),
+  Function: new FunctionType({ params: [], returns: Any }),
+  NativeFn: new NativeFnType({ params: [], returns: Any }),
+  Never: new NeverType(),
+  Class: Class,
+  Instance: new InstanceType(Class),
+  Interface: new InterfaceType("Interface"),
+  Intersection: new IntersectionType([]),
+  Union: new UnionType([]),
+  Unknown: new UnknownType(),
 } as const;

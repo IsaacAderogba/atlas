@@ -64,10 +64,7 @@ export class NativeFnType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  static init = (props: NativeFnTypeProps): NativeFnType =>
-    new NativeFnType(props);
-
-  init: typeof NativeFnType.init = (...props) => NativeFnType.init(...props);
+  init = (props: NativeFnTypeProps): NativeFnType => new NativeFnType(props);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

@@ -82,10 +82,8 @@ export class ClassType extends ObjectType implements CallableType {
     return this.findField(name) || this.findMethod(name);
   }
 
-  static init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
+  init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
     new ClassType(name, properties);
-
-  init: typeof ClassType.init = (...props) => ClassType.init(...props);
 
   toString(): string {
     return `${this.name}`;

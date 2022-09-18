@@ -19,9 +19,6 @@ export const atlasBoolean = (value: true | false): AtlasBoolean =>
 export class BooleanType extends ObjectType {
   readonly type = "Boolean";
 
-  static init = (): BooleanType => new BooleanType();
-  init: typeof BooleanType.init = () => BooleanType.init();
-
   toString = (): string => this.type;
 }
 

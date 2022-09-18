@@ -19,9 +19,6 @@ export const atlasString = (value: string): AtlasString =>
 export class StringType extends ObjectType {
   readonly type = "String";
 
-  static init = (): StringType => new StringType();
-  init: typeof StringType.init = () => StringType.init();
-
   toString = (): string => this.type;
 }
 

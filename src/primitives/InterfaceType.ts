@@ -10,14 +10,12 @@ export class InterfaceType extends ObjectType {
     this.name = name;
   }
 
-  static init = (
+  init = (
     name: string,
     entries: { [key: string]: AtlasType } = {}
   ): InterfaceType => {
     return new InterfaceType(name, entries);
   };
-
-  init: typeof InterfaceType.init = (...props) => InterfaceType.init(...props);
 
   toString = (): string => `${this.name}`;
 }

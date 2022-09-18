@@ -16,9 +16,6 @@ export class AtlasNumber extends AtlasObject {
 export class NumberType extends ObjectType {
   readonly type = "Number";
 
-  static init = (): NumberType => new NumberType();
-  init: typeof NumberType.init = () => NumberType.init();
-
   toString = (): string => this.type;
 }
 

@@ -83,10 +83,7 @@ export class FunctionType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  static init = (props: FunctionTypeProps): FunctionType =>
-    new FunctionType(props);
-
-  init: typeof FunctionType.init = (...props) => FunctionType.init(...props);
+  init = (props: FunctionTypeProps): FunctionType => new FunctionType(props);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

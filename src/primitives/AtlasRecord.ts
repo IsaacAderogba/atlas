@@ -23,11 +23,9 @@ export class RecordType extends ObjectType {
     super(entries);
   }
 
-  static init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
+  init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
     return new RecordType(entries);
   };
-
-  init: typeof RecordType.init = (...props) => RecordType.init(...props);
 
   toString = (): string => {
     return toInterfaceString(this);

@@ -49,10 +49,7 @@ export class InstanceType extends ObjectType {
     return this.classType.methods;
   }
 
-  static init = (classType: ClassType): InstanceType =>
-    new InstanceType(classType);
-
-  init: typeof InstanceType.init = (...props) => InstanceType.init(...props);
+  init = (classType: ClassType): InstanceType => new InstanceType(classType);
 
   toString(): string {
     return `${this.classType.name}`;

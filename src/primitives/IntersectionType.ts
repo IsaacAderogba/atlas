@@ -9,10 +9,7 @@ export class IntersectionType extends ObjectType {
     super();
   }
 
-  static init = (types: AtlasType[]): IntersectionType =>
-    new IntersectionType(types);
-  init: typeof IntersectionType.init = (...args) =>
-    IntersectionType.init(...args);
+  init = (types: AtlasType[]): IntersectionType => new IntersectionType(types);
 
   toString = (): string => this.types.map(type => type.toString()).join(" | ");
 }

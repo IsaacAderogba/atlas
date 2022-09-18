@@ -18,9 +18,6 @@ export const atlasNull = (): AtlasNull => new AtlasNull();
 export class NullType extends ObjectType {
   readonly type = "Null";
 
-  static init = (): NullType => new NullType();
-  init: typeof NullType.init = () => NullType.init();
-
   toString = (): string => this.type;
 }
 
