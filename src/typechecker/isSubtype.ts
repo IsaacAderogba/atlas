@@ -10,6 +10,7 @@ import { isIntersectionType } from "../primitives/IntersectionType";
 import { isUnionType } from "../primitives/UnionType";
 
 export const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
+  if (a === b) return true;
   if (isAnyType(a) || isAnyType(b)) return true;
 
   if (isUnionType(a)) return a.types.every(a => isSubtype(a, b));
@@ -24,8 +25,6 @@ export const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
   if (isStringType(a) && isStringType(b)) return true;
 
   if (isInterfaceType(a) && isInterfaceType(b)) {
-    if (a === b) return true;
-
     const fields = [...b.fields.entries()].every(([name, type]) => {
       const compare = a.fields.get(name);
       if (compare) return isSubtype(compare, type);

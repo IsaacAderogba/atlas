@@ -43,7 +43,7 @@ describe("Interface annotations", () => {
   });
 });
 
-describe("Interface errors", () => {
+describe("Union errors", () => {
   it("errors with invalid subtype for non-chosen union member", () => {
     const { tester } = setupTester();
 
@@ -82,7 +82,7 @@ describe("Interface errors", () => {
     );
   });
 
-  it("annotates complex unions without error", () => {
+  it("errors for invalid annotations of complex unions", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`

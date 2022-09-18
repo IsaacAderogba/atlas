@@ -486,7 +486,6 @@ export class TypeChecker implements TypeVisitor {
 
     this.lookup.endScope();
     this.currentFunction = enclosingFunction;
-
     return this.subtyper.check(expr, actual, expected);
   }
 }
