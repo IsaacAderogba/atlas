@@ -62,7 +62,10 @@ describe("Intersection errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Intersection.init([Types.String, Types.Number]).toString(),
+        Types.Alias.init(
+          "Foo",
+          Types.Intersection.init([Types.String, Types.Number])
+        ).toString(),
         Types.String.toString()
       )
     );

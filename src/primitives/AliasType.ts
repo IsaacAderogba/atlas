@@ -12,7 +12,7 @@ export class AliasType extends ObjectType {
     return new AliasType(name, wrapped);
   };
 
-  toString = (): string => this.wrapped.toString();
+  toString = (): string => this.name;
 }
 
 export const isAliasType = (value: AtlasType): value is AliasType =>

@@ -55,7 +55,10 @@ describe("Union errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Union.init([Types.String, Types.Number]).toString(),
+        Types.Alias.init(
+          "Foo",
+          Types.Union.init([Types.String, Types.Number])
+        ).toString(),
         Types.Null.toString()
       )
     );
@@ -76,7 +79,10 @@ describe("Union errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Union.init([Types.String, Types.Number]).toString(),
+        Types.Alias.init(
+          "Foo",
+          Types.Union.init([Types.String, Types.Number])
+        ).toString(),
         Types.Null.toString()
       )
     );
@@ -103,10 +109,13 @@ describe("Union errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Union.init([
-          Types.Interface.init("CartesianVector", { y: Types.Number }),
-          Types.Interface.init("PolarVector", { angle: Types.Number }),
-        ]).toString(),
+        Types.Alias.init(
+          "Vector",
+          Types.Union.init([
+            Types.Interface.init("CartesianVector", { y: Types.Number }),
+            Types.Interface.init("PolarVector", { angle: Types.Number }),
+          ])
+        ).toString(),
         Types.Record.init({ type: Types.String }).toString()
       )
     );
