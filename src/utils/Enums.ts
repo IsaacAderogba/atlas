@@ -18,6 +18,5 @@ export enum VariableState {
 
 export enum SynthesizeContext {
   None = "None",
-  Union = "Union",
   Intersection = "Intersection",
 }

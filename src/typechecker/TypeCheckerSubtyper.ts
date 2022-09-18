@@ -42,15 +42,25 @@ export class TypeCheckerSubtyper {
       }
       return Types.Union.init(ts);
     } else if (isIntersectionType(t1) && isIntersectionType(t2)) {
-      const t1s = isIntersectionType(t1) ? t1.types : [t1];
-      const t2s = isIntersectionType(t2) ? t2.types : [t2];
-      const ts: AtlasType[] = [];
-      for (const t1 of t1s) {
-        for (const t2 of t2s) {
-          ts.push(this.synthesize(t1, t2, fn));
+      return this.synthesizeIntersection(() => {
+        const t1s = isIntersectionType(t1) ? t1.types : [t1];
+        const t2s = isIntersectionType(t2) ? t2.types : [t2];
+        const errors: TypeCheckError[] = [];
+        const types: AtlasType[] = [];
+
+        for (const t1 of t1s) {
+          for (const t2 of t2s) {
+            try {
+              types.push(fn(t1, t2));
+            } catch (error) {
+              if (!(error instanceof TypeCheckError)) throw error;
+              errors.push(error);
+            }
+          }
         }
-      }
-      return Types.Union.init(ts);
+
+        return { types, errors };
+      });
     } else {
       return fn(t1, t2);
     }
@@ -60,9 +70,40 @@ export class TypeCheckerSubtyper {
     if (isUnionType(t)) {
       return Types.Union.init(t.types.map(t => this.synthesize(t, fn)));
     } else if (isIntersectionType(t)) {
-      return Types.Intersection.init(t.types.map(t => this.synthesize(t, fn)));
+      return this.synthesizeIntersection(() => {
+        const errors: TypeCheckError[] = [];
+        const types: AtlasType[] = [];
+
+        for (const type of t.types) {
+          try {
+            types.push(fn(type));
+          } catch (error) {
+            if (!(error instanceof TypeCheckError)) throw error;
+            errors.push(error);
+          }
+        }
+
+        return { types, errors };
+      });
     } else {
       return fn(t);
+    }
+  }
+
+  synthesizeIntersection(
+    getTypes: () => { types: AtlasType[]; errors: TypeCheckError[] }
+  ): AtlasType {
+    const enclosingContext = this.synthesizeContext;
+    this.synthesizeContext = SynthesizeContext.Intersection;
+
+    const { types, errors } = getTypes();
+    if (types.length === 0) {
+      this.errors.push(...errors);
+      this.synthesizeContext = enclosingContext;
+      return Types.Any;
+    } else {
+      this.synthesizeContext = enclosingContext;
+      return Types.Intersection.init(types);
     }
   }
 
@@ -81,7 +122,14 @@ export class TypeCheckerSubtyper {
 
   error(source: SourceRangeable, message: SourceMessage): AtlasType {
     const error = new TypeCheckError(message, source.sourceRange());
-    this.errors.push(error);
-    return Types.Any;
+    if (
+      this.synthesizeContext === SynthesizeContext.None ||
+      message.type === "warning"
+    ) {
+      this.errors.push(error);
+      return Types.Any;
+    } else {
+      throw error;
+    }
   }
 }
