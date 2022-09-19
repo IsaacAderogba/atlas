@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   AssignExpr,
   BinaryExpr,
@@ -26,9 +25,7 @@ import {
 import { Property } from "../ast/Node";
 import {
   BlockStmt,
-  BreakStmt,
   ClassStmt,
-  ContinueStmt,
   ExpressionStmt,
   IfStmt,
   InterfaceStmt,
@@ -84,7 +81,7 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.endScope();
   }
 
-  visitBreakStmt(_stmt: BreakStmt): void {
+  visitBreakStmt(): void {
     // no op
   }
 
@@ -149,7 +146,7 @@ export class TypeChecker implements TypeVisitor {
     this.currentClass = enclosingClass;
   }
 
-  visitContinueStmt(_stmt: ContinueStmt): void {
+  visitContinueStmt(): void {
     // no op
   }
 
@@ -317,12 +314,21 @@ export class TypeChecker implements TypeVisitor {
     return this.visitField(expr);
   }
 
-  visitTernaryExpr(_expr: TernaryExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitTernaryExpr(expr: TernaryExpr): AtlasType {
+    const conditionActual = this.acceptExpr(expr.expression);
+    this.subtyper.check(expr.expression, conditionActual, Types.Boolean);
+
+    const thenResult = this.acceptExpr(expr.thenBranch);
+    const elseResult = this.acceptExpr(expr.elseBranch);
+
+    return (
+      this.subtyper.check(expr.thenBranch, thenResult, elseResult) &&
+      this.subtyper.check(expr.elseBranch, elseResult, thenResult)
+    );
   }
 
-  visitGroupingExpr(_expr: GroupingExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitGroupingExpr(expr: GroupingExpr): AtlasType {
+    return this.acceptExpr(expr.expression);
   }
 
   visitLiteralExpr(expr: LiteralExpr): AtlasType {
