@@ -12,6 +12,7 @@ import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { bindInterfaceGenerics } from "./InterfaceType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -59,8 +60,9 @@ export class ClassType extends ObjectType implements CallableType {
     super({ ...properties });
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+  bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
+    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
+    return this.init(this.name, entries);
   }
 
   arity(): number {

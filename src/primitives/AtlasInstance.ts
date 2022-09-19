@@ -39,7 +39,7 @@ export class InstanceType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    return this.init(this.classType.bindGenerics(genericTypeMap));
   }
 
   get(name: Token): AtlasType | undefined {

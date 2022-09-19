@@ -1,11 +1,10 @@
-import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
 export class AnyType extends ObjectType {
   readonly type = "Any";
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+  bindGenerics(): AtlasType {
     return this;
   }
 

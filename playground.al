@@ -19,8 +19,12 @@ var foo: FooBar[Number] = {
 
 print(foo.foo.bar)
 
-type GenericFunc[T] = (T) -> T
+interface Array[T] {
+  push: (T) -> T
+}
 
-var func: GenericFunc[Number] = f(gen) {
-  return 6
+class NumberArray implements Array[Number] {
+  push: (Number) -> Number = f(num) {
+    return num
+  }
 }

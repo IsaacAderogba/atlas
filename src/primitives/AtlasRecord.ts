@@ -2,7 +2,7 @@ import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { toInterfaceString } from "./InterfaceType";
+import { bindInterfaceGenerics, toInterfaceString } from "./InterfaceType";
 
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
@@ -25,7 +25,8 @@ export class RecordType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
+    return this.init(entries);
   }
 
   init = (entries: { [key: string]: AtlasType } = {}): RecordType => {

@@ -1,4 +1,3 @@
-import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -20,7 +19,7 @@ export const atlasString = (value: string): AtlasString =>
 export class StringType extends ObjectType {
   readonly type = "String";
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+  bindGenerics(): AtlasType {
     return this;
   }
 
