@@ -429,6 +429,24 @@ export class TypeChecker implements TypeVisitor {
 
   visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
     const genericType = this.lookup.type(typeExpr.name);
+    return this.visitGenericCall(genericType, typeExpr);
+  }
+
+  visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
+    const type = this.lookup.type(typeExpr.name);
+
+    if (type.generics.length) {
+      return this.subtyper.error(
+        typeExpr,
+        TypeCheckErrors.requiredGenericArgs()
+      );
+    }
+
+    return type;
+  }
+
+  // utils
+  visitGenericCall(genericType: AtlasType, typeExpr: GenericTypeExpr | CallExpr): AtlasType {
     const actuals = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
 
     if (genericType.generics.length !== actuals.length) {
@@ -445,17 +463,6 @@ export class TypeChecker implements TypeVisitor {
     return genericType.bindGenerics(genericTypeMap);
   }
 
-  visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
-    const type = this.lookup.type(typeExpr.name);
-
-    if (type.generics.length) {
-      return this.subtyper.error(typeExpr, TypeCheckErrors.requiredGenericArgs())
-    }
-
-    return type;
-  }
-
-  // utils
   visitField({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name);
