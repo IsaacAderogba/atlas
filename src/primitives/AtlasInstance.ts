@@ -3,7 +3,7 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;

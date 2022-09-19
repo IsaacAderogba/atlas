@@ -1,4 +1,7 @@
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import {
+  attachGenericString,
+  GenericTypeMap,
+} from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { GenericType } from "./GenericType";
@@ -15,7 +18,7 @@ export class AliasType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    return this.wrapped.bindGenerics(genericTypeMap);
   }
 
   init = (
@@ -26,7 +29,9 @@ export class AliasType extends ObjectType {
     return new AliasType(name, wrapped, generics);
   };
 
-  toString = (): string => this.name;
+  toString = (): string => {
+    return `${this.name}${attachGenericString(this.generics)}`;
+  };
 }
 
 export const isAliasType = (value: AtlasType): value is AliasType =>

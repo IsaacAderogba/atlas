@@ -8,7 +8,7 @@ import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
 import { GenericType } from "./GenericType";
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";

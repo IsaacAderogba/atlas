@@ -1,4 +1,7 @@
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import {
+  attachGenericString,
+  GenericTypeMap,
+} from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { GenericType } from "./GenericType";
@@ -17,7 +20,8 @@ export class InterfaceType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    const entries = bindInterfaceGenerics(this, genericTypeMap);
+    return this.init(this.name, entries);
   }
 
   init = (
@@ -28,8 +32,28 @@ export class InterfaceType extends ObjectType {
     return new InterfaceType(name, entries, generics);
   };
 
-  toString = (): string => `${this.name}`;
+  toString = (): string => {
+    return `${this.name}${attachGenericString(this.generics)}`;
+  };
 }
+
+export const bindInterfaceGenerics = (
+  target: AtlasType,
+  map: GenericTypeMap
+): { [key: string]: AtlasType } => {
+  if (!isInterfaceType(target)) throw new Error("Invariant");
+
+  const entries: { [key: string]: AtlasType } = {};
+  for (const [name, type] of target.fields) {
+    entries[name] = map.get(type) || type;
+  }
+
+  for (const [name, type] of target.methods) {
+    entries[name] = map.get(type) || type;
+  }
+
+  return entries;
+};
 
 export const isInterfaceType = (
   value: AtlasType

@@ -49,7 +49,7 @@ import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
-import { buildGenericTypeMap } from "./GenericTypeMap";
+import { buildGenericTypeMap } from "./GenericUtils";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -199,10 +199,11 @@ export class TypeChecker implements TypeVisitor {
   visitTypeStmt(stmt: TypeStmt): void {
     this.lookup.beginScope();
 
+    const generics = this.lookup.defineGenerics(stmt.parameters);
     const alias = Types.Alias.init(
       stmt.name.lexeme,
       this.acceptTypeExpr(stmt.type),
-      this.lookup.defineGenerics(stmt.parameters)
+      generics
     );
 
     this.lookup.endScope();
@@ -445,7 +446,13 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
-    return this.lookup.type(typeExpr.name);
+    const type = this.lookup.type(typeExpr.name);
+
+    if (type.generics.length) {
+      return this.subtyper.error(typeExpr, TypeCheckErrors.requiredGenericArgs())
+    }
+
+    return type;
   }
 
   // utils

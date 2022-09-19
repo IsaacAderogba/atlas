@@ -11,7 +11,7 @@ import { RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";

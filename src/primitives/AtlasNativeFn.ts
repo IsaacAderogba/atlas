@@ -4,7 +4,7 @@ import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
 import { GenericType } from "./GenericType";
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";

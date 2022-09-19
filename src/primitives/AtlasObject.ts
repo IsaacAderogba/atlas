@@ -11,7 +11,7 @@ import {
 } from "./AtlasCallable";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
 

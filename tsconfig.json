@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "noEmit": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "outDir": "./dist"

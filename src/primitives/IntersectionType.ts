@@ -1,4 +1,4 @@
-import { GenericTypeMap } from "../typechecker/GenericTypeMap";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -10,7 +10,8 @@ export class IntersectionType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    const types = this.types.map(type => type.bindGenerics(genericTypeMap));
+    return this.init(types);
   }
 
   init = (types: AtlasType[]): IntersectionType => new IntersectionType(types);

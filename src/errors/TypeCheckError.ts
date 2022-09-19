@@ -80,6 +80,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static requiredGenericArgs(): SourceMessage {
+    return this.formatError({
+      title: "required generic arguments",
+      body: "generic types always require type arguments",
+    });
+  }
+
   static undefinedType(type: string): SourceMessage {
     return this.formatError({
       title: "undefined type",
