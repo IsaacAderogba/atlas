@@ -87,7 +87,7 @@ export class FunctionType extends ObjectType implements CallableType {
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
     const { params, returns } = bindCallableGenerics(this, genericTypeMap);
-    return this.init({ params, returns });
+    return this.init({ params, returns }, this.generics);
   }
 
   arity(): number {

@@ -6,10 +6,12 @@ import type { Token } from "./Token";
 interface BaseNode extends SourceRangeable {}
 
 export class Parameter implements BaseNode {
-  constructor(readonly name: Token) {}
+  constructor(readonly name: Token, readonly baseType?: TypeExpr) {}
 
   sourceRange(): SourceRange {
-    return this.name.sourceRange();
+    const { start } = this.name.sourceRange();
+    const { end } = (this.baseType || this.name).sourceRange();
+    return new SourceRange(start, end);
   }
 }
 

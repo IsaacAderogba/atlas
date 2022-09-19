@@ -6,7 +6,7 @@ import { AtlasType } from "./AtlasType";
 export class GenericType extends ObjectType {
   readonly type = "Generic";
 
-  constructor(public param: Parameter) {
+  constructor(public param: Parameter, public constraint?: AtlasType) {
     super();
   }
 
@@ -14,7 +14,8 @@ export class GenericType extends ObjectType {
     return genericTypeMap.get(this) ?? this;
   }
 
-  init = (param: Parameter): GenericType => new GenericType(param);
+  init = (param: Parameter, constraint?: AtlasType): GenericType =>
+    new GenericType(param, constraint);
 
   toString = (): string => this.param.name.lexeme;
 }

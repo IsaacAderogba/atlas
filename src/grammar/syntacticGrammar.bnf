@@ -50,13 +50,14 @@ entries        -> entry ( "," entry )* ;
 entry          -> STRING ":" expression ;
 expressions    -> expression ( "," expression )* ;
 property       -> name ( ":" typeExpr )? "=" expression ;
-parameters     -> IDENTIFIER ( "," IDENTIFIER )* ;
+parameters     -> parameter ( "," parameter )* ;
+parameter      -> IDENTIFIER ( "extends" typeExpr )?;
 
 
 typeExpr          -> compositeTypeExpr ;
 compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
 subTypeExpr       -> callableType | genericType | name ;
-callableTypeExpr  -> ( "[" parameters "]" )? "(" typeExprs ")" "->" typeExpr ;
+callableTypeExpr  -> "(" typeExprs ")" "->" typeExpr ;
 genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
 
 typeExprs         -> typeExpr ( "," typeExpr )* ;

@@ -13,6 +13,7 @@ import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { bindInterfaceGenerics } from "./InterfaceType";
+import { GenericType } from "./GenericType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -56,13 +57,17 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
 export class ClassType extends ObjectType implements CallableType {
   readonly type = "Class";
 
-  constructor(public name: string, properties: ObjectTypeProps) {
-    super({ ...properties });
+  constructor(
+    public name: string,
+    properties: ObjectTypeProps,
+    generics: GenericType[] = []
+  ) {
+    super({ ...properties }, generics);
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
     const { entries } = bindInterfaceGenerics(this, genericTypeMap);
-    return this.init(this.name, entries);
+    return this.init(this.name, entries, this.generics);
   }
 
   arity(): number {
@@ -89,8 +94,11 @@ export class ClassType extends ObjectType implements CallableType {
     return this.findField(name) || this.findMethod(name);
   }
 
-  init = (name: string, properties: ObjectTypeProps = {}): ClassType =>
-    new ClassType(name, properties);
+  init = (
+    name: string,
+    properties: ObjectTypeProps = {},
+    generics: GenericType[] = []
+  ): ClassType => new ClassType(name, properties, generics);
 
   toString(): string {
     return `${this.name}`;

@@ -49,7 +49,6 @@ import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
-import { buildGenericTypeMap } from "./GenericUtils";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -268,7 +267,7 @@ export class TypeChecker implements TypeVisitor {
       if (typeExprs.length > 0) {
         type = this.visitGenericCall(calleeType, expr);
       } else {
-        if (calleeType.generics.length) {
+        if (calleeType.generics.some(g => !g.constraint)) {
           return this.subtyper.error(
             callee,
             TypeCheckErrors.requiredGenericArgs()
@@ -450,7 +449,7 @@ export class TypeChecker implements TypeVisitor {
   visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
     const type = this.lookup.type(typeExpr.name);
 
-    if (type.generics.length) {
+    if (type.generics.some(g => !g.constraint)) {
       return this.subtyper.error(
         typeExpr,
         TypeCheckErrors.requiredGenericArgs()
@@ -477,7 +476,17 @@ export class TypeChecker implements TypeVisitor {
       );
     }
 
-    const genericTypeMap = buildGenericTypeMap(genericType.generics, actuals);
+    const genericTypeMap = new Map(
+      genericType.generics.map((generic, i) => {
+        let actual = actuals[i];
+        if (generic.constraint) {
+          actual = this.subtyper.check(typeExpr, actual, generic.constraint);
+        }
+
+        return [generic, actual];
+      })
+    );
+
     return genericType.bindGenerics(genericTypeMap);
   }
 

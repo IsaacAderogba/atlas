@@ -1,10 +1,9 @@
-class Foo[T] {
-  push: (T) -> Null = f(arg) {
-    print(arg # arg)
+class Foo[K is String] {
+  bar: [T is Number](T) -> Number = f(num) {
+    return num * num
   }
 }
 
+var foo = Foo[String]()
 
-var foo = Foo[Number]()
-
-foo.push(0)
+print(foo.bar[Number](6))

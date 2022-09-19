@@ -574,11 +574,14 @@ export class Parser {
     const params: Parameter[] = [];
     if (!this.check(type)) {
       do {
-        const name = new Parameter(
-          this.consume("IDENTIFIER", SyntaxErrors.expectedParameter())
+        const name = this.consume(
+          "IDENTIFIER",
+          SyntaxErrors.expectedParameter()
         );
+        const baseType = this.match("IS") ? this.typeExpr() : undefined;
+        const param = new Parameter(name, baseType);
 
-        params.push(name);
+        params.push(param);
       } while (this.match("COMMA"));
     }
 

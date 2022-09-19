@@ -86,8 +86,12 @@ export class TypeCheckerLookup {
 
   defineGenerics(parameters: Parameter[]): GenericType[] {
     return parameters.map(param => {
-      const type = new GenericType(param);
-      this.defineType(param.name, type);
+      const constraint = param.baseType
+        ? this.typechecker.acceptTypeExpr(param.baseType)
+        : undefined;
+
+      const type = new GenericType(param, constraint);
+      this.defineType(param.name, constraint || type);
       return type;
     });
   }
