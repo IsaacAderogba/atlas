@@ -1,10 +1,10 @@
+import { describe, it, expect } from "vitest";
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
-import { AtlasFalse } from "../../primitives/AtlasFalse";
+import { atlasBoolean } from "../../primitives/AtlasBoolean";
 import { AtlasNull } from "../../primitives/AtlasNull";
 import { AtlasNumber } from "../../primitives/AtlasNumber";
 import { AtlasString } from "../../primitives/AtlasString";
-import { AtlasTrue } from "../../primitives/AtlasTrue";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { scanner: Scanner } => {
@@ -21,6 +21,8 @@ describe("Scanner tokens", () => {
       { char: "}", type: "RIGHT_BRACE" },
       { char: "[", type: "LEFT_BRACKET" },
       { char: "]", type: "RIGHT_BRACKET" },
+      { char: "|", type: "PIPE" },
+      { char: "&", type: "AMPERSAND" },
       { char: ",", type: "COMMA" },
       { char: ".", type: "DOT" },
       { char: "-", type: "MINUS" },
@@ -95,15 +97,17 @@ describe("Scanner tokens", () => {
       { char: "for", type: "FOR" },
       { char: "f", type: "FUNCTION" },
       { char: "if", type: "IF" },
+      { char: "is", type: "IS" },
       { char: "or", type: "OR" },
       { char: "return", type: "RETURN" },
-      { char: "static", type: "STATIC" },
       { char: "super", type: "SUPER" },
       { char: "this", type: "THIS" },
       { char: "type", type: "TYPE" },
       { char: "var", type: "VAR" },
       { char: "while", type: "WHILE" },
       { char: "identifier", type: "IDENTIFIER" },
+      { char: "interface", type: "INTERFACE" },
+      { char: "implements", type: "IMPLEMENTS" },
     ];
 
     charTypes.forEach(({ char, type }) => {
@@ -151,7 +155,7 @@ describe("Scanner tokens", () => {
     const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("TRUE");
-    expect(tokens[0].literal).toEqual(new AtlasTrue());
+    expect(tokens[0].literal).toEqual(atlasBoolean(true));
 
     expect(tokens.length).toEqual(2);
   });
@@ -161,7 +165,7 @@ describe("Scanner tokens", () => {
     const { tokens } = scanner.scan();
 
     expect(tokens[0].type).toEqual("FALSE");
-    expect(tokens[0].literal).toEqual(new AtlasFalse());
+    expect(tokens[0].literal).toEqual(atlasBoolean(false));
 
     expect(tokens.length).toEqual(2);
   });
@@ -182,14 +186,14 @@ describe("Scanner errors", () => {
     const { scanner } = setupTests("£");
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
   });
 
   it("errors with unterminated string", () => {
     const { scanner } = setupTests('"Hello');
 
     const { errors } = scanner.scan();
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
   });
 
   it("cascades multiple errors", () => {
@@ -197,7 +201,7 @@ describe("Scanner errors", () => {
 
     const { errors } = scanner.scan();
 
-    expect(errors[0].message).toMatchObject(SyntaxErrors.unsupportedCharacter());
-    expect(errors[1].message).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    expect(errors[1].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
   });
 });

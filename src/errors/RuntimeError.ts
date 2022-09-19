@@ -1,11 +1,13 @@
 import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
-export class RuntimeError implements SourceError {
+export class RuntimeError extends Error implements SourceError {
   constructor(
-    readonly message: SourceMessage,
+    readonly sourceMessage: SourceMessage,
     readonly sourceRange: SourceRange
-  ) {}
+  ) {
+    super(sourceMessage.title);
+  }
 }
 
 export class RuntimeErrors {

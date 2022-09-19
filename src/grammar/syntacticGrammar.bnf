@@ -3,8 +3,10 @@ declaration    -> classDecl
                 | varDecl
                 | statement
                 | errorStmt ;
-classDecl      -> "class" IDENTIFIER "{" property* "}" ;
+classDecl      -> "class" IDENTIFIER ( "[" parameters "]" )? ( "implements" typeExpr )? "{" property* "}" ;
 varDecl        -> "var" property ;
+interfaceDecl  -> "interface" IDENTIFIER ( "[" parameters "]" )? "{" typeProperty* "}" ;
+typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? "=" typeExpr ;
 statement      -> exprStmt
                 | ifStmt
                 | returnStmt
@@ -30,7 +32,7 @@ comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | call ;
-call           -> primary ( "(" expressions? ")" | "." accessor )* ;
+call           -> primary ( ( "[" typeExprs "]" )? "(" expressions? ")" | "." name )* ;
 primary        -> NUMBER | STRING | "true" | "false" | "null" | "this" | IDENTIFIER | function | list | record | "(" expression ")" | error ;
 function       -> "f" "(" parameters? ")" block ;
 list           -> "[" expressions* "]" ;
@@ -45,8 +47,20 @@ error          -> ( "or" ) logic_or
 errorStmt      -> "break" | "continue" | "class" | "var" | "for" | "if" | "while" | "return";
 
 entries        -> entry ( "," entry )* ;
-entry          -> expression ":" expression ;
+entry          -> STRING ":" expression ;
 expressions    -> expression ( "," expression )* ;
-property       -> IDENTIFIER "=" expression ;
+property       -> name ( ":" typeExpr )? "=" expression ;
 parameters     -> parameter ( "," parameter )* ;
-parameter      -> IDENTIFIER ;
+parameter      -> IDENTIFIER ( "extends" typeExpr )?;
+
+
+typeExpr          -> compositeTypeExpr ;
+compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
+subTypeExpr       -> callableType | genericType | name ;
+callableTypeExpr  -> "(" typeExprs ")" "->" typeExpr ;
+genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
+
+typeExprs         -> typeExpr ( "," typeExpr )* ;
+typeProperty      -> name ":" typeExpr ;
+
+name              -> IDENTIFIER | KEYWORD ;

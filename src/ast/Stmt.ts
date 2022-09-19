@@ -1,7 +1,7 @@
 import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { SyntaxError } from "../errors/SyntaxError";
-import type { Expr } from "./Expr";
-import type { Property } from "./Node";
+import type { Expr, TypeExpr } from "./Expr";
+import type { Parameter, Property, TypeProperty } from "./Node";
 import { Token } from "./Token";
 
 interface BaseStmt extends SourceRangeable {
@@ -42,9 +42,10 @@ export class ClassStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
     readonly name: Token,
+    readonly parameters: Parameter[],
+    readonly typeExpr: TypeExpr | undefined,
     readonly open: Token,
     readonly properties: Property[],
-    readonly statics: Property[],
     readonly close: Token
   ) {}
 
@@ -75,6 +76,7 @@ export class ErrorStmt implements BaseStmt {
   constructor(readonly error: SyntaxError) {}
 
   accept<T>(): T {
+    console.log("error", this.error);
     throw new Error("ErrorStmt should not be executed.");
   }
 
@@ -118,6 +120,27 @@ export class IfStmt implements BaseStmt {
   }
 }
 
+export class InterfaceStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly parameters: Parameter[],
+    readonly open: Token,
+    readonly entries: TypeProperty[],
+    readonly close: Token,
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitInterfaceStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
 export class ReturnStmt implements BaseStmt {
   constructor(readonly keyword: Token, readonly value: Expr) {}
 
@@ -128,6 +151,25 @@ export class ReturnStmt implements BaseStmt {
   sourceRange(): SourceRange {
     const { start } = this.keyword.sourceRange();
     const { end } = this.value.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
+export class TypeStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly parameters: Parameter[],
+    readonly type: TypeExpr
+  ) {}
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitTypeStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.type.sourceRange();
     return new SourceRange(start, end);
   }
 }
@@ -150,7 +192,6 @@ export class WhileStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
     readonly condition: Expr,
-    readonly increment: Expr | undefined,
     readonly body: Stmt
   ) {}
 
@@ -172,7 +213,9 @@ export type Stmt =
   | ContinueStmt
   | ErrorStmt
   | IfStmt
+  | InterfaceStmt
   | ReturnStmt
+  | TypeStmt
   | VarStmt
   | WhileStmt
   | ExpressionStmt;
@@ -185,7 +228,9 @@ export interface StmtVisitor<T> {
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
+  visitInterfaceStmt(stmt: InterfaceStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
+  visitTypeStmt(stmt: TypeStmt): T;
   visitVarStmt(stmt: VarStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;
 }

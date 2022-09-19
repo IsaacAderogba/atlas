@@ -1,11 +1,13 @@
 import { Token } from "../ast/Token";
-import { AtlasClass } from "./AtlasClass";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject } from "./AtlasObject";
+import { AtlasObject, ObjectType } from "./AtlasObject";
+import { AtlasClass, ClassType } from "./AtlasClass";
+import { AtlasType } from "./AtlasType";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
-  readonly type = "INSTANCE";
+  readonly type = "Instance";
 
   constructor(
     readonly atlasClass: AtlasClass,
@@ -28,3 +30,36 @@ export class AtlasInstance extends AtlasObject {
     return `${this.atlasClass.name} instance`;
   }
 }
+
+export class InstanceType extends ObjectType {
+  readonly type = "Instance";
+
+  constructor(readonly classType: ClassType) {
+    super();
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this.init(this.classType.bindGenerics(genericTypeMap));
+  }
+
+  get(name: Token): AtlasType | undefined {
+    return this.classType.findProp(name.lexeme);
+  }
+
+  get fields(): ObjectType["fields"] {
+    return this.classType.fields;
+  }
+
+  get methods(): ObjectType["methods"] {
+    return this.classType.methods;
+  }
+
+  init = (classType: ClassType): InstanceType => new InstanceType(classType);
+
+  toString(): string {
+    return `${this.classType.name}`;
+  }
+}
+
+export const isInstanceType = (type: unknown): type is InstanceType =>
+  type instanceof InstanceType;

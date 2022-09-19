@@ -16,6 +16,8 @@ export type TokenType =
   | "COLON"
   | "QUESTION"
   | "HASH"
+  | "PIPE"
+  | "AMPERSAND"
 
   // One or two character tokens.
   | "BANG"
@@ -42,10 +44,12 @@ export type TokenType =
   | "FUNCTION"
   | "FOR"
   | "IF"
+  | "IS"
+  | "INTERFACE"
+  | "IMPLEMENTS"
   | "NULL"
   | "OR"
   | "RETURN"
-  | "STATIC"
   | "SUPER"
   | "THIS"
   | "TRUE"

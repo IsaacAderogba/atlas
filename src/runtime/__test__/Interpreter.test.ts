@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { Analyzer } from "../../analyzer/Analyzer";
 import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
@@ -17,7 +18,7 @@ const setupTests = (source: string): SetupTests => {
   const { tokens, errors: scanErrs } = scanner.scan();
 
   if (scanErrs.length) {
-    console.log("Scan errors", scanErrs);
+    console.error("Scan errors", scanErrs);
     throw new Error("Scan failed");
   }
 
@@ -29,7 +30,7 @@ const setupTests = (source: string): SetupTests => {
     interpret: () => {
       const { statements, errors: parseErrs } = parser.parse();
       if (!statements || parseErrs.length) {
-        console.log("Parse errors", parseErrs);
+        console.error("Parse errors", parseErrs);
         throw new Error("Parse failed");
       }
 
@@ -58,7 +59,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 3 });
+    expect(result).toMatchObject({ type: "Number", value: 3 });
   });
 
   it("interprets block statements", () => {
@@ -69,7 +70,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+    expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
   it("interprets class statements", () => {
@@ -84,7 +85,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "Foo" });
+    expect(result).toMatchObject({ type: "String", value: "Foo" });
   });
 
   it("interprets get and set expressions", () => {
@@ -100,7 +101,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "hi" });
+    expect(result).toMatchObject({ type: "String", value: "hi" });
   });
 
   it("interprets method calls", () => {
@@ -118,7 +119,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "hi" });
+    expect(result).toMatchObject({ type: "String", value: "hi" });
   });
 
   it("interprets init calls", () => {
@@ -138,26 +139,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "foobar" });
-  });
-
-  it("interprets static calls", () => {
-    const { interpreter, interpret } = setupTests(`
-      class Foo {
-        static bar = f() {
-          return "bar"
-        }
-      }
-      
-      var x = Foo.bar()
-    `);
-    interpret();
-
-    const { tokens } = new Scanner("x").scan();
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
-    expect(result).toMatchObject({ type: "STRING", value: "bar" });
+    expect(result).toMatchObject({ type: "String", value: "foobar" });
   });
 
   it("interprets this expressions", () => {
@@ -177,7 +159,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "chocolate" });
+    expect(result).toMatchObject({ type: "String", value: "chocolate" });
   });
 
   it("interprets class instances", () => {
@@ -192,7 +174,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "Foo instance" });
+    expect(result).toMatchObject({ type: "String", value: "Foo instance" });
   });
 
   it("interprets var statements", () => {
@@ -203,7 +185,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 4 });
+    expect(result).toMatchObject({ type: "Number", value: 4 });
   });
 
   it("interprets expression statements", () => {
@@ -216,13 +198,13 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "STRING", value: "hello" });
+    expect(result).toMatchObject({ type: "String", value: "hello" });
   });
 
   it("interprets while statements", () => {
     const tests = [
       "var x = 2 while (x < 5) x = x + 1",
-      "var x = 2 while (x < 5; x = x + 1) {}",
+      "var x = 2 while (x < 5) { x = x + 1 }",
     ];
 
     tests.forEach(test => {
@@ -233,7 +215,7 @@ describe("Interpreter statements", () => {
       const expression = new Parser(tokens).expression() as VariableExpr;
       const result = interpreter.visitVariableExpr(expression);
 
-      expect(result).toMatchObject({ type: "NUMBER", value: 5 });
+      expect(result).toMatchObject({ type: "Number", value: 5 });
     });
   });
 
@@ -246,12 +228,6 @@ describe("Interpreter statements", () => {
       x = x + 1
     }
     `,
-      `
-    var x = 0
-    while (x < 5; x = x + 1) {
-      break
-    }
-    `,
     ];
 
     tests.forEach(test => {
@@ -262,7 +238,7 @@ describe("Interpreter statements", () => {
       const expression = new Parser(tokens).expression() as VariableExpr;
       const result = interpreter.visitVariableExpr(expression);
 
-      expect(result).toMatchObject({ type: "NUMBER", value: 0 });
+      expect(result).toMatchObject({ type: "Number", value: 0 });
     });
   });
 
@@ -277,14 +253,6 @@ describe("Interpreter statements", () => {
       y = y + 1
     }
     `,
-      `
-    var x = 0
-    var y = 0
-    while (x < 5; x = x + 1) {
-      if (x == 2) continue      
-      y = y + 1
-    }
-    `,
     ];
 
     tests.forEach(test => {
@@ -292,8 +260,8 @@ describe("Interpreter statements", () => {
       interpret();
 
       const expressions = [
-        { char: "y", object: { type: "NUMBER", value: 4 } },
-        { char: "x", object: { type: "NUMBER", value: 5 } },
+        { char: "y", object: { type: "Number", value: 4 } },
+        { char: "x", object: { type: "Number", value: 5 } },
       ];
 
       expressions.forEach(({ char, object }) => {
@@ -315,7 +283,7 @@ describe("Interpreter statements", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 1 });
+    expect(result).toMatchObject({ type: "Number", value: 1 });
   });
 });
 
@@ -334,7 +302,7 @@ describe("Interpreter evaluations", () => {
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+    expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
   it("evaluates assignment expressions", () => {
@@ -345,7 +313,7 @@ describe("Interpreter evaluations", () => {
     const expression = new Parser(tokens).expression() as AssignExpr;
     const result = interpreter.visitAssignExpr(expression);
 
-    expect(result).toMatchObject({ type: "NUMBER", value: 2 });
+    expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
   it("evaluates ternary expression", () => {
@@ -452,7 +420,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedString());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedString()
+      );
     });
   });
 
@@ -473,7 +443,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedNumber());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedNumber()
+      );
     });
   });
 
@@ -484,7 +456,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedBoolean());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedBoolean()
+      );
     });
   });
 
@@ -495,7 +469,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.prohibitedZeroDivision()
       );
     });
@@ -516,7 +490,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.mismatchedArity(2, 3)
       );
     });
@@ -529,7 +503,9 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(RuntimeErrors.expectedCallable());
+      expect(errors[0].sourceMessage).toMatchObject(
+        RuntimeErrors.expectedCallable()
+      );
     });
   });
 
@@ -546,7 +522,7 @@ describe("Interpreter errors", () => {
       const { interpret } = setupTests(source);
 
       const { errors } = interpret();
-      expect(errors[0].message).toMatchObject(
+      expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.undefinedProperty("y")
       );
     });

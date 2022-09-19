@@ -1,7 +1,7 @@
 import { Token } from "../ast/Token";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { AtlasValue } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
+import { AtlasValue } from "../primitives/AtlasValue";
 
 export class Environment {
   private values = new Map<string, AtlasValue>();

@@ -16,6 +16,11 @@ import {
   ThisExpr,
   ListExpr,
   RecordExpr,
+  TypeExpr,
+  CompositeTypeExpr,
+  SubTypeExpr,
+  CallableTypeExpr,
+  GenericTypeExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -25,8 +30,10 @@ import {
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
+  InterfaceStmt,
   ReturnStmt,
   Stmt,
+  TypeStmt,
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
@@ -34,7 +41,8 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { Property, Parameter, Entry } from "../ast/Node";
+import { Property, Parameter, Entry, TypeProperty } from "../ast/Node";
+import { Keywords } from "./Keywords";
 
 export class Parser {
   private tokens: Token[];
@@ -64,6 +72,8 @@ export class Parser {
   private declaration(): Stmt {
     try {
       if (this.match("CLASS")) return this.classDeclaration();
+      if (this.match("TYPE")) return this.typeDeclaration();
+      if (this.match("INTERFACE")) return this.interfaceDeclaration();
       if (this.match("VAR")) return this.varDeclaration();
 
       return this.statement();
@@ -76,13 +86,13 @@ export class Parser {
   private classDeclaration(): ClassStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const parameters = this.typeParameters();
+    const typeExpr = this.match("IMPLEMENTS") ? this.typeExpr() : undefined;
     const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const props: Property[] = [];
-    const statics: Property[] = [];
     while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
-      const array = this.match("STATIC") ? statics : props;
-      array.push(this.property());
+      props.push(this.property(() => this.name()));
     }
 
     const close = this.consume(
@@ -90,11 +100,57 @@ export class Parser {
       SyntaxErrors.expectedRightBrace()
     );
 
-    return new ClassStmt(keyword, name, open, props, statics, close);
+    return new ClassStmt(
+      keyword,
+      name,
+      parameters,
+      typeExpr,
+      open,
+      props,
+      close
+    );
+  }
+
+  private typeDeclaration(): Stmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const parameters = this.typeParameters();
+    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
+    const type = this.typeExpr();
+
+    return new TypeStmt(keyword, name, parameters, type);
+  }
+
+  private interfaceDeclaration(): InterfaceStmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    const parameters = this.typeParameters();
+    const open = this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+    const props: TypeProperty[] = [];
+
+    while (!this.check("RIGHT_BRACE") && !this.isAtEnd()) {
+      const key = this.name();
+      this.consume("COLON", SyntaxErrors.expectedColon());
+      const value = this.typeExpr();
+
+      props.push(new TypeProperty(key, value));
+    }
+
+    const close = this.consume(
+      "RIGHT_BRACE",
+      SyntaxErrors.expectedRightBrace()
+    );
+
+    return new InterfaceStmt(keyword, name, parameters, open, props, close);
   }
 
   private varDeclaration(): VarStmt {
-    return new VarStmt(this.previous(), this.property());
+    return new VarStmt(
+      this.previous(),
+      this.property(() =>
+        this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier())
+      )
+    );
   }
 
   private statement(): Stmt {
@@ -118,11 +174,10 @@ export class Parser {
     const keyword = this.previous();
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const condition = this.expression();
-    const increment = this.match("SEMICOLON") ? this.expression() : undefined;
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     const body = this.statement();
-    return new WhileStmt(keyword, condition, increment, body);
+    return new WhileStmt(keyword, condition, body);
   }
 
   private ifStatement(): IfStmt {
@@ -278,21 +333,27 @@ export class Parser {
     let expr = this.primary();
 
     while (true) {
-      if (this.match("LEFT_PAREN")) {
-        const open = this.previous();
+      if (this.check("LEFT_PAREN") || this.check("LEFT_BRACKET")) {
+        let typeExprs: TypeExpr[] = [];
+        if (this.match("LEFT_BRACKET")) {
+          typeExprs = this.typeExprs("RIGHT_BRACKET");
+          this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+        }
+
+        const open = this.consume(
+          "LEFT_PAREN",
+          SyntaxErrors.expectedLeftParen()
+        );
+
         const args = this.expressions("RIGHT_PAREN");
         const close = this.consume(
           "RIGHT_PAREN",
           SyntaxErrors.expectedRightParen()
         );
 
-        expr = new CallExpr(open, expr, args, close);
+        expr = new CallExpr(expr, typeExprs, open, args, close);
       } else if (this.match("DOT")) {
-        const name = this.consume(
-          "IDENTIFIER",
-          SyntaxErrors.expectedIdentifier()
-        );
-        expr = new GetExpr(expr, name);
+        expr = new GetExpr(expr, this.name());
       } else {
         break;
       }
@@ -331,7 +392,7 @@ export class Parser {
     const async = this.match("STAR") ? this.previous() : undefined;
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
 
-    const parameters = this.parameters();
+    const parameters = this.parameters("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
 
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
@@ -416,6 +477,50 @@ export class Parser {
     throw this.error(this.peek(), SyntaxErrors.expectedExpression());
   }
 
+  private typeExpr(): TypeExpr {
+    let typeExpr = this.subTypeExpr();
+
+    while (this.match("PIPE") || this.match("AMPERSAND")) {
+      const operator = this.previous();
+      const right = this.subTypeExpr();
+
+      typeExpr = new CompositeTypeExpr(typeExpr, operator, right);
+    }
+
+    return typeExpr;
+  }
+
+  private subTypeExpr(): TypeExpr {
+    if (this.check("LEFT_PAREN") || this.check("LEFT_BRACKET")) {
+      return this.callableTypeExpr();
+    }
+
+    const name = this.name();
+
+    let typeExprs: TypeExpr[] = [];
+    if (this.match("LEFT_BRACKET")) {
+      typeExprs = this.typeExprs("RIGHT_BRACKET");
+      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+    }
+
+    if (typeExprs.length > 0) return new GenericTypeExpr(name, typeExprs);
+
+    return new SubTypeExpr(name);
+  }
+
+  private callableTypeExpr(): TypeExpr {
+    const parameters = this.typeParameters();
+    const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
+    const typeExprs = this.typeExprs("RIGHT_PAREN");
+    this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
+
+    this.consume("MINUS", SyntaxErrors.expectedDash());
+    this.consume("GREATER", SyntaxErrors.expectedRightCaret());
+    const returnType = this.typeExpr();
+
+    return new CallableTypeExpr(parameters, open, typeExprs, returnType);
+  }
+
   private expressions(type: TokenType): Expr[] {
     const args: Expr[] = [];
 
@@ -433,7 +538,7 @@ export class Parser {
 
     if (!this.check("RIGHT_BRACE")) {
       do {
-        const key = this.expression();
+        const key = this.consume("STRING", SyntaxErrors.expectedString());
         this.consume("COLON", SyntaxErrors.expectedSemiColon());
         const value = this.expression();
 
@@ -444,28 +549,61 @@ export class Parser {
     return entries;
   }
 
-  private parameters(): Parameter[] {
-    const params: Parameter[] = [];
-    if (!this.check("RIGHT_PAREN")) {
+  private typeExprs(type: TokenType): TypeExpr[] {
+    const typeExprs: TypeExpr[] = [];
+
+    if (!this.check(type)) {
       do {
-        params.push(this.parameter());
+        typeExprs.push(this.typeExpr());
+      } while (this.match("COMMA"));
+    }
+
+    return typeExprs;
+  }
+
+  private typeParameters(): Parameter[] {
+    let parameters: Parameter[] = [];
+    if (this.match("LEFT_BRACKET")) {
+      parameters = this.parameters("RIGHT_BRACKET");
+      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+    }
+    return parameters;
+  }
+
+  private parameters(type: TokenType): Parameter[] {
+    const params: Parameter[] = [];
+    if (!this.check(type)) {
+      do {
+        const name = this.consume(
+          "IDENTIFIER",
+          SyntaxErrors.expectedParameter()
+        );
+        const baseType = this.match("IS") ? this.typeExpr() : undefined;
+        const param = new Parameter(name, baseType);
+
+        params.push(param);
       } while (this.match("COMMA"));
     }
 
     return params;
   }
 
-  private parameter(): Parameter {
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedParameter());
-    return new Parameter(name);
-  }
-
-  private property(): Property {
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+  private property(consume: () => Token): Property {
+    const name = consume();
+    const type = this.match("COLON") ? this.typeExpr() : undefined;
     this.consume("EQUAL", SyntaxErrors.expectedAssignment());
     const initializer = this.expression();
 
-    return new Property(name, initializer);
+    return new Property(name, type, initializer);
+  }
+
+  private name(): Token {
+    if (this.match("IDENTIFIER")) return this.previous();
+    for (const [_, keyword] of Keywords) {
+      if (this.match(keyword)) return this.previous();
+    }
+
+    throw this.error(this.peek(), SyntaxErrors.expectedIdentifier());
   }
 
   private match(...types: TokenType[]): boolean {

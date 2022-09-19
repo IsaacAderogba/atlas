@@ -1,7 +1,8 @@
-import { AtlasObject } from "./AtlasObject";
+import { AtlasObject, ObjectType } from "./AtlasObject";
+import { AtlasType } from "./AtlasType";
 
 export class AtlasNull extends AtlasObject {
-  readonly type = "NULL";
+  readonly type = "Null";
 
   constructor(readonly value: null = null) {
     super({});
@@ -12,3 +13,17 @@ export class AtlasNull extends AtlasObject {
   }
 }
 
+export const atlasNull = (): AtlasNull => new AtlasNull();
+
+export class NullType extends ObjectType {
+  readonly type = "Null";
+
+  bindGenerics(): AtlasType {
+    return this;
+  }
+
+  toString = (): string => this.type;
+}
+
+export const isNullType = (type: AtlasType): type is NullType =>
+  type.type === "Null";

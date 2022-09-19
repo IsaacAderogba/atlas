@@ -1,11 +1,13 @@
-import { AtlasCallable } from "./AtlasCallable";
+import { AtlasCallable, bindCallableGenerics, CallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
+import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
-import { AtlasObject } from "./AtlasObject";
+import { AtlasType } from "./AtlasType";
+import { GenericType } from "./GenericType";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
-  readonly type = "NATIVE_FUNCTION";
-  readonly className = "AtlasNativeFn";
+  readonly type = "NativeFn";
 
   constructor(
     private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue
@@ -43,3 +45,39 @@ export const toNativeFunctions = (funcs: {
 
   return convertedFuncs;
 };
+
+interface NativeFnTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
+
+export class NativeFnType extends ObjectType implements CallableType {
+  readonly type = "NativeFn";
+  public params: AtlasType[];
+  public returns: AtlasType;
+
+  constructor(props: NativeFnTypeProps, generics: GenericType[] = []) {
+    super({}, generics);
+    this.params = props.params;
+    this.returns = props.returns;
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+    return this.init({ params, returns }, this.generics);
+  }
+
+  arity(): number {
+    return this.params.length;
+  }
+
+  init = (
+    props: NativeFnTypeProps,
+    generics: GenericType[] = []
+  ): NativeFnType => new NativeFnType(props, generics);
+
+  toString(): string {
+    const args = this.params.map(p => p.toString());
+    return `(${args.join(", ")}) -> ${this.returns.toString()}`;
+  }
+}

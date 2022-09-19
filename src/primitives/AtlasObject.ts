@@ -1,8 +1,17 @@
 import { Token } from "../ast/Token";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
-import { AtlasCallable, isCallable } from "./AtlasCallable";
+import { TypeCheckError } from "../errors/TypeCheckError";
+import type { GenericType } from "./GenericType";
+import {
+  AtlasCallable,
+  CallableType,
+  isCallable,
+  isCallableType,
+} from "./AtlasCallable";
+import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
 
@@ -41,5 +50,64 @@ export abstract class AtlasObject {
     message: SourceMessage
   ): RuntimeError {
     return new RuntimeError(message, source.sourceRange());
+  }
+}
+
+export type ObjectTypeProps = { [key: string]: AtlasType };
+
+export abstract class ObjectType {
+  abstract type: string;
+  abstract toString(): string;
+  abstract bindGenerics(genericTypeMap: GenericTypeMap): AtlasType;
+
+  internalFields = new Map<string, AtlasType>();
+  internalMethods = new Map<string, CallableType & AtlasType>();
+  generics: GenericType[];
+
+  constructor(
+    properties: ObjectTypeProps = {},
+    generics: GenericType[] = []
+  ) {
+    this.generics = generics;
+    for (const [name, value] of Object.entries(properties)) {
+      this.setProp(name, value);
+    }
+  }
+
+  get fields(): ObjectType["internalFields"] {
+    return this.internalFields;
+  }
+
+  get methods(): ObjectType["internalMethods"] {
+    return this.internalMethods;
+  }
+
+  setProp(name: string, value: AtlasType): void {
+    if (isCallableType(value)) {
+      this.internalMethods.set(name, value);
+    } else {
+      this.internalFields.set(name, value);
+    }
+  }
+
+  get(name: Token): AtlasType | undefined {
+    const value = this.internalFields.get(name.lexeme);
+    if (value) return value;
+
+    const method = this.internalMethods.get(name.lexeme);
+    if (method) return method;
+
+    return undefined;
+  }
+
+  set(name: Token, value: AtlasType): void {
+    this.internalFields.set(name.lexeme, value);
+  }
+
+  protected error(
+    source: SourceRangeable,
+    message: SourceMessage
+  ): TypeCheckError {
+    return new TypeCheckError(message, source.sourceRange());
   }
 }

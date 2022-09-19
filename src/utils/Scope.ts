@@ -1,11 +1,9 @@
-import { AtlasValue } from "../primitives/AtlasValue";
-
 export class Scope<T> {
   private storage = new Map<string, T>();
 
-  static fromGlobals<T>(
-    obj: { [name: string]: AtlasValue },
-    set: (name: string, value: AtlasValue) => T
+  static fromGlobals<T, K>(
+    obj: { [name: string]: K },
+    set: (name: string, value: K) => T
   ): Scope<T> {
     const scope = new Scope<T>();
 

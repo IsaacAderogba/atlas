@@ -8,10 +8,12 @@ import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
+import { TypeChecker } from "./typechecker/TypeChecker";
 
 export class Atlas {
   private static reporter = new ConsoleReporter();
   public static interpreter = new Interpreter();
+  public static typechecker = new TypeChecker();
 
   static main(args: string[]): void {
     if (args.length > 1) {
@@ -69,7 +71,7 @@ export class Atlas {
 
     if (errors.length) {
       errors.forEach(e =>
-        this.reporter.rangeError(source, e.sourceRange, e.message)
+        this.reporter.rangeError(source, e.sourceRange, e.sourceMessage)
       );
       return AtlasStatus.RUNTIME_ERROR;
     }
@@ -96,14 +98,19 @@ export class Atlas {
       return { status: AtlasStatus.STATIC_ERROR, statements: [] };
     }
 
+    const { errors: typeErrs } = this.typechecker.typeCheck(statements);
+    if (this.reportErrors(source, typeErrs)) {
+      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
+    }
+
     return { status: AtlasStatus.VALID, statements };
   }
 
   private static reportErrors(source: string, errors: SourceError[]): boolean {
     let hasError = false;
-    errors.forEach(({ message, sourceRange }) => {
-      if (message.type === "error") hasError = true;
-      this.reporter.rangeError(source, sourceRange, message);
+    errors.forEach(({ sourceMessage, sourceRange }) => {
+      if (sourceMessage.type === "error") hasError = true;
+      this.reporter.rangeError(source, sourceRange, sourceMessage);
     });
 
     return hasError;

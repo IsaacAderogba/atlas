@@ -2,7 +2,7 @@
 
 export interface SourceError {
   sourceRange: SourceRange;
-  message: SourceMessage;
+  sourceMessage: SourceMessage;
 }
 
 export class SourceRange implements SourceRangeable {

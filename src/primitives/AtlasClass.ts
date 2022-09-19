@@ -1,25 +1,28 @@
-import { AtlasCallable } from "./AtlasCallable";
-import { AtlasInstance } from "./AtlasInstance";
+import { AtlasInstance, InstanceType } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
-import { AtlasObject, AtlasObjectProps } from "./AtlasObject";
-import { Interpreter } from "../runtime/Interpreter";
+import {
+  AtlasObject,
+  AtlasObjectProps,
+  ObjectType,
+  ObjectTypeProps,
+} from "./AtlasObject";
 import { Token } from "../ast/Token";
 import { RuntimeErrors } from "../errors/RuntimeError";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
+import { Interpreter } from "../runtime/Interpreter";
+import { AtlasType } from "./AtlasType";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { bindInterfaceGenerics } from "./InterfaceType";
+import { GenericType } from "./GenericType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
-  readonly type = "CLASS";
+  readonly type = "Class";
   name: string;
-  staticClass?: AtlasClass;
 
-  constructor(
-    name: string,
-    properties: AtlasObjectProps = {},
-    staticClass?: AtlasClass
-  ) {
+  constructor(name: string, properties: AtlasObjectProps = {}) {
     super({ ...properties });
 
     this.name = name;
-    this.staticClass = staticClass;
   }
 
   arity(): number {
@@ -30,24 +33,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return this;
   }
 
-  get(name: Token): AtlasValue {
-    if (this.staticClass) {
-      const field = this.staticClass.fields.get(name.lexeme);
-      if (field) return field;
-
-      const method = this.staticClass.methods.get(name.lexeme);
-      if (method) return method.bind(this);
-    }
-
-    throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
-  }
-
-  set(name: Token, value: AtlasValue): void {
-    if (this.staticClass) {
-      this.staticClass.fields.set(name.lexeme, value);
-      return;
-    }
-
+  set(name: Token): void {
     throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 
@@ -67,3 +53,57 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return this.name;
   }
 }
+
+export class ClassType extends ObjectType implements CallableType {
+  readonly type = "Class";
+
+  constructor(
+    public name: string,
+    properties: ObjectTypeProps,
+    generics: GenericType[] = []
+  ) {
+    super({ ...properties }, generics);
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
+    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
+    return this.init(this.name, entries, this.generics);
+  }
+
+  arity(): number {
+    return this.findMethod("init")?.arity() || 0;
+  }
+
+  get params(): AtlasType[] {
+    return this.findMethod("init")?.params || [];
+  }
+
+  get returns(): AtlasType {
+    return new InstanceType(this);
+  }
+
+  findField(name: string): AtlasType | undefined {
+    return this.fields.get(name);
+  }
+
+  findMethod(name: string): (CallableType & AtlasType) | undefined {
+    return this.methods.get(name);
+  }
+
+  findProp(name: string): AtlasType | undefined {
+    return this.findField(name) || this.findMethod(name);
+  }
+
+  init = (
+    name: string,
+    properties: ObjectTypeProps = {},
+    generics: GenericType[] = []
+  ): ClassType => new ClassType(name, properties, generics);
+
+  toString(): string {
+    return `${this.name}`;
+  }
+}
+
+export const isClassType = (type: unknown): type is ClassType =>
+  type instanceof ClassType;

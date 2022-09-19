@@ -1,11 +1,13 @@
 import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
-export class SyntaxError implements SourceError {
+export class SyntaxError extends Error implements SourceError {
   constructor(
-    readonly message: SourceMessage,
+    readonly sourceMessage: SourceMessage,
     readonly sourceRange: SourceRange
-  ) {}
+  ) {
+    super(sourceMessage.title)
+  }
 }
 
 export class SyntaxErrors {
@@ -43,7 +45,7 @@ export class SyntaxErrors {
   static expectedIdentifier(): SourceMessage {
     return this.formatError({
       title: "expected identifier",
-      body: "a variable name was expected",
+      body: "an identifier name was expected",
     });
   }
 
@@ -117,10 +119,38 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedRightCaret(): SourceMessage {
+    return this.formatError({
+      title: "expected right caret",
+      body: 'a right caret ">" was expected',
+    });
+  }
+
+  static expectedDash(): SourceMessage {
+    return this.formatError({
+      title: "expected dash",
+      body: 'a dash "-" was expected',
+    });
+  }
+
+  static expectedBacktick(): SourceMessage {
+    return this.formatError({
+      title: "expected backtick",
+      body: 'a backtick "`" was expected',
+    });
+  }
+
   static expectedExpression(): SourceMessage {
     return this.formatError({
       title: "expected expression",
       body: "an expression was expected",
+    });
+  }
+
+  static expectedString(): SourceMessage {
+    return this.formatError({
+      title: "expected string",
+      body: "a string was expected",
     });
   }
 

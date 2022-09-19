@@ -1,14 +1,21 @@
 import { FunctionExpr } from "../ast/Expr";
-import { AtlasCallable } from "./AtlasCallable";
+import {
+  AtlasCallable,
+  bindCallableGenerics,
+  CallableType,
+} from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
+import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
-import { AtlasObject } from "./AtlasObject";
 import { Return } from "../runtime/Throws";
+import { AtlasType } from "./AtlasType";
+import { GenericType } from "./GenericType";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
-  readonly type = "FUNCTION";
+  readonly type = "Function";
 
   constructor(
     private readonly expression: FunctionExpr,
@@ -60,5 +67,40 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
 
   toString(): string {
     return `<fn>`;
+  }
+}
+
+interface FunctionTypeProps {
+  params: AtlasType[];
+  returns: AtlasType;
+}
+export class FunctionType extends ObjectType implements CallableType {
+  readonly type = "Function";
+  public params: AtlasType[];
+  public returns: AtlasType;
+
+  constructor(props: FunctionTypeProps, generics: GenericType[] = []) {
+    super({}, generics);
+    this.params = props.params;
+    this.returns = props.returns;
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+    return this.init({ params, returns }, this.generics);
+  }
+
+  arity(): number {
+    return this.params.length;
+  }
+
+  init = (
+    props: FunctionTypeProps,
+    generics: GenericType[] = []
+  ): FunctionType => new FunctionType(props, generics);
+
+  toString(): string {
+    const args = this.params.map(p => p.toString());
+    return `(${args.join(", ")}) -> ${this.returns.toString()}`;
   }
 }

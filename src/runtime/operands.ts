@@ -4,15 +4,13 @@ export const areEqualValues = (
   left: AtlasValue,
   right: AtlasValue
 ): boolean => {
-  if (left.type === "NULL" && right.type === "NULL")
+  if (left.type === "Null" && right.type === "Null")
     return left.value === right.value;
-  if (left.type === "STRING" && right.type === "STRING")
+  if (left.type === "String" && right.type === "String")
     return left.value === right.value;
-  if (left.type === "NUMBER" && right.type === "NUMBER")
+  if (left.type === "Number" && right.type === "Number")
     return left.value === right.value;
-  if (left.type === "TRUE" && right.type === "TRUE")
-    return left.value === right.value;
-  if (left.type === "FALSE" && right.type === "FALSE")
+  if (left.type === "Boolean" && right.type === "Boolean")
     return left.value === right.value;
 
   // fallback to comparison by reference
