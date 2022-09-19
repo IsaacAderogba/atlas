@@ -20,7 +20,7 @@ export class InterfaceType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const entries = bindInterfaceGenerics(this, genericTypeMap);
+    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
     return this.init(this.name, entries);
   }
 
@@ -40,19 +40,19 @@ export class InterfaceType extends ObjectType {
 export const bindInterfaceGenerics = (
   target: AtlasType,
   map: GenericTypeMap
-): { [key: string]: AtlasType } => {
+): { entries: { [key: string]: AtlasType } } => {
   if (!isInterfaceType(target)) throw new Error("Invariant");
 
   const entries: { [key: string]: AtlasType } = {};
   for (const [name, type] of target.fields) {
-    entries[name] = map.get(type) || type;
+    entries[name] = type.bindGenerics(map);
   }
 
   for (const [name, type] of target.methods) {
-    entries[name] = map.get(type) || type;
+    entries[name] = type.bindGenerics(map);
   }
 
-  return entries;
+  return { entries };
 };
 
 export const isInterfaceType = (

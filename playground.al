@@ -8,10 +8,11 @@ interface Bar[T] {
   bar: GenericType[T]
 }
 
-type FooBar[T, K] = Foo[T] & Bar[K]
+type FooBar[T, K] = Foo[Bar[K]]
 
 
 var foo: FooBar[Number, Number] = {
-  "foo": 0,
-  "bar": 1
+  "foo": {
+    "bar": 0
+  }
 }

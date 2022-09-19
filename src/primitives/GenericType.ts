@@ -11,9 +11,7 @@ export class GenericType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const type = genericTypeMap.get(this);
-    if (!type) throw new Error("Unexpected");
-    return type;
+    return genericTypeMap.get(this) ?? this;
   }
 
   init = (param: Parameter): GenericType => new GenericType(param);
