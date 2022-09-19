@@ -1,3 +1,4 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
@@ -21,6 +22,10 @@ export class RecordType extends ObjectType {
 
   constructor(entries: { [key: string]: AtlasType } = {}) {
     super(entries);
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   init = (entries: { [key: string]: AtlasType } = {}): RecordType => {

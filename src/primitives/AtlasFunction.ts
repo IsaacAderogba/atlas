@@ -7,7 +7,8 @@ import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
-import { GenericParamType } from "./GenericParamType";
+import { GenericType } from "./GenericType";
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";
@@ -74,10 +75,14 @@ export class FunctionType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: FunctionTypeProps, generics: GenericParamType[] = []) {
+  constructor(props: FunctionTypeProps, generics: GenericType[] = []) {
     super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   arity(): number {
@@ -86,7 +91,7 @@ export class FunctionType extends ObjectType implements CallableType {
 
   init = (
     props: FunctionTypeProps,
-    generics: GenericParamType[] = []
+    generics: GenericType[] = []
   ): FunctionType => new FunctionType(props, generics);
 
   toString(): string {

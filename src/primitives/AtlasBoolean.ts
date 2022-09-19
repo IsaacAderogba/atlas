@@ -1,3 +1,4 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -18,6 +19,10 @@ export const atlasBoolean = (value: true | false): AtlasBoolean =>
 
 export class BooleanType extends ObjectType {
   readonly type = "Boolean";
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
+  }
 
   toString = (): string => this.type;
 }

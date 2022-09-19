@@ -6,7 +6,7 @@ import { Token } from "../ast/Token";
 import { AtlasType } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
 import { Parameter } from "../ast/Node";
-import { GenericParamType } from "../primitives/AtlasValue";
+import { GenericType } from "../primitives/GenericType";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
@@ -84,9 +84,9 @@ export class TypeCheckerLookup {
     return type;
   }
 
-  defineGenerics(parameters: Parameter[]): GenericParamType[] {
+  defineGenerics(parameters: Parameter[]): GenericType[] {
     return parameters.map(param => {
-      const type = new GenericParamType(param);
+      const type = new GenericType(param);
       this.defineType(param.name, type);
       return type;
     });

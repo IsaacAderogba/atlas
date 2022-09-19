@@ -1,3 +1,4 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -15,6 +16,10 @@ export class AtlasNumber extends AtlasObject {
 
 export class NumberType extends ObjectType {
   readonly type = "Number";
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
+  }
 
   toString = (): string => this.type;
 }

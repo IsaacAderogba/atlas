@@ -1,6 +1,7 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
-import { GenericParamType } from "./AtlasValue";
+import { GenericType } from "./GenericType";
 
 export class AliasType extends ObjectType {
   readonly type = "Alias";
@@ -8,15 +9,19 @@ export class AliasType extends ObjectType {
   constructor(
     readonly name: string,
     readonly wrapped: AtlasType,
-    generics: GenericParamType[] = []
+    generics: GenericType[] = []
   ) {
     super({}, generics);
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   init = (
     name: string,
     wrapped: AtlasType,
-    generics: GenericParamType[] = []
+    generics: GenericType[] = []
   ): AliasType => {
     return new AliasType(name, wrapped, generics);
   };

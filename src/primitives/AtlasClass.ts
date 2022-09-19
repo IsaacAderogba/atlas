@@ -11,6 +11,7 @@ import { RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -56,6 +57,10 @@ export class ClassType extends ObjectType implements CallableType {
 
   constructor(public name: string, properties: ObjectTypeProps) {
     super({ ...properties });
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   arity(): number {

@@ -13,7 +13,8 @@ export class TypeCheckerSubtyper {
 
   constructor(public typechecker: TypeChecker) {}
 
-  synthesize: typeof this.synthesizeUnary & typeof this.synthesizeBinary = (
+  synthesize: typeof TypeCheckerSubtyper["prototype"]["synthesizeUnary"] &
+    typeof TypeCheckerSubtyper["prototype"]["synthesizeBinary"] = (
     ...args: any[]
   ) => {
     switch (args.length) {

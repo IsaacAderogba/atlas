@@ -1,3 +1,4 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -17,6 +18,10 @@ export const atlasNull = (): AtlasNull => new AtlasNull();
 
 export class NullType extends ObjectType {
   readonly type = "Null";
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
+  }
 
   toString = (): string => this.type;
 }

@@ -2,6 +2,7 @@ import { Token } from "../ast/Token";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
+import type { GenericType } from "./GenericType";
 import {
   AtlasCallable,
   CallableType,
@@ -10,7 +11,7 @@ import {
 } from "./AtlasCallable";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { GenericParamType } from "./AtlasValue";
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
 
@@ -57,12 +58,16 @@ export type ObjectTypeProps = { [key: string]: AtlasType };
 export abstract class ObjectType {
   abstract type: string;
   abstract toString(): string;
+  abstract bindGenerics(genericTypeMap: GenericTypeMap): AtlasType;
 
   internalFields = new Map<string, AtlasType>();
   internalMethods = new Map<string, CallableType & AtlasType>();
-  generics: GenericParamType[];
+  generics: GenericType[];
 
-  constructor(properties: ObjectTypeProps = {}, generics: GenericParamType[] = []) {
+  constructor(
+    properties: ObjectTypeProps = {},
+    generics: GenericType[] = []
+  ) {
     this.generics = generics;
     for (const [name, value] of Object.entries(properties)) {
       this.setProp(name, value);

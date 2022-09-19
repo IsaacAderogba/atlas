@@ -3,7 +3,8 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { GenericParamType } from "./GenericParamType";
+import { GenericType } from "./GenericType";
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
@@ -55,10 +56,14 @@ export class NativeFnType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: NativeFnTypeProps, generics: GenericParamType[] = []) {
+  constructor(props: NativeFnTypeProps, generics: GenericType[] = []) {
     super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   arity(): number {
@@ -67,7 +72,7 @@ export class NativeFnType extends ObjectType implements CallableType {
 
   init = (
     props: NativeFnTypeProps,
-    generics: GenericParamType[] = []
+    generics: GenericType[] = []
   ): NativeFnType => new NativeFnType(props, generics);
 
   toString(): string {

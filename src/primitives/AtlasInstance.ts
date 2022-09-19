@@ -3,6 +3,7 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
@@ -35,6 +36,10 @@ export class InstanceType extends ObjectType {
 
   constructor(readonly classType: ClassType) {
     super();
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   get(name: Token): AtlasType | undefined {

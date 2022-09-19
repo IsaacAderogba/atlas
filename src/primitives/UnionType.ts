@@ -1,3 +1,4 @@
+import { GenericTypeMap } from "../typechecker/GenericTypeMap";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -6,6 +7,10 @@ export class UnionType extends ObjectType {
 
   constructor(readonly types: AtlasType[]) {
     super();
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    return this;
   }
 
   init = (types: AtlasType[]): AtlasType => new UnionType(types);
