@@ -88,7 +88,7 @@ export class TypeChecker implements TypeVisitor {
     // no op
   }
 
-  visitClassStmt({ name, properties, typeExpr }: ClassStmt): void {
+  visitClassStmt({ name, properties, typeExpr, parameters }: ClassStmt): void {
     const enclosingClass = this.currentClass;
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
@@ -97,6 +97,7 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
+    classType.generics = this.lookup.defineGenerics(parameters);
     const fields: Property[] = [];
     const methods: Property[] = [];
     for (const prop of properties) {
@@ -165,9 +166,9 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitInterfaceStmt(stmt: InterfaceStmt): void {
-    const interfaceType = Types.Interface.init(stmt.name.lexeme);
-
     this.lookup.beginScope();
+    const generics = this.lookup.defineGenerics(stmt.parameters);
+    const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, generics);
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
       this.lookup.defineType(key, type, VariableState.SETTLED);
@@ -195,7 +196,15 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitTypeStmt(stmt: TypeStmt): void {
-    const alias = Types.Alias.init(stmt.name.lexeme, this.acceptTypeExpr(stmt.type));
+    this.lookup.beginScope();
+
+    const alias = Types.Alias.init(
+      stmt.name.lexeme,
+      this.acceptTypeExpr(stmt.type),
+      this.lookup.defineGenerics(stmt.parameters)
+    );
+
+    this.lookup.endScope();
     this.lookup.defineType(stmt.name, alias);
   }
 
@@ -389,10 +398,11 @@ export class TypeChecker implements TypeVisitor {
 
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
     this.lookup.beginScope();
+    const generics = this.lookup.defineGenerics(typeExpr.params);
     const params = typeExpr.paramTypes.map(p => this.acceptTypeExpr(p));
     const returns = this.acceptTypeExpr(typeExpr.returnType);
     this.lookup.endScope();
-    return Types.Function.init({ params, returns });
+    return Types.Function.init({ params, returns }, generics);
   }
 
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): AtlasType {
@@ -415,8 +425,21 @@ export class TypeChecker implements TypeVisitor {
     }
   }
 
-  visitGenericTypeExpr(_typeExpr: GenericTypeExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
+    const genericType = this.lookup.type(typeExpr.name);
+    const args = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
+
+    if (genericType.generics.length !== args.length) {
+      return this.subtyper.error(
+        typeExpr,
+        TypeCheckErrors.mismatchedArity(
+          genericType.generics.length,
+          args.length
+        )
+      );
+    }
+
+    // const genericParamMap = 
   }
 
   visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {

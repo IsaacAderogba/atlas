@@ -1,15 +1,4 @@
-interface Foo {
-    foo: String
-}
+type Num = Number
+type Int = Num
 
-interface Bar {
-    bar: String
-}
-
-var func: (Foo & Bar) -> Null = f(arg) {
-
-}
-
-func({
-    "foo": "foo"
-})
+var foo: Int = ""

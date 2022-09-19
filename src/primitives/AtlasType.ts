@@ -9,6 +9,7 @@ import { NullType } from "./AtlasNull";
 import { NumberType } from "./AtlasNumber";
 import { RecordType } from "./AtlasRecord";
 import { StringType } from "./AtlasString";
+import { GenericParamType } from "./GenericParamType";
 import { InterfaceType } from "./InterfaceType";
 import { IntersectionType } from "./IntersectionType";
 import { UnionType } from "./UnionType";
@@ -17,6 +18,7 @@ export type AtlasType =
   | AnyType
   | AliasType
   | BooleanType
+  | GenericParamType
   | NumberType
   | StringType
   | NullType

@@ -10,6 +10,7 @@ import {
 } from "./AtlasCallable";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
+import { GenericParamType } from "./AtlasValue";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
 
@@ -59,8 +60,10 @@ export abstract class ObjectType {
 
   internalFields = new Map<string, AtlasType>();
   internalMethods = new Map<string, CallableType & AtlasType>();
+  generics: GenericParamType[];
 
-  constructor(properties: ObjectTypeProps = {}) {
+  constructor(properties: ObjectTypeProps = {}, generics: GenericParamType[] = []) {
+    this.generics = generics;
     for (const [name, value] of Object.entries(properties)) {
       this.setProp(name, value);
     }

@@ -3,6 +3,7 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
+import { GenericParamType } from "./GenericParamType";
 
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
@@ -54,8 +55,8 @@ export class NativeFnType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: NativeFnTypeProps) {
-    super();
+  constructor(props: NativeFnTypeProps, generics: GenericParamType[] = []) {
+    super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
   }
@@ -64,7 +65,10 @@ export class NativeFnType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (props: NativeFnTypeProps): NativeFnType => new NativeFnType(props);
+  init = (
+    props: NativeFnTypeProps,
+    generics: GenericParamType[] = []
+  ): NativeFnType => new NativeFnType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

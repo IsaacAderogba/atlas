@@ -5,6 +5,8 @@ import { TypeCheckErrors } from "../errors/TypeCheckError";
 import { Token } from "../ast/Token";
 import { AtlasType } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
+import { Parameter } from "../ast/Node";
+import { GenericParamType } from "../primitives/AtlasValue";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
@@ -80,6 +82,14 @@ export class TypeCheckerLookup {
   defineValue(name: Token, type: AtlasType): AtlasType {
     this.getScope().valueScope.set(name.lexeme, type);
     return type;
+  }
+
+  defineGenerics(parameters: Parameter[]): GenericParamType[] {
+    return parameters.map(param => {
+      const type = new GenericParamType(param);
+      this.defineType(param.name, type);
+      return type;
+    });
   }
 
   beginScope(newScope = new TypeCheckerScope()): void {

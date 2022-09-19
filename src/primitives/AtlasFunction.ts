@@ -7,6 +7,7 @@ import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
+import { GenericParamType } from "./GenericParamType";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";
@@ -73,8 +74,8 @@ export class FunctionType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: FunctionTypeProps) {
-    super();
+  constructor(props: FunctionTypeProps, generics: GenericParamType[] = []) {
+    super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
   }
@@ -83,7 +84,10 @@ export class FunctionType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (props: FunctionTypeProps): FunctionType => new FunctionType(props);
+  init = (
+    props: FunctionTypeProps,
+    generics: GenericParamType[] = []
+  ): FunctionType => new FunctionType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

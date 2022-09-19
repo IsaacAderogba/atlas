@@ -1,20 +1,26 @@
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
+import { GenericParamType } from "./AtlasValue";
 
 export class InterfaceType extends ObjectType {
   readonly type = "Interface";
   name: string;
 
-  constructor(name: string, entries: { [key: string]: AtlasType } = {}) {
-    super(entries);
+  constructor(
+    name: string,
+    entries: { [key: string]: AtlasType } = {},
+    generics: GenericParamType[] = []
+  ) {
+    super(entries, generics);
     this.name = name;
   }
 
   init = (
     name: string,
-    entries: { [key: string]: AtlasType } = {}
+    entries: { [key: string]: AtlasType } = {},
+    generics: GenericParamType[] = []
   ): InterfaceType => {
-    return new InterfaceType(name, entries);
+    return new InterfaceType(name, entries, generics);
   };
 
   toString = (): string => `${this.name}`;
