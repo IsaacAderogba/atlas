@@ -1,4 +1,4 @@
-import { AtlasCallable, CallableType } from "./AtlasCallable";
+import { AtlasCallable, bindCallableGenerics, CallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
@@ -63,7 +63,8 @@ export class NativeFnType extends ObjectType implements CallableType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+    return this.init({ params, returns });
   }
 
   arity(): number {

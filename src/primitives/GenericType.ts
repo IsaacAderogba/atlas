@@ -16,7 +16,7 @@ export class GenericType extends ObjectType {
 
   init = (param: Parameter): GenericType => new GenericType(param);
 
-  toString = (): string => this.type;
+  toString = (): string => this.param.name.lexeme;
 }
 
 export const isGenericType = (value: unknown): value is GenericType =>

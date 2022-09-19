@@ -2,6 +2,7 @@ import { AtlasObject } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasType } from "../primitives/AtlasType";
 import { Interpreter } from "../runtime/Interpreter";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export interface AtlasCallable {
   arity(): number;
@@ -17,6 +18,18 @@ export const isCallable = (
     value.type === "NativeFn" ||
     value.type === "Class"
   );
+};
+
+export const bindCallableGenerics = (
+  target: AtlasType,
+  map: GenericTypeMap
+): { params: AtlasType[]; returns: AtlasType } => {
+  if (!isCallableType(target)) throw new Error("Invariant");
+
+  const params = target.params.map(param => param.bindGenerics(map));
+  const returns = target.returns.bindGenerics(map);
+
+  return { params, returns };
 };
 
 export interface CallableType {

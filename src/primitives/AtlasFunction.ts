@@ -1,5 +1,9 @@
 import { FunctionExpr } from "../ast/Expr";
-import { AtlasCallable, CallableType } from "./AtlasCallable";
+import {
+  AtlasCallable,
+  bindCallableGenerics,
+  CallableType,
+} from "./AtlasCallable";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -82,7 +86,8 @@ export class FunctionType extends ObjectType implements CallableType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this;
+    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+    return this.init({ params, returns });
   }
 
   arity(): number {
