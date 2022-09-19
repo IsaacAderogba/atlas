@@ -83,7 +83,7 @@ export class TypeCheckErrors {
   static requiredGenericArgs(): SourceMessage {
     return this.formatError({
       title: "required generic arguments",
-      body: "generic types always require type arguments",
+      body: "generics always require type arguments",
     });
   }
 

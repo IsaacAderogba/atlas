@@ -259,29 +259,44 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  visitCallExpr({ callee, open, close, args }: CallExpr): AtlasType {
+  visitCallExpr(expr: CallExpr): AtlasType {
+    const { callee, open, close, args, typeExprs } = expr;
     return this.subtyper.synthesize(this.acceptExpr(callee), calleeType => {
       if (isAnyType(calleeType)) return calleeType;
-      if (!isCallableType(calleeType)) {
+
+      let type: AtlasType | undefined;
+      if (typeExprs.length > 0) {
+        type = this.visitGenericCall(calleeType, expr);
+      } else {
+        if (calleeType.generics.length) {
+          return this.subtyper.error(
+            callee,
+            TypeCheckErrors.requiredGenericArgs()
+          );
+        }
+        type = calleeType;
+      }
+
+      if (!isCallableType(type)) {
         return this.subtyper.error(
           callee,
           TypeCheckErrors.expectedCallableType()
         );
       }
 
-      if (calleeType.arity() !== args.length) {
+      if (type.arity() !== args.length) {
         return this.subtyper.error(
           new SourceRange(open, close),
-          TypeCheckErrors.mismatchedArity(calleeType.arity(), args.length)
+          TypeCheckErrors.mismatchedArity(type.arity(), args.length)
         );
       }
 
-      calleeType.params.forEach((expected, i) => {
+      type.params.forEach((expected, i) => {
         const actual = this.acceptExpr(args[i], expected);
         this.subtyper.check(args[i], actual, expected);
       });
 
-      return calleeType.returns;
+      return type.returns;
     });
   }
 
@@ -446,7 +461,10 @@ export class TypeChecker implements TypeVisitor {
   }
 
   // utils
-  visitGenericCall(genericType: AtlasType, typeExpr: GenericTypeExpr | CallExpr): AtlasType {
+  visitGenericCall(
+    genericType: AtlasType,
+    typeExpr: GenericTypeExpr | CallExpr
+  ): AtlasType {
     const actuals = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
 
     if (genericType.generics.length !== actuals.length) {
