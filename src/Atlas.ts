@@ -27,17 +27,7 @@ export class Atlas {
   }
 
   static runFile(path: string): void {
-    const reporter = new ConsoleReporter();
-    let source: string;
-
-    try {
-      source = fs.readFileSync(path, { encoding: "utf8" });
-    } catch (error) {
-      reporter.error(`Unable to open file: ${path}`);
-      process.exit(66);
-    }
-
-    const status = this.run(source);
+    const status = this.run(this.readModule(path));
 
     switch (status) {
       case AtlasStatus.STATIC_ERROR:
@@ -80,30 +70,48 @@ export class Atlas {
   }
 
   static check(source: string): { status: AtlasStatus; statements: Stmt[] } {
+    try {
+      const statements = this.parse(source);
+
+      const analyzer = new Analyzer(this.interpreter, statements);
+      const { errors: analyzeErrs } = analyzer.analyze();
+      if (this.reportErrors(source, analyzeErrs)) {
+        return { status: AtlasStatus.STATIC_ERROR, statements: [] };
+      }
+
+      const { errors: typeErrs } = this.typechecker.typeCheck(statements);
+      if (this.reportErrors(source, typeErrs)) {
+        return { status: AtlasStatus.STATIC_ERROR, statements: [] };
+      }
+
+      return { status: AtlasStatus.VALID, statements };
+    } catch (err) {
+      if (err === AtlasStatus.STATIC_ERROR) {
+        return { status: err, statements: [] };
+      }
+      throw err;
+    }
+  }
+
+  static parse(source: string): Stmt[] {
     const scanner = new Scanner(source);
     const { tokens, errors: scanErrs } = scanner.scan();
-    if (this.reportErrors(source, scanErrs)) {
-      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
-    }
+    if (this.reportErrors(source, scanErrs)) throw AtlasStatus.STATIC_ERROR;
 
     const parser = new Parser(tokens);
     const { statements, errors: parseErrs } = parser.parse();
-    if (this.reportErrors(source, parseErrs)) {
-      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
-    }
+    if (this.reportErrors(source, parseErrs)) throw AtlasStatus.STATIC_ERROR;
 
-    const analyzer = new Analyzer(this.interpreter, statements);
-    const { errors: analyzeErrs } = analyzer.analyze();
-    if (this.reportErrors(source, analyzeErrs)) {
-      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
-    }
+    return statements;
+  }
 
-    const { errors: typeErrs } = this.typechecker.typeCheck(statements);
-    if (this.reportErrors(source, typeErrs)) {
-      return { status: AtlasStatus.STATIC_ERROR, statements: [] };
+  static readModule(path: string): string {
+    try {
+      return fs.readFileSync(path, { encoding: "utf8" });
+    } catch (error) {
+      this.reporter.error(`Unable to open file: ${path}`);
+      process.exit(66);
     }
-
-    return { status: AtlasStatus.VALID, statements };
   }
 
   private static reportErrors(source: string, errors: SourceError[]): boolean {

@@ -24,6 +24,7 @@ import {
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   ModuleStmt,
   ReturnStmt,
   Stmt,
@@ -173,6 +174,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitInterfaceStmt(): void {
     // no op
+  }
+
+  visitImportStmt(stmt: ImportStmt): void {
+    
   }
 
   visitModuleStmt(stmt: ModuleStmt): void {
