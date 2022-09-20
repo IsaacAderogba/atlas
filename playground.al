@@ -1,1 +1,3 @@
-var foo = 4 == 4 ? "3" : 2
+var foo: [K is Number](K) -> String = f(incorrect) {
+  return "correct" # incorrect
+}

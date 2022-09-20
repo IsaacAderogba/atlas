@@ -273,6 +273,7 @@ export class TypeChecker implements TypeVisitor {
         type = calleeType;
       }
 
+      if (isAnyType(type)) return type;
       if (!isCallableType(type)) {
         return this.subtyper.error(
           callee,
