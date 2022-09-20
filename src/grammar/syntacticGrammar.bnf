@@ -1,9 +1,13 @@
 program        -> statement* EOF ;
 declaration    -> classDecl
                 | varDecl
+                | moduleDecl
+                | namespaceDecl
                 | statement
                 | errorStmt ;
 classDecl      -> "class" IDENTIFIER ( "[" parameters "]" )? ( "implements" typeExpr )? "{" property* "}" ;
+moduleDecl     -> "module" IDENTIFIER block ;
+namespaceDecl  -> "namespace" IDENTIFIER block ;
 varDecl        -> "var" property ;
 interfaceDecl  -> "interface" IDENTIFIER ( "[" parameters "]" )? "{" typeProperty* "}" ;
 typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? "=" typeExpr ;

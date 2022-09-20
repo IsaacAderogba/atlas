@@ -11,6 +11,8 @@ export const Keywords = new Map<string, TokenType>([
   ["is", "IS"],
   ["interface", "INTERFACE"],
   ["implements", "IMPLEMENTS"],
+  ["module", "MODULE"],
+  ["namespace", "NAMESPACE"],
   ["return", "RETURN"],
   ["super", "SUPER"],
   ["this", "THIS"],

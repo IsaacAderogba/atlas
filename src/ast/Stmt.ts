@@ -127,7 +127,7 @@ export class InterfaceStmt implements BaseStmt {
     readonly parameters: Parameter[],
     readonly open: Token,
     readonly entries: TypeProperty[],
-    readonly close: Token,
+    readonly close: Token
   ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
@@ -137,6 +137,42 @@ export class InterfaceStmt implements BaseStmt {
   sourceRange(): SourceRange {
     const { start } = this.keyword.sourceRange();
     const { end } = this.close.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
+export class ModuleStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly block: BlockStmt
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitModuleStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
+export class NamespaceStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly block: BlockStmt
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitNamespaceStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.name.sourceRange();
     return new SourceRange(start, end);
   }
 }
@@ -214,6 +250,8 @@ export type Stmt =
   | ErrorStmt
   | IfStmt
   | InterfaceStmt
+  | ModuleStmt
+  | NamespaceStmt
   | ReturnStmt
   | TypeStmt
   | VarStmt
@@ -229,6 +267,8 @@ export interface StmtVisitor<T> {
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitInterfaceStmt(stmt: InterfaceStmt): T;
+  visitModuleStmt(stmt: ModuleStmt): T;
+  visitNamespaceStmt(stmt: NamespaceStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
   visitTypeStmt(stmt: TypeStmt): T;
   visitVarStmt(stmt: VarStmt): T;
