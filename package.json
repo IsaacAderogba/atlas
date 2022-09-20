@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "vitest",
-    "debug": "ts-node src/main.ts ./playground.al",
+    "debug": "ts-node src/main.ts ./playground.ats",
     "build": "tsup src/main.ts --format esm,cjs --dts --minify"
   },
   "repository": {

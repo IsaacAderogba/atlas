@@ -89,7 +89,7 @@ describe("Scanner tokens", () => {
 
   it("tokenizes keywords and identifiers", () => {
     const charTypes: { char: string; type: TokenType }[] = [
-      { char: "and", type: "AND" },
+      { char: "&&", type: "AMPERSAND_AMPERSAND" },
       { char: "break", type: "BREAK" },
       { char: "continue", type: "CONTINUE" },
       { char: "class", type: "CLASS" },
@@ -98,7 +98,7 @@ describe("Scanner tokens", () => {
       { char: "f", type: "FUNCTION" },
       { char: "if", type: "IF" },
       { char: "is", type: "IS" },
-      { char: "or", type: "OR" },
+      { char: "||", type: "PIPE_PIPE" },
       { char: "return", type: "RETURN" },
       { char: "super", type: "SUPER" },
       { char: "this", type: "THIS" },

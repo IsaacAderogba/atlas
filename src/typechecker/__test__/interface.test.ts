@@ -207,8 +207,6 @@ describe("Interface errors", () => {
       Types.Interface.init("Foo", { bar: Types.String }),
     );
 
-    console.log("err", error);
-
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(error)
     );

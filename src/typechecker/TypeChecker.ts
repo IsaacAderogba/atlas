@@ -360,8 +360,8 @@ export class TypeChecker implements TypeVisitor {
       this.acceptExpr(expr.right),
       (left, right) => {
         switch (expr.operator.type) {
-          case "OR":
-          case "AND":
+          case "PIPE_PIPE":
+          case "AMPERSAND_AMPERSAND":
             this.subtyper.check(expr.left, left, Types.Boolean);
             this.subtyper.check(expr.right, right, Types.Boolean);
             return Types.Boolean;

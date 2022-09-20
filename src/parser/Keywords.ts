@@ -1,7 +1,6 @@
 import { TokenType } from "../ast/TokenType";
 
 export const Keywords = new Map<string, TokenType>([
-  ["and", "AND"],
   ["break", "BREAK"],
   ["continue", "CONTINUE"],
   ["class", "CLASS"],
@@ -12,7 +11,6 @@ export const Keywords = new Map<string, TokenType>([
   ["is", "IS"],
   ["interface", "INTERFACE"],
   ["implements", "IMPLEMENTS"],
-  ["or", "OR"],
   ["return", "RETURN"],
   ["super", "SUPER"],
   ["this", "THIS"],

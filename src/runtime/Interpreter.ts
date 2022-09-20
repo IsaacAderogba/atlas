@@ -314,10 +314,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     const left = this.evaluate(expr.left);
 
     switch (expr.operator.type) {
-      case "OR":
+      case "PIPE_PIPE":
         if (this.getBooleanValue(expr.left, left)) return left;
         break;
-      case "AND":
+      case "AMPERSAND_AMPERSAND":
         if (!this.getBooleanValue(expr.left, left)) return left;
         break;
       default:

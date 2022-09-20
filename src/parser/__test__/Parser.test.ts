@@ -203,14 +203,14 @@ describe("Parser expressions", () => {
   });
 
   it("parses or expressions", () => {
-    const { parser } = setupTests("true or false");
+    const { parser } = setupTests("true || false");
 
     const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "true", type: "TRUE" },
       },
-      operator: { lexeme: "or", type: "OR" },
+      operator: { lexeme: "||", type: "PIPE_PIPE" },
       right: {
         token: { lexeme: "false", type: "FALSE" },
       },
@@ -218,14 +218,14 @@ describe("Parser expressions", () => {
   });
 
   it("parses and expressions", () => {
-    const { parser } = setupTests("true and false");
+    const { parser } = setupTests("true && false");
 
     const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "true", type: "TRUE" },
       },
-      operator: { lexeme: "and", type: "AND" },
+      operator: { lexeme: "&&", type: "AMPERSAND_AMPERSAND" },
       right: {
         token: { lexeme: "false", type: "FALSE" },
       },
@@ -435,8 +435,8 @@ describe("Parser errors", () => {
       "# 'str'",
       "/ 4",
       "* 4",
-      "or 4",
-      "and 4",
+      "|| 4",
+      "&& 4",
     ];
 
     expressions.forEach(expr => {

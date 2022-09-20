@@ -250,7 +250,7 @@ export class Parser {
   private or(): Expr {
     let expr = this.and();
 
-    while (this.match("OR")) {
+    while (this.match("PIPE_PIPE")) {
       const operator = this.previous();
       const right = this.and();
       expr = new LogicalExpr(expr, operator, right);
@@ -262,7 +262,7 @@ export class Parser {
   private and(): Expr {
     let expr = this.equality();
 
-    while (this.match("AND")) {
+    while (this.match("AMPERSAND_AMPERSAND")) {
       const operator = this.previous();
       const right = this.equality();
       expr = new LogicalExpr(expr, operator, right);
@@ -447,8 +447,8 @@ export class Parser {
 
   private errorExpression(): ErrorExpr {
     const leftOperandErrs: [TokenType[], () => Expr][] = [
-      [["OR"], this.or.bind(this)],
-      [["AND"], this.and.bind(this)],
+      [["PIPE_PIPE"], this.or.bind(this)],
+      [["AMPERSAND_AMPERSAND"], this.and.bind(this)],
       [["BANG_EQUAL", "EQUAL_EQUAL"], this.equality.bind(this)],
       [
         ["GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"],

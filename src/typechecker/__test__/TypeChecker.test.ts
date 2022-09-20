@@ -277,13 +277,13 @@ describe("Typechecker errors", () => {
   it("errors with invalid subtypes for logical expressions", () => {
     const types = [
       {
-        source: "true or '4'",
+        source: "true || '4'",
         error: TypeCheckErrors.invalidSubtype(
           createSubtyper()(Types.String, Types.Boolean).error
         ),
       },
       {
-        source: "false and null",
+        source: "false && null",
         error: TypeCheckErrors.invalidSubtype(
           createSubtyper()(Types.Null, Types.Boolean).error
         ),
