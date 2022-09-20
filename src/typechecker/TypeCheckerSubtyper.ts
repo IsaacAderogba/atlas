@@ -4,7 +4,7 @@ import { AtlasType, Types } from "../primitives/AtlasType";
 import { isIntersectionType } from "../primitives/IntersectionType";
 import { isUnionType } from "../primitives/UnionType";
 import { SynthesizeContext } from "../utils/Enums";
-import { isSubtype } from "./isSubtype";
+import { createSubtyper } from "./isSubtype";
 import type { TypeChecker } from "./TypeChecker";
 
 export class TypeCheckerSubtyper {
@@ -113,12 +113,10 @@ export class TypeCheckerSubtyper {
     actual: AtlasType,
     expected: AtlasType
   ): AtlasType {
-    if (isSubtype(actual, expected)) return expected;
+    const { isSubtype, error } = createSubtyper()(actual, expected);
+    if (isSubtype) return expected;
 
-    return this.error(
-      source,
-      TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
-    );
+    return this.error(source, TypeCheckErrors.invalidSubtype(error));
   }
 
   error(source: SourceRangeable, message: SourceMessage): AtlasType {

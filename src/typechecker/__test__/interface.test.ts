@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Interface annotations", () => {
   it("annotates interface statements without error", () => {
@@ -114,21 +115,23 @@ describe("Interface errors", () => {
       var foo: Foo = FooClass()
     `);
 
+    const { error } = createSubtyper()(
+      Types.Class.init("FooClass", {
+        bar: Types.Function.init({
+          params: [],
+          returns: Types.Null,
+        }),
+      }),
+      Types.Interface.init("Foo", {
+        bar: Types.Function.init({
+          params: [Types.Number],
+          returns: Types.Null,
+        }),
+      }),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", {
-          bar: Types.Function.init({
-            params: [Types.Number],
-            returns: Types.Null,
-          }),
-        }).toString(),
-        Types.Class.init("FooClass", {
-          bar: Types.Function.init({
-            params: [],
-            returns: Types.Null,
-          }),
-        }).toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -145,11 +148,13 @@ describe("Interface errors", () => {
       }
     `);
 
+    const { error } = createSubtyper()(
+      Types.Record.init({ foo: Types.Number }),
+      Types.Interface.init("Foo", { foo: Types.String }),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { foo: Types.String }).toString(),
-        Types.Record.init({ foo: Types.Number }).toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -166,11 +171,13 @@ describe("Interface errors", () => {
       }
     `);
 
+    const { error } = createSubtyper()(
+      Types.Class.init("FooBar", { foo: Types.Number }),
+      Types.Interface.init("Foo", { foo: Types.String }),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { foo: Types.String }).toString(),
-        Types.Class.init("FooBar", { foo: Types.Number }).toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -195,11 +202,13 @@ describe("Interface errors", () => {
       func(BarClass())
     `);
 
+    const { error } = createSubtyper()(
+      Types.Class.init("BarClass", { bar: Types.Number }),
+      Types.Interface.init("Foo", { bar: Types.String }),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { bar: Types.String }).toString(),
-        Types.Class.init("BarClass", { bar: Types.Number }).toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 });

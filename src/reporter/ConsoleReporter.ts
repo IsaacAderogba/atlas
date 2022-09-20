@@ -18,19 +18,22 @@ export class ConsoleReporter implements Reporter {
     const { start } = range;
     const sourceLine = source.split("\n")[start.line - 1].replace(/\t/g, " ");
 
-    const underline =
-      Array(indent + start.column - 1)
-        .fill(" ")
-        .join("") + Array(range.length()).fill("^").join("");
+    const base = Array(indent + start.column - 1)
+      .fill(" ")
+      .join("");
+
+    const underline = base + Array(range.length()).fill("^").join("");
+    const newline = base + Array(range.length()).fill(" ").join("");
 
     const lineColumn = errorChalk(`${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
 
+    const messages = body.split("\n").join(`\n${newline} `)
 
     const report =
       `${lineColumn}${errorChalk(title)}\n\n` +
       `${startLine}${sourceLine}\n` +
-      chalk.blue(`${underline} ${body}\n`);
+      chalk.blue(`${underline} ${messages}\n`);
 
     this.error(report);
   }

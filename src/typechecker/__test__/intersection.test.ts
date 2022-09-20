@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Interface annotations", () => {
   it("annotates intersections without error", () => {
@@ -60,14 +61,16 @@ describe("Intersection errors", () => {
       var foo: Foo = ""
     `);
 
+    const { error } = createSubtyper()(
+      Types.String,
+      Types.Alias.init(
+        "Foo",
+        Types.Intersection.init([Types.String, Types.Number])
+      ),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Alias.init(
-          "Foo",
-          Types.Intersection.init([Types.String, Types.Number])
-        ).toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -92,14 +95,16 @@ describe("Intersection errors", () => {
       })
     `);
 
+    const { error } = createSubtyper()(
+      Types.Record.init({ foo: Types.String }),
+      Types.Intersection.init([
+        Types.Interface.init("Foo", { foo: Types.String }),
+        Types.Interface.init("Bar", { bar: Types.String }),
+      ]),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Intersection.init([
-          Types.Interface.init("Foo", { foo: Types.String }),
-          Types.Interface.init("Bar", { foo: Types.String }),
-        ]).toString(),
-        Types.Record.init({ foo: Types.String }).toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 });

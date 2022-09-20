@@ -1,56 +1,64 @@
 import { Types } from "../../primitives/AtlasType";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { describe, expect, it } from "vitest";
-import { isSubtype } from "../isSubtype";
+import { createSubtyper } from "../isSubtype";
 
 describe("Typechecker inference", () => {
   it("infers any", () => {
     const { tester } = setupTester();
 
-    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Any)).toEqual(true);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("4"), Types.Any).isSubtype
+    ).toEqual(true);
   });
 
   it("infers numbers", () => {
     const { tester } = setupTester();
 
-    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Number)).toEqual(true);
-    expect(isSubtype(tester.evalTypeWorkflow("'4'"), Types.Number)).toEqual(
-      false
-    );
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("4"), Types.Number).isSubtype
+    ).toEqual(true);
+
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("'4'"), Types.Number).isSubtype
+    ).toEqual(false);
   });
 
   it("infers strings", () => {
     const { tester } = setupTester();
 
-    expect(isSubtype(tester.evalTypeWorkflow("'foo'"), Types.String)).toEqual(
-      true
-    );
-    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.String)).toEqual(
-      false
-    );
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("'foo'"), Types.String).isSubtype
+    ).toEqual(true);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("4"), Types.String).isSubtype
+    ).toEqual(false);
   });
 
   it("infers booleans", () => {
     const { tester } = setupTester();
 
-    expect(isSubtype(tester.evalTypeWorkflow("true"), Types.Boolean)).toEqual(
-      true
-    );
-    expect(isSubtype(tester.evalTypeWorkflow("false"), Types.Boolean)).toEqual(
-      true
-    );
-    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Boolean)).toEqual(
-      false
-    );
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("true"), Types.Boolean).isSubtype
+    ).toEqual(true);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("false"), Types.Boolean)
+        .isSubtype
+    ).toEqual(true);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("4"), Types.Boolean).isSubtype
+    ).toEqual(false);
   });
 
   it("infers null", () => {
     const { tester } = setupTester();
 
-    expect(isSubtype(tester.evalTypeWorkflow("null"), Types.Null)).toEqual(
-      true
-    );
-    expect(isSubtype(tester.evalTypeWorkflow("4"), Types.Null)).toEqual(false);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("null"), Types.Null).isSubtype
+    ).toEqual(true);
+    expect(
+      createSubtyper()(tester.evalTypeWorkflow("4"), Types.Null).isSubtype
+    ).toEqual(false);
   });
 
   it("infers record", () => {
@@ -64,13 +72,13 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      isSubtype(
+      createSubtyper()(
         Types.Record.init({
           foo: Types.String,
           "1": Types.Number,
         }),
         tester.evalTypeWorkflow("x")
-      )
+      ).isSubtype
     ).toEqual(true);
   });
 
@@ -82,7 +90,8 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      isSubtype(Types.String, tester.evalTypeWorkflow("x.foo.foo"))
+      createSubtyper()(Types.String, tester.evalTypeWorkflow("x.foo.foo"))
+        .isSubtype
     ).toEqual(true);
   });
 
@@ -95,7 +104,9 @@ describe("Typechecker inference", () => {
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
 
-      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
+      expect(
+        createSubtyper()(tester.evalTypeWorkflow(source), subtype).isSubtype
+      ).toEqual(true);
     });
   });
 
@@ -116,7 +127,9 @@ describe("Typechecker inference", () => {
 
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
-      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
+      expect(
+        createSubtyper()(tester.evalTypeWorkflow(source), subtype).isSubtype
+      ).toEqual(true);
     });
   });
 
@@ -129,7 +142,9 @@ describe("Typechecker inference", () => {
     types.forEach(({ source, subtype }) => {
       const { tester } = setupTester();
 
-      expect(isSubtype(tester.evalTypeWorkflow(source), subtype)).toEqual(true);
+      expect(
+        createSubtyper()(tester.evalTypeWorkflow(source), subtype).isSubtype
+      ).toEqual(true);
     });
   });
 
@@ -146,7 +161,9 @@ describe("Typechecker inference", () => {
       const { tester } = setupTester();
 
       tester.typeCheckWorkflow(source);
-      expect(isSubtype(type, tester.evalTypeWorkflow("x"))).toEqual(true);
+      expect(
+        createSubtyper()(type, tester.evalTypeWorkflow("x")).isSubtype
+      ).toEqual(true);
     });
   });
 
@@ -164,13 +181,13 @@ describe("Typechecker inference", () => {
     `);
 
     expect(
-      isSubtype(
+      createSubtyper()(
         Types.Function.init({
           params: [Types.Number],
           returns: Types.Number,
         }),
         tester.evalTypeWorkflow("x")
-      )
+      ).isSubtype
     ).toEqual(true);
   });
 
@@ -179,13 +196,13 @@ describe("Typechecker inference", () => {
 
     tester.typeCheckWorkflow("var x: (Number) -> Number = f(x) { return 1 }");
     expect(
-      isSubtype(
+      createSubtyper()(
         Types.Function.init({
           params: [Types.Number],
           returns: Types.Number,
         }),
         tester.evalTypeWorkflow("x")
-      )
+      ).isSubtype
     ).toEqual(true);
   });
 });
@@ -195,9 +212,10 @@ describe("Typechecker statements", () => {
     const { tester } = setupTester();
 
     tester.typeCheckWorkflow("type Foo = String");
-    expect(isSubtype(Types.String, tester.evalTypeExprWorkflow("Foo"))).toEqual(
-      true
-    );
+    expect(
+      createSubtyper()(Types.String, tester.evalTypeExprWorkflow("Foo"))
+        .isSubtype
+    ).toEqual(true);
   });
 });
 
@@ -207,15 +225,13 @@ describe("Typechecker errors", () => {
       {
         source: "!4",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.Number.type
+          createSubtyper()(Types.Number, Types.Boolean).error
         ),
       },
       {
         source: "-true",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Boolean.type
+          createSubtyper()(Types.Boolean, Types.Number).error
         ),
       },
     ];
@@ -233,22 +249,19 @@ describe("Typechecker errors", () => {
       {
         source: "4 # '4'",
         error: TypeCheckErrors.invalidSubtype(
-          Types.String.type,
-          Types.Number.type
+          createSubtyper()(Types.Number, Types.String).error
         ),
       },
       {
         source: "4 + null",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Null.type
+          createSubtyper()(Types.Null, Types.Number).error
         ),
       },
       {
         source: "4 >= true",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Boolean.type
+          createSubtyper()(Types.Boolean, Types.Number).error
         ),
       },
     ];
@@ -264,17 +277,15 @@ describe("Typechecker errors", () => {
   it("errors with invalid subtypes for logical expressions", () => {
     const types = [
       {
-        source: "true or '4'",
+        source: "true || '4'",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.String.type
+          createSubtyper()(Types.String, Types.Boolean).error
         ),
       },
       {
-        source: "false and null",
+        source: "false && null",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.Null.type
+          createSubtyper()(Types.Null, Types.Boolean).error
         ),
       },
     ];
@@ -292,7 +303,9 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("var x: Number = true");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Number.type, Types.Boolean.type)
+      TypeCheckErrors.invalidSubtype(
+        createSubtyper()(Types.Boolean, Types.Number).error
+      )
     );
   });
 
@@ -301,7 +314,9 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("if (4 + 4) {}");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+      TypeCheckErrors.invalidSubtype(
+        createSubtyper()(Types.Number, Types.Boolean).error
+      )
     );
   });
 
@@ -310,7 +325,9 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("while (4 + 4) {}");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+      TypeCheckErrors.invalidSubtype(
+        createSubtyper()(Types.Number, Types.Boolean).error
+      )
     );
   });
 
@@ -320,36 +337,42 @@ describe("Typechecker errors", () => {
         // function specifies an argument while declaration doesn't
         source: "var x: () -> Null = f(y) { }",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Function.init({
-            params: [],
-            returns: Types.Null,
-          }).toString(),
-          Types.Function.init({
-            params: [Types.Any],
-            returns: Types.Null,
-          }).toString()
+          createSubtyper()(
+            Types.Function.init({
+              params: [Types.Any],
+              returns: Types.Null,
+            }),
+            Types.Function.init({
+              params: [],
+              returns: Types.Null,
+            }),
+          ).error
         ),
       },
       {
         // declaration specifies an argument while function doesn't
         source: "var x: (Number) -> Null = f() { }",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Function.init({
-            params: [Types.Number],
-            returns: Types.Null,
-          }).toString(),
-          Types.Function.init({
-            params: [],
-            returns: Types.Null,
-          }).toString()
+          createSubtyper()(
+            Types.Function.init({
+              params: [],
+              returns: Types.Null,
+            }),
+            Types.Function.init({
+              params: [Types.Number],
+              returns: Types.Null,
+            })
+          ).error
         ),
       },
       {
         // function returns incorrect output
         source: "var x: () -> String = f() { }",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Function.init({ params: [], returns: Types.String }).toString(),
-          Types.Function.init({ params: [], returns: Types.Null }).toString()
+          createSubtyper()(
+            Types.Function.init({ params: [], returns: Types.Null }),
+            Types.Function.init({ params: [], returns: Types.String })
+          ).error
         ),
       },
     ];
@@ -377,8 +400,7 @@ describe("Typechecker errors", () => {
       },
       {
         error: TypeCheckErrors.invalidSubtype(
-          Types.Number.toString(),
-          Types.String.toString()
+          createSubtyper()(Types.String, Types.Number).error
         ),
         source: `
           var x: (Number) -> Null = f(x) { }
@@ -409,11 +431,13 @@ describe("Typechecker errors", () => {
   `);
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Function.init({
-          params: [Types.Number],
-          returns: Types.Number,
-        }).toString(),
-        Types.Function.init({ params: [], returns: Types.Number }).toString()
+        createSubtyper()(
+          Types.Function.init({ params: [], returns: Types.Number }),
+          Types.Function.init({
+            params: [Types.Number],
+            returns: Types.Number,
+          })
+        ).error
       )
     );
   });

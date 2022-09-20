@@ -66,12 +66,6 @@ export class Scanner {
       case "]":
         this.addToken("RIGHT_BRACKET");
         break;
-      case "|":
-        this.addToken("PIPE");
-        break;
-      case "&":
-        this.addToken("AMPERSAND");
-        break;
       case ",":
         this.addToken("COMMA");
         break;
@@ -98,6 +92,12 @@ export class Scanner {
         break;
       case ":":
         this.addToken("COLON");
+        break;
+      case "|":
+        this.addToken(this.match("|") ? "PIPE_PIPE" : "PIPE");
+        break;
+      case "&":
+        this.addToken(this.match("&") ? "AMPERSAND_AMPERSAND" : "AMPERSAND");
         break;
       case "!":
         this.addToken(this.match("=") ? "BANG_EQUAL" : "BANG");

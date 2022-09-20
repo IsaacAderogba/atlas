@@ -330,8 +330,8 @@ describe("Interpreter evaluations", () => {
 
   it("evaluates logical expressions", () => {
     const tests = [
-      { source: "false or true", object: { value: true } },
-      { source: "false and true", object: { value: false } },
+      { source: "false || true", object: { value: true } },
+      { source: "false && true", object: { value: false } },
     ];
 
     tests.forEach(({ object, source }) => {

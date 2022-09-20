@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Class annotations", () => {
   it("annotates class statements without error", () => {
@@ -34,11 +35,10 @@ describe("Class errors", () => {
         bar: Number = ""
       }
     `);
+
+    const { error } = createSubtyper()(Types.String, Types.Number);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -54,11 +54,10 @@ describe("Class errors", () => {
         }
       }
     `);
+
+    const { error } = createSubtyper()(Types.String, Types.Number);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -77,11 +76,9 @@ describe("Class errors", () => {
       Foo().foo("")
     `);
 
+    const { error } = createSubtyper()(Types.String, Types.Number);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 });

@@ -16,10 +16,12 @@ export type TokenType =
   | "COLON"
   | "QUESTION"
   | "HASH"
-  | "PIPE"
-  | "AMPERSAND"
-
+  
   // One or two character tokens.
+  | "PIPE"
+  | "PIPE_PIPE"
+  | "AMPERSAND"
+  | "AMPERSAND_AMPERSAND"
   | "BANG"
   | "BANG_EQUAL"
   | "EQUAL"
@@ -35,7 +37,6 @@ export type TokenType =
   | "NUMBER"
 
   // Keywords.
-  | "AND"
   | "BREAK"
   | "CONTINUE"
   | "CLASS"
@@ -48,7 +49,6 @@ export type TokenType =
   | "INTERFACE"
   | "IMPLEMENTS"
   | "NULL"
-  | "OR"
   | "RETURN"
   | "SUPER"
   | "THIS"
