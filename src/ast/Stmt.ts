@@ -159,24 +159,6 @@ export class ModuleStmt implements BaseStmt {
   }
 }
 
-export class NamespaceStmt implements BaseStmt {
-  constructor(
-    readonly keyword: Token,
-    readonly name: Token,
-    readonly block: BlockStmt
-  ) {}
-
-  accept<T>(visitor: StmtVisitor<T>): T {
-    return visitor.visitNamespaceStmt(this);
-  }
-
-  sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
-    const { end } = this.name.sourceRange();
-    return new SourceRange(start, end);
-  }
-}
-
 export class ReturnStmt implements BaseStmt {
   constructor(readonly keyword: Token, readonly value: Expr) {}
 
@@ -251,7 +233,6 @@ export type Stmt =
   | IfStmt
   | InterfaceStmt
   | ModuleStmt
-  | NamespaceStmt
   | ReturnStmt
   | TypeStmt
   | VarStmt
@@ -268,7 +249,6 @@ export interface StmtVisitor<T> {
   visitIfStmt(stmt: IfStmt): T;
   visitInterfaceStmt(stmt: InterfaceStmt): T;
   visitModuleStmt(stmt: ModuleStmt): T;
-  visitNamespaceStmt(stmt: NamespaceStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
   visitTypeStmt(stmt: TypeStmt): T;
   visitVarStmt(stmt: VarStmt): T;

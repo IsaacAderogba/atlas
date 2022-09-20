@@ -354,6 +354,20 @@ export class CompositeTypeExpr implements BaseTypeExpr {
   }
 }
 
+export class GetTypeExpr implements BaseTypeExpr {
+  constructor(readonly object: TypeExpr, readonly name: Token) {}
+
+  accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
+    return visitor.visitGetTypeExpr(this, type);
+  }
+
+  sourceRange(): SourceRange {
+    const start = this.object.sourceRange().start;
+    const end = this.name.sourceRange().end;
+    return new SourceRange(start, end);
+  }
+}
+
 export class GenericTypeExpr implements BaseTypeExpr {
   constructor(readonly name: Token, readonly typeExprs: TypeExpr[]) {}
 
@@ -385,12 +399,14 @@ export class SubTypeExpr implements BaseTypeExpr {
 export type TypeExpr =
   | CallableTypeExpr
   | CompositeTypeExpr
+  | GetTypeExpr
   | GenericTypeExpr
   | SubTypeExpr;
 
 export interface TypeExprVisitor<T> {
   visitCallableTypeExpr(typeExpr: CallableTypeExpr, type?: AtlasType): T;
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr, type?: AtlasType): T;
+  visitGetTypeExpr(typeExpr: GetTypeExpr, type?: AtlasType): T;
   visitGenericTypeExpr(typeExpr: GenericTypeExpr, type?: AtlasType): T;
   visitSubTypeExpr(typeExpr: SubTypeExpr, type?: AtlasType): T;
 }

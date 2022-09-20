@@ -1,8 +1,10 @@
 module Foo {
-  var bar = "got em"
+  type Bar[T] = T
+
+  var bar: Bar[String] = ""
 
   print(bar # "from inside scope")
 }
 
 
-print(Foo.bar)
+var bar: Foo.Bar[Number] = 0

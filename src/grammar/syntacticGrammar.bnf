@@ -2,12 +2,10 @@ program        -> statement* EOF ;
 declaration    -> classDecl
                 | varDecl
                 | moduleDecl
-                | namespaceDecl
                 | statement
                 | errorStmt ;
 classDecl      -> "class" IDENTIFIER ( "[" parameters "]" )? ( "implements" typeExpr )? "{" property* "}" ;
 moduleDecl     -> "module" IDENTIFIER block ;
-namespaceDecl  -> "namespace" IDENTIFIER block ;
 varDecl        -> "var" property ;
 interfaceDecl  -> "interface" IDENTIFIER ( "[" parameters "]" )? "{" typeProperty* "}" ;
 typeDecl       -> "type" IDENTIFIER ( "[" parameters "]" )? "=" typeExpr ;
@@ -58,11 +56,13 @@ parameters     -> parameter ( "," parameter )* ;
 parameter      -> IDENTIFIER ( "extends" typeExpr )?;
 
 
-typeExpr          -> compositeTypeExpr ;
-compositeTypeExpr -> subTypeExpr ( ( "|" | "&" ) subTypeExpr )* ;
+typeExpr          -> orTypeExpr ;
+orTypeExpr        -> andTypeExpr ( "|" andTypeExpr )* ;
+andTypeExpr       -> subTypeExpr ( "&" subTypeExpr )* ;
 subTypeExpr       -> callableType | genericType | name ;
 callableTypeExpr  -> "(" typeExprs ")" "->" typeExpr ;
 genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
+getTypeExpr       -> "." IDENTIFIER ;
 
 typeExprs         -> typeExpr ( "," typeExpr )* ;
 typeProperty      -> name ":" typeExpr ;

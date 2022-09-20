@@ -32,7 +32,6 @@ import {
   IfStmt,
   InterfaceStmt,
   ModuleStmt,
-  NamespaceStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -74,7 +73,6 @@ export class Parser {
   private declaration(): Stmt {
     try {
       if (this.match("MODULE")) return this.moduleDeclaration();
-      if (this.match("NAMESPACE")) return this.namespaceDeclaration();
       if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("TYPE")) return this.typeDeclaration();
       if (this.match("INTERFACE")) return this.interfaceDeclaration();
@@ -90,17 +88,9 @@ export class Parser {
   private moduleDeclaration(): ModuleStmt {
     const keyword = this.previous();
     const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace())
+    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const block = this.blockStatement();
     return new ModuleStmt(keyword, name, block);
-  }
-
-  private namespaceDeclaration(): ModuleStmt {
-    const keyword = this.previous();
-    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
-    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace())
-    const block = this.blockStatement();
-    return new NamespaceStmt(keyword, name, block);
   }
 
   private classDeclaration(): ClassStmt {
@@ -498,13 +488,30 @@ export class Parser {
   }
 
   private typeExpr(): TypeExpr {
+    return this.orTypeExpr();
+  }
+
+  private orTypeExpr(): TypeExpr {
+    let typeExpr = this.andTypeExpr();
+
+    while (this.match("PIPE")) {
+      const or = this.previous();
+      const right = this.andTypeExpr();
+
+      typeExpr = new CompositeTypeExpr(typeExpr, or, right);
+    }
+
+    return typeExpr;
+  }
+
+  private andTypeExpr(): TypeExpr {
     let typeExpr = this.subTypeExpr();
 
-    while (this.match("PIPE") || this.match("AMPERSAND")) {
-      const operator = this.previous();
+    while (this.match("AMPERSAND")) {
+      const and = this.previous();
       const right = this.subTypeExpr();
 
-      typeExpr = new CompositeTypeExpr(typeExpr, operator, right);
+      typeExpr = new CompositeTypeExpr(typeExpr, and, right);
     }
 
     return typeExpr;

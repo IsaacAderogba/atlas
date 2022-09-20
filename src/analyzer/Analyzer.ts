@@ -181,10 +181,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(stmt.name);
   }
 
-  visitNamespaceStmt(): void {
-    // no op
-  }
-
   visitReturnStmt(stmt: ReturnStmt): void {
     if (this.currentFunction) {
       const { type, expr } = this.currentFunction;

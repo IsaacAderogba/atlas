@@ -50,7 +50,6 @@ export type TokenType =
   | "IMPLEMENTS"
   | "MODULE"
   | "NULL"
-  | "NAMESPACE"
   | "RETURN"
   | "SUPER"
   | "THIS"

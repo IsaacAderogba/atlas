@@ -8,6 +8,7 @@ import {
   FunctionExpr,
   GenericTypeExpr,
   GetExpr,
+  GetTypeExpr,
   GroupingExpr,
   isFunctionExpr,
   ListExpr,
@@ -30,7 +31,6 @@ import {
   IfStmt,
   InterfaceStmt,
   ModuleStmt,
-  NamespaceStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -202,10 +202,6 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  visitNamespaceStmt(_stmt: NamespaceStmt): void {
-    // todo
-  }
-
   visitReturnStmt(stmt: ReturnStmt): void {
     const value = this.acceptExpr(stmt.value, this.currentFunction?.expected);
     if (this.currentFunction && this.currentFunction.returns) {
@@ -294,13 +290,7 @@ export class TypeChecker implements TypeVisitor {
       if (typeExprs.length > 0) {
         type = this.visitGenericCall(calleeType, expr);
       } else {
-        if (calleeType.generics.some(g => !g.constraint)) {
-          return this.subtyper.error(
-            callee,
-            TypeCheckErrors.requiredGenericArgs()
-          );
-        }
-        type = calleeType;
+        type = this.subtyper.checkGeneric(callee, calleeType)
       }
 
       if (isAnyType(type)) return type;
@@ -478,22 +468,25 @@ export class TypeChecker implements TypeVisitor {
     }
   }
 
+  visitGetTypeExpr({ object, name }: GetTypeExpr): AtlasType {
+    const objectType = this.acceptTypeExpr(object);
+    const memberType = objectType.get(name);
+    if (memberType) return this.subtyper.checkGeneric(name, memberType);
+
+    return this.subtyper.error(
+      name,
+      TypeCheckErrors.unknownProperty(name.lexeme)
+    );
+  }
+
   visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
     const genericType = this.lookup.type(typeExpr.name);
     return this.visitGenericCall(genericType, typeExpr);
   }
 
-  visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
-    const type = this.lookup.type(typeExpr.name);
-
-    if (type.generics.some(g => !g.constraint)) {
-      return this.subtyper.error(
-        typeExpr,
-        TypeCheckErrors.requiredGenericArgs()
-      );
-    }
-
-    return type;
+  visitSubTypeExpr({ name }: SubTypeExpr): AtlasType {
+    const type = this.lookup.type(name);
+    return this.subtyper.checkGeneric(name, type);
   }
 
   // utils

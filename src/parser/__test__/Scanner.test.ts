@@ -99,7 +99,6 @@ describe("Scanner tokens", () => {
       { char: "if", type: "IF" },
       { char: "is", type: "IS" },
       { char: "module", type: "MODULE" },
-      { char: "namespace", type: "NAMESPACE" },
       { char: "||", type: "PIPE_PIPE" },
       { char: "return", type: "RETURN" },
       { char: "super", type: "SUPER" },

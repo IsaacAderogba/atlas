@@ -119,6 +119,13 @@ export class TypeCheckerSubtyper {
     return this.error(source, TypeCheckErrors.invalidSubtype(error));
   }
 
+  checkGeneric(source: SourceRangeable, type: AtlasType): AtlasType {
+    if (type.generics.some(g => !g.constraint)) {
+      return this.error(source, TypeCheckErrors.requiredGenericArgs());
+    }
+    return type;
+  }
+
   error(source: SourceRangeable, message: SourceMessage): AtlasType {
     const error = new TypeCheckError(message, source.sourceRange());
     if (
