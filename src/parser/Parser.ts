@@ -31,6 +31,7 @@ import {
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   InterfaceStmt,
   ModuleStmt,
   ReturnStmt,
@@ -74,6 +75,7 @@ export class Parser {
   private declaration(): Stmt {
     try {
       if (this.match("MODULE")) return this.moduleDeclaration();
+      if (this.match("IMPORT")) return this.importDeclaration();
       if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("TYPE")) return this.typeDeclaration();
       if (this.match("INTERFACE")) return this.interfaceDeclaration();
@@ -92,6 +94,14 @@ export class Parser {
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
     const block = this.blockStatement();
     return new ModuleStmt(keyword, name, block);
+  }
+
+  private importDeclaration(): ImportStmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("FROM", SyntaxErrors.expectedFromKeyword());
+    const modulePath = this.consume("STRING", SyntaxErrors.expectedString());
+    return new ImportStmt(keyword, name, modulePath);
   }
 
   private classDeclaration(): ClassStmt {

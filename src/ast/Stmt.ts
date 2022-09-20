@@ -120,6 +120,24 @@ export class IfStmt implements BaseStmt {
   }
 }
 
+export class ImportStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly modulePath: Token
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitImportStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { start } = this.keyword.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(start, end);
+  }
+}
+
 export class InterfaceStmt implements BaseStmt {
   constructor(
     readonly keyword: Token,
@@ -231,6 +249,7 @@ export type Stmt =
   | ContinueStmt
   | ErrorStmt
   | IfStmt
+  | ImportStmt
   | InterfaceStmt
   | ModuleStmt
   | ReturnStmt
@@ -247,6 +266,7 @@ export interface StmtVisitor<T> {
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
+  visitImportStmt(stmt: ImportStmt): T;
   visitInterfaceStmt(stmt: InterfaceStmt): T;
   visitModuleStmt(stmt: ModuleStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;

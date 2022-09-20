@@ -11,9 +11,9 @@ module Foo {
 }
 
 
-type FooBar[T] = Foo.FooType[Foo.Bar.BarType[T]]
+type FooBar[T is String] = Foo.FooType[Foo.Bar.BarType[T]]
 
-var fooBar: FooBar[Null] = {
+var fooBar: FooBar = {
   "foo": {
     "bar": ""
   }
