@@ -24,6 +24,7 @@ import {
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
+  ModuleStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -171,6 +172,16 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitInterfaceStmt(): void {
+    // no op
+  }
+
+  visitModuleStmt(stmt: ModuleStmt): void {
+    this.declare(stmt.name);
+    this.visitBlockStmt(stmt.block);
+    this.define(stmt.name);
+  }
+
+  visitNamespaceStmt(): void {
     // no op
   }
 

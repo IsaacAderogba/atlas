@@ -29,6 +29,8 @@ import {
   ExpressionStmt,
   IfStmt,
   InterfaceStmt,
+  ModuleStmt,
+  NamespaceStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -46,6 +48,7 @@ import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
+import { TypeCheckerScope } from "./TypeCheckerScope";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -174,6 +177,33 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.endScope();
 
     this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
+  }
+
+  visitModuleStmt({ name, block }: ModuleStmt): void {
+    const scope = new TypeCheckerScope();
+    this.lookup.beginScope(scope);
+    for (const statement of block.statements) this.acceptStmt(statement);
+    this.lookup.endScope();
+
+    const values: { [key: string]: AtlasType } = {};
+    for (const [key, value] of scope.valueScope.entries()) {
+      values[key] = value;
+    }
+    this.lookup.defineValue(name, Types.Module.init(name.lexeme, values));
+
+    const types: { [key: string]: AtlasType } = {};
+    for (const [key, { type }] of scope.typeScope.entries()) {
+      types[key] = type;
+    }
+    this.lookup.defineType(
+      name,
+      Types.Module.init(name.lexeme, types),
+      VariableState.SETTLED
+    );
+  }
+
+  visitNamespaceStmt(_stmt: NamespaceStmt): void {
+    // todo
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {

@@ -4,6 +4,7 @@ import { BooleanType } from "./AtlasBoolean";
 import { ClassType } from "./AtlasClass";
 import { FunctionType } from "./AtlasFunction";
 import { InstanceType } from "./AtlasInstance";
+import { ModuleType } from "./AtlasModule";
 import { NativeFnType } from "./AtlasNativeFn";
 import { NullType } from "./AtlasNull";
 import { NumberType } from "./AtlasNumber";
@@ -24,6 +25,7 @@ export type AtlasType =
   | NullType
   | RecordType
   | FunctionType
+  | ModuleType
   | NativeFnType
   | ClassType
   | InstanceType
@@ -43,6 +45,7 @@ export const Types = {
   String: new StringType(),
   Record: new RecordType({}),
   Function: new FunctionType({ params: [], returns: Any }),
+  Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),
   Class: Class,
   Instance: new InstanceType(Class),

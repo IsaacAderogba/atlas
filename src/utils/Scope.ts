@@ -1,5 +1,5 @@
 export class Scope<T> {
-  private storage = new Map<string, T>();
+  storage = new Map<string, T>();
 
   static fromGlobals<T, K>(
     obj: { [name: string]: K },
@@ -24,6 +24,10 @@ export class Scope<T> {
 
   set(key: string, value: T): void {
     this.storage.set(key, value);
+  }
+
+  entries(): IterableIterator<[string, T]> {
+    return this.storage.entries();
   }
 
   values(): IterableIterator<T> {

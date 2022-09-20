@@ -27,6 +27,7 @@ import {
   ClassStmt,
   ExpressionStmt,
   IfStmt,
+  ModuleStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -47,6 +48,7 @@ import { AtlasList } from "../primitives/AtlasList";
 import { AtlasRecord } from "../primitives/AtlasRecord";
 import { Scheduler } from "./Scheduler";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
+import { AtlasModule } from "../primitives/AtlasModule";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -94,8 +96,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
   }
 
-  visitBlockStmt(stmt: BlockStmt): void {
-    this.interpretBlock(stmt.statements, new Environment(this.environment));
+  visitBlockStmt(
+    stmt: BlockStmt,
+    env = new Environment(this.environment)
+  ): void {
+    this.interpretBlock(stmt.statements, env);
   }
 
   visitClassStmt(stmt: ClassStmt): void {
@@ -160,6 +165,19 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitInterfaceStmt(): void {
+    // no op
+  }
+
+  visitModuleStmt(stmt: ModuleStmt): void {
+    const env = new Environment(this.environment);
+    this.visitBlockStmt(stmt.block, env);
+    this.environment.define(
+      stmt.name.lexeme,
+      new AtlasModule(stmt.name.lexeme, env.values)
+    );
+  }
+
+  visitNamespaceStmt(): void {
     // no op
   }
 

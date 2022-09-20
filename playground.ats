@@ -1,15 +1,8 @@
-interface Foo {
-  bar: String
+module Foo {
+  var bar = "got em"
+
+  print(bar # "from inside scope")
 }
 
-class FooClass implements Foo {
-  bar: String = ""
-}
 
-class BarClass {
-  bar: Number = 0
-}
-
-var func: (Foo) -> Null = f(fooLike) {}
-
-func(BarClass())
+print(Foo.bar)
