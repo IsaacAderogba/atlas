@@ -121,13 +121,13 @@ describe("Interface errors", () => {
             params: [Types.Number],
             returns: Types.Null,
           }),
-        }).toString(),
+        }),
         Types.Class.init("FooClass", {
           bar: Types.Function.init({
             params: [],
             returns: Types.Null,
           }),
-        }).toString()
+        })
       )
     );
   });
@@ -147,8 +147,8 @@ describe("Interface errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { foo: Types.String }).toString(),
-        Types.Record.init({ foo: Types.Number }).toString()
+        Types.Interface.init("Foo", { foo: Types.String }),
+        Types.Record.init({ foo: Types.Number })
       )
     );
   });
@@ -168,8 +168,8 @@ describe("Interface errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { foo: Types.String }).toString(),
-        Types.Class.init("FooBar", { foo: Types.Number }).toString()
+        Types.Interface.init("Foo", { foo: Types.String }),
+        Types.Class.init("FooBar", { foo: Types.Number })
       )
     );
   });
@@ -197,8 +197,8 @@ describe("Interface errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Interface.init("Foo", { bar: Types.String }).toString(),
-        Types.Class.init("BarClass", { bar: Types.Number }).toString()
+        Types.Interface.init("Foo", { bar: Types.String }),
+        Types.Class.init("BarClass", { bar: Types.Number })
       )
     );
   });

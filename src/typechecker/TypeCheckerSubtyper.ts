@@ -115,10 +115,7 @@ export class TypeCheckerSubtyper {
   ): AtlasType {
     if (isSubtype(actual, expected)) return expected;
 
-    return this.error(
-      source,
-      TypeCheckErrors.invalidSubtype(expected.toString(), actual.toString())
-    );
+    return this.error(source, TypeCheckErrors.invalidSubtype(expected, actual));
   }
 
   error(source: SourceRangeable, message: SourceMessage): AtlasType {

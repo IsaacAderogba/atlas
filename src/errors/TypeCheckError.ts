@@ -1,3 +1,4 @@
+import { AtlasType } from "../primitives/AtlasType";
 import { RequiredKeys } from "../utils/types";
 import { SourceError, SourceMessage, SourceRange } from "./SourceError";
 
@@ -20,12 +21,12 @@ export class TypeCheckErrors {
   }
 
   static invalidSubtype(
-    expectedType: string,
-    actualType: string
+    expectedType: AtlasType,
+    actualType: AtlasType
   ): SourceMessage {
     return this.formatError({
       title: "invalid subtype",
-      body: `expected type "${expectedType}", but got type "${actualType}"`,
+      body: `expected type "${expectedType.toString()}", but got type "${actualType.toString()}"`,
     });
   }
 
@@ -45,7 +46,10 @@ export class TypeCheckErrors {
   }
 
   static unexpectedCompositeOperator(): SourceMessage {
-    return this.formatError({ title: "unexpected composite operator", body: "" });
+    return this.formatError({
+      title: "unexpected composite operator",
+      body: "",
+    });
   }
 
   static unexpectedLogicalOperator(): SourceMessage {

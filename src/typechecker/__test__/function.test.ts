@@ -46,11 +46,11 @@ describe("Function errors", () => {
 
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(
-        Types.Function.init({ params: [], returns: Types.String }).toString(),
+        Types.Function.init({ params: [], returns: Types.String }),
         Types.Function.init({
           params: [],
           returns: Types.Union.init([Types.Number, Types.String]),
-        }).toString()
+        })
       )
     );
   });

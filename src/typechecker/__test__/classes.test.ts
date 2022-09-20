@@ -35,10 +35,7 @@ describe("Class errors", () => {
       }
     `);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(Types.Number, Types.String)
     );
   });
 
@@ -55,10 +52,7 @@ describe("Class errors", () => {
       }
     `);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(Types.Number, Types.String)
     );
   });
 
@@ -78,10 +72,7 @@ describe("Class errors", () => {
     `);
 
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Number.toString(),
-        Types.String.toString()
-      )
+      TypeCheckErrors.invalidSubtype(Types.Number, Types.String)
     );
   });
 });

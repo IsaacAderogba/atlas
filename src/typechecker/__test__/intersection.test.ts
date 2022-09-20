@@ -65,8 +65,8 @@ describe("Intersection errors", () => {
         Types.Alias.init(
           "Foo",
           Types.Intersection.init([Types.String, Types.Number])
-        ).toString(),
-        Types.String.toString()
+        ),
+        Types.String
       )
     );
   });
@@ -97,8 +97,8 @@ describe("Intersection errors", () => {
         Types.Intersection.init([
           Types.Interface.init("Foo", { foo: Types.String }),
           Types.Interface.init("Bar", { foo: Types.String }),
-        ]).toString(),
-        Types.Record.init({ foo: Types.String }).toString()
+        ]),
+        Types.Record.init({ foo: Types.String })
       )
     );
   });

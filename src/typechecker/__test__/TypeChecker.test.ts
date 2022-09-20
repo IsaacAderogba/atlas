@@ -206,17 +206,11 @@ describe("Typechecker errors", () => {
     const types = [
       {
         source: "!4",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.Number.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Boolean, Types.Number),
       },
       {
         source: "-true",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Boolean.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Number, Types.Boolean),
       },
     ];
 
@@ -232,24 +226,15 @@ describe("Typechecker errors", () => {
     const types = [
       {
         source: "4 # '4'",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.String.type,
-          Types.Number.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.String, Types.Number),
       },
       {
         source: "4 + null",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Null.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Number, Types.Null),
       },
       {
         source: "4 >= true",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Number.type,
-          Types.Boolean.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Number, Types.Boolean),
       },
     ];
 
@@ -265,17 +250,11 @@ describe("Typechecker errors", () => {
     const types = [
       {
         source: "true or '4'",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.String.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Boolean, Types.String),
       },
       {
         source: "false and null",
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Boolean.type,
-          Types.Null.type
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Boolean, Types.Null),
       },
     ];
 
@@ -292,7 +271,7 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("var x: Number = true");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Number.type, Types.Boolean.type)
+      TypeCheckErrors.invalidSubtype(Types.Number, Types.Boolean)
     );
   });
 
@@ -301,7 +280,7 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("if (4 + 4) {}");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+      TypeCheckErrors.invalidSubtype(Types.Boolean, Types.Number)
     );
   });
 
@@ -310,7 +289,7 @@ describe("Typechecker errors", () => {
 
     const { errors } = tester.typeCheckWorkflow("while (4 + 4) {}");
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Boolean.type, Types.Number.type)
+      TypeCheckErrors.invalidSubtype(Types.Boolean, Types.Number)
     );
   });
 
@@ -323,11 +302,11 @@ describe("Typechecker errors", () => {
           Types.Function.init({
             params: [],
             returns: Types.Null,
-          }).toString(),
+          }),
           Types.Function.init({
             params: [Types.Any],
             returns: Types.Null,
-          }).toString()
+          })
         ),
       },
       {
@@ -337,19 +316,19 @@ describe("Typechecker errors", () => {
           Types.Function.init({
             params: [Types.Number],
             returns: Types.Null,
-          }).toString(),
+          }),
           Types.Function.init({
             params: [],
             returns: Types.Null,
-          }).toString()
+          })
         ),
       },
       {
         // function returns incorrect output
         source: "var x: () -> String = f() { }",
         error: TypeCheckErrors.invalidSubtype(
-          Types.Function.init({ params: [], returns: Types.String }).toString(),
-          Types.Function.init({ params: [], returns: Types.Null }).toString()
+          Types.Function.init({ params: [], returns: Types.String }),
+          Types.Function.init({ params: [], returns: Types.Null })
         ),
       },
     ];
@@ -376,10 +355,7 @@ describe("Typechecker errors", () => {
         source: `""()`,
       },
       {
-        error: TypeCheckErrors.invalidSubtype(
-          Types.Number.toString(),
-          Types.String.toString()
-        ),
+        error: TypeCheckErrors.invalidSubtype(Types.Number, Types.String),
         source: `
           var x: (Number) -> Null = f(x) { }
           x("")
@@ -412,8 +388,8 @@ describe("Typechecker errors", () => {
         Types.Function.init({
           params: [Types.Number],
           returns: Types.Number,
-        }).toString(),
-        Types.Function.init({ params: [], returns: Types.Number }).toString()
+        }),
+        Types.Function.init({ params: [], returns: Types.Number })
       )
     );
   });

@@ -132,10 +132,7 @@ describe("Generic errors", () => {
       }
     `);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.String.toString(),
-        Types.Number.toString()
-      )
+      TypeCheckErrors.invalidSubtype(Types.String, Types.Number)
     );
   });
 
@@ -147,26 +144,6 @@ describe("Generic errors", () => {
         return t
       }
     `);
-    expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.unusedType()
-    );
+    expect(errors[0].sourceMessage).toEqual(TypeCheckErrors.unusedType());
   });
-
-  // warns with generic was defined but never used
-
-  // it("errors with invalid subtype for field", () => {
-  //   const { tester } = setupTester();
-
-  //   const { errors } = tester.typeCheckWorkflow(`
-  //     class Foo {
-  //       bar: Number = ""
-  //     }
-  //   `);
-  //   expect(errors[0].sourceMessage).toEqual(
-  //     TypeCheckErrors.invalidSubtype(
-  //       Types.Number.toString(),
-  //       Types.String.toString()
-  //     )
-  //   );
-  // });
 });
