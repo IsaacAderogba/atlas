@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Interface annotations", () => {
   it("annotates simple unions without error", () => {
@@ -53,11 +54,12 @@ describe("Union errors", () => {
       var foo: Foo = null
     `);
 
+    const { error } = createSubtyper()(
+      Types.Null,
+      Types.Alias.init("Foo", Types.Union.init([Types.String, Types.Number]))
+    );
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Alias.init("Foo", Types.Union.init([Types.String, Types.Number])),
-        Types.Null
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -74,11 +76,13 @@ describe("Union errors", () => {
         func(null)
     `);
 
+    const { error } = createSubtyper()(
+      Types.Null,
+      Types.Alias.init("Foo", Types.Union.init([Types.String, Types.Number]))
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Alias.init("Foo", Types.Union.init([Types.String, Types.Number])),
-        Types.Null
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
@@ -101,17 +105,19 @@ describe("Union errors", () => {
         }
     `);
 
+    const { error } = createSubtyper()(
+      Types.Record.init({ type: Types.String }),
+      Types.Alias.init(
+        "Vector",
+        Types.Union.init([
+          Types.Interface.init("CartesianVector", { y: Types.Number }),
+          Types.Interface.init("PolarVector", { angle: Types.Number }),
+        ])
+      ),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Alias.init(
-          "Vector",
-          Types.Union.init([
-            Types.Interface.init("CartesianVector", { y: Types.Number }),
-            Types.Interface.init("PolarVector", { angle: Types.Number }),
-          ])
-        ),
-        Types.Record.init({ type: Types.String })
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 });

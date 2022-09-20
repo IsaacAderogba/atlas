@@ -20,13 +20,10 @@ export class TypeCheckErrors {
     return { title: `type ${type}: ` + title, body, type };
   }
 
-  static invalidSubtype(
-    expectedType: AtlasType,
-    actualType: AtlasType
-  ): SourceMessage {
+  static invalidSubtype(body: string): SourceMessage {
     return this.formatError({
       title: "invalid subtype",
-      body: `expected type "${expectedType.toString()}", but got type "${actualType.toString()}"`,
+      body: body,
     });
   }
 

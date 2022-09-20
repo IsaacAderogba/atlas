@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Function annotations", () => {
   it("annotates functions without error", () => {
@@ -44,14 +45,16 @@ describe("Function errors", () => {
       }
     `);
 
+    const { error } = createSubtyper()(
+      Types.Function.init({
+        params: [],
+        returns: Types.Union.init([Types.Number, Types.String]),
+      }),
+      Types.Function.init({ params: [], returns: Types.String }),
+    );
+
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(
-        Types.Function.init({ params: [], returns: Types.String }),
-        Types.Function.init({
-          params: [],
-          returns: Types.Union.init([Types.Number, Types.String]),
-        })
-      )
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Generics annotations", () => {
   it("annotates simple generics without error", () => {
@@ -131,8 +132,10 @@ describe("Generic errors", () => {
         return "correct" # incorrect
       }
     `);
+
+    const { error } = createSubtyper()(Types.Number, Types.String);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.String, Types.Number)
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 

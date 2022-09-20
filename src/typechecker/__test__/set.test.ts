@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
+import { createSubtyper } from "../isSubtype";
 
 describe("Class annotations", () => {
   it("annotates class set expressions without error", () => {
@@ -43,8 +44,10 @@ describe("Class errors", () => {
 
       Foo().bar = "hi"
     `);
+
+    const { error } = createSubtyper()(Types.String, Types.Number);
     expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(Types.Number, Types.String)
+      TypeCheckErrors.invalidSubtype(error)
     );
   });
 
