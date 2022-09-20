@@ -96,19 +96,6 @@ describe("Generics annotations", () => {
 });
 
 describe("Generic errors", () => {
-  it("errors with required args for type generic statements", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      type Foo[T] = T
-
-      var foo: Foo = ""
-    `);
-    expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.requiredGenericArgs()
-    );
-  });
-
   it("errors with required args for call expressions", () => {
     const { tester } = setupTester();
 

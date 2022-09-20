@@ -58,11 +58,9 @@ parameter      -> IDENTIFIER ( "extends" typeExpr )?;
 
 typeExpr          -> orTypeExpr ;
 orTypeExpr        -> andTypeExpr ( "|" andTypeExpr )* ;
-andTypeExpr       -> subTypeExpr ( "&" subTypeExpr )* ;
-subTypeExpr       -> callableType | genericType | name ;
-callableTypeExpr  -> "(" typeExprs ")" "->" typeExpr ;
-genericType       -> IDENTIFIER ( "[" typeExprs "]" )? ;
-getTypeExpr       -> "." IDENTIFIER ;
+andTypeExpr       -> genericTypeExpr ( "&" genericTypeExpr )* ;
+genericTypeExpr   -> subTypeExpr ( ( "[" typeExprs? "]" | "." IDENTIFIER ) )* ;
+subTypeExpr       -> "(" typeExprs ")" "->" typeExpr | name ;
 
 typeExprs         -> typeExpr ( "," typeExpr )* ;
 typeProperty      -> name ":" typeExpr ;

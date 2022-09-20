@@ -290,7 +290,7 @@ export class TypeChecker implements TypeVisitor {
       if (typeExprs.length > 0) {
         type = this.visitGenericCall(calleeType, expr);
       } else {
-        type = this.subtyper.checkGeneric(callee, calleeType)
+        type = calleeType
       }
 
       if (isAnyType(type)) return type;
@@ -471,7 +471,7 @@ export class TypeChecker implements TypeVisitor {
   visitGetTypeExpr({ object, name }: GetTypeExpr): AtlasType {
     const objectType = this.acceptTypeExpr(object);
     const memberType = objectType.get(name);
-    if (memberType) return this.subtyper.checkGeneric(name, memberType);
+    if (memberType) return memberType
 
     return this.subtyper.error(
       name,
@@ -480,13 +480,12 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
-    const genericType = this.lookup.type(typeExpr.name);
-    return this.visitGenericCall(genericType, typeExpr);
+    const type = this.acceptTypeExpr(typeExpr.callee);
+    return this.visitGenericCall(type, typeExpr);
   }
 
   visitSubTypeExpr({ name }: SubTypeExpr): AtlasType {
-    const type = this.lookup.type(name);
-    return this.subtyper.checkGeneric(name, type);
+    return this.lookup.type(name);
   }
 
   // utils

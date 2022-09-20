@@ -1,10 +1,20 @@
 module Foo {
-  type Bar[T] = T
+  interface FooType[T] {
+    foo: T
+  }
 
-  var bar: Bar[String] = ""
-
-  print(bar # "from inside scope")
+  module Bar {
+    interface BarType[T] {
+      bar: T
+    }
+  }
 }
 
 
-var bar: Foo.Bar[Number] = 0
+type FooBar[T] = Foo.FooType[Foo.Bar.BarType[T]]
+
+var fooBar: FooBar[Null] = {
+  "foo": {
+    "bar": ""
+  }
+}

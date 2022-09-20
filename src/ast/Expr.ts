@@ -369,15 +369,15 @@ export class GetTypeExpr implements BaseTypeExpr {
 }
 
 export class GenericTypeExpr implements BaseTypeExpr {
-  constructor(readonly name: Token, readonly typeExprs: TypeExpr[]) {}
+  constructor(readonly callee: TypeExpr, readonly typeExprs: TypeExpr[]) {}
 
   accept<T>(visitor: TypeExprVisitor<T>, type?: AtlasType): T {
     return visitor.visitGenericTypeExpr(this, type);
   }
 
   sourceRange(): SourceRange {
-    const start = this.name.sourceRange().start;
-    const end = this.name.sourceRange().end;
+    const start = this.callee.sourceRange().start;
+    const end = this.callee.sourceRange().end;
     return new SourceRange(start, end);
   }
 }

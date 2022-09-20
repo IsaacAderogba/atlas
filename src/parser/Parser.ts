@@ -21,6 +21,7 @@ import {
   SubTypeExpr,
   CallableTypeExpr,
   GenericTypeExpr,
+  GetTypeExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -505,13 +506,34 @@ export class Parser {
   }
 
   private andTypeExpr(): TypeExpr {
-    let typeExpr = this.subTypeExpr();
+    let typeExpr = this.genericTypeExpr();
 
     while (this.match("AMPERSAND")) {
       const and = this.previous();
-      const right = this.subTypeExpr();
+      const right = this.genericTypeExpr();
 
       typeExpr = new CompositeTypeExpr(typeExpr, and, right);
+    }
+
+    return typeExpr;
+  }
+
+  private genericTypeExpr(): TypeExpr {
+    let typeExpr = this.subTypeExpr();
+
+    while (true) {
+      if (this.match("LEFT_BRACKET")) {
+        const typeExprs = this.typeExprs("RIGHT_BRACKET");
+        this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+        typeExpr = new GenericTypeExpr(typeExpr, typeExprs);
+      } else if (this.match("DOT")) {
+        typeExpr = new GetTypeExpr(
+          typeExpr,
+          this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier())
+        );
+      } else {
+        break;
+      }
     }
 
     return typeExpr;
@@ -522,17 +544,7 @@ export class Parser {
       return this.callableTypeExpr();
     }
 
-    const name = this.name();
-
-    let typeExprs: TypeExpr[] = [];
-    if (this.match("LEFT_BRACKET")) {
-      typeExprs = this.typeExprs("RIGHT_BRACKET");
-      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
-    }
-
-    if (typeExprs.length > 0) return new GenericTypeExpr(name, typeExprs);
-
-    return new SubTypeExpr(name);
+    return new SubTypeExpr(this.name());
   }
 
   private callableTypeExpr(): TypeExpr {

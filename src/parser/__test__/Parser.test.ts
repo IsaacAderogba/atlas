@@ -601,12 +601,14 @@ describe("Type statements", () => {
     const { statements } = tester.parseWorkflow("type Foo = String[Bar]");
     expect(statements[0]).toMatchObject({
       type: {
+        callee: {
+          name: { lexeme: "String", type: "IDENTIFIER" },
+        },
         typeExprs: [
           {
             name: { lexeme: "Bar", type: "IDENTIFIER" },
           },
         ],
-        name: { lexeme: "String", type: "IDENTIFIER" },
       },
     });
   });
