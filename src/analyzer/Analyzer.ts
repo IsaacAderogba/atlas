@@ -177,7 +177,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitImportStmt(stmt: ImportStmt): void {
-    
+    // no op
   }
 
   visitModuleStmt(stmt: ModuleStmt): void {

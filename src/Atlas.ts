@@ -9,13 +9,32 @@ import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
+import { ReporterAPI } from "./reporter/Reporter";
 
-export class Atlas {
-  private static reporter = new ConsoleReporter();
-  public static interpreter = new Interpreter();
-  public static typechecker = new TypeChecker();
+interface AtlasAPI {
+  reporter: ReporterAPI;
+  // scanner
+  // parser
+  // analyzer
+  // typechecker
+  // interpreter
 
-  static main(args: string[]): void {
+  main(args: string[]): void;
+  runFile(path: string): void;
+  runPrompt(): void;
+  run(source: string): AtlasStatus;
+  check(source: string): { status: AtlasStatus; statements: Stmt[] };
+  parse(source: string): Stmt[];
+  readModule(source: string): string;
+  reportErrors(source: string, errors: SourceError[]): boolean 
+}
+
+export class Atlas implements AtlasAPI {
+  reporter = new ConsoleReporter();
+  interpreter = new Interpreter();
+  typechecker = new TypeChecker();
+
+  main(args: string[]): void {
     if (args.length > 1) {
       console.log("Usage: atlas [script]");
       process.exit(64);
@@ -26,7 +45,7 @@ export class Atlas {
     }
   }
 
-  static runFile(path: string): void {
+  runFile(path: string): void {
     const status = this.run(this.readModule(path));
 
     switch (status) {
@@ -39,7 +58,7 @@ export class Atlas {
     }
   }
 
-  static runPrompt(): void {
+  runPrompt(): void {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -53,7 +72,7 @@ export class Atlas {
     });
   }
 
-  static run(source: string): AtlasStatus {
+  run(source: string): AtlasStatus {
     const { status, statements } = this.check(source);
     if (status !== AtlasStatus.VALID) return status;
 
@@ -69,7 +88,7 @@ export class Atlas {
     return AtlasStatus.SUCCESS;
   }
 
-  static check(source: string): { status: AtlasStatus; statements: Stmt[] } {
+  check(source: string): { status: AtlasStatus; statements: Stmt[] } {
     try {
       const statements = this.parse(source);
 
@@ -93,7 +112,7 @@ export class Atlas {
     }
   }
 
-  static parse(source: string): Stmt[] {
+  parse(source: string): Stmt[] {
     const scanner = new Scanner(source);
     const { tokens, errors: scanErrs } = scanner.scan();
     if (this.reportErrors(source, scanErrs)) throw AtlasStatus.STATIC_ERROR;
@@ -105,8 +124,10 @@ export class Atlas {
     return statements;
   }
 
-  static readModule(path: string): string {
+  readModule(path: string): string {
     try {
+      // relative imports are resolved relative to the importing file
+
       return fs.readFileSync(path, { encoding: "utf8" });
     } catch (error) {
       this.reporter.error(`Unable to open file: ${path}`);
@@ -114,7 +135,7 @@ export class Atlas {
     }
   }
 
-  private static reportErrors(source: string, errors: SourceError[]): boolean {
+  reportErrors(source: string, errors: SourceError[]): boolean {
     let hasError = false;
     errors.forEach(({ sourceMessage, sourceRange }) => {
       if (sourceMessage.type === "error") hasError = true;

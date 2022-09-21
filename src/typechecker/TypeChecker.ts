@@ -29,6 +29,7 @@ import {
   ClassStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   InterfaceStmt,
   ModuleStmt,
   ReturnStmt,
@@ -177,6 +178,10 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.endScope();
 
     this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
+  }
+
+  visitImportStmt(stmt: ImportStmt): void {
+    // no op
   }
 
   visitModuleStmt({ name, block }: ModuleStmt): void {

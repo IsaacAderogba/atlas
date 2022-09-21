@@ -27,6 +27,7 @@ import {
   ClassStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   ModuleStmt,
   ReturnStmt,
   Stmt,
@@ -165,6 +166,10 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitInterfaceStmt(): void {
+    // no op
+  }
+
+  visitImportStmt(stmt: ImportStmt): void {
     // no op
   }
 
