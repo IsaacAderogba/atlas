@@ -9,10 +9,10 @@ import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError, SourceFile } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
-import { ReporterAPI } from "./reporter/Reporter";
+import { Reporter } from "./reporter/Reporter";
 
-interface AtlasAPI {
-  reporter: ReporterAPI;
+interface AtlasAPI {  
+  reporter: Reporter;
   // scanner
   // parser
   // analyzer

@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import { SourceMessage, SourceRange } from "../errors/SourceError";
-import { ReporterAPI } from "./Reporter";
+import { Reporter } from "./Reporter";
 
-export class ConsoleReporter implements ReporterAPI {
+export class ConsoleReporter implements Reporter {
   log(message: string): void {
     console.log(message);
   }

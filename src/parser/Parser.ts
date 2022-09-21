@@ -45,7 +45,7 @@ import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { Property, Parameter, Entry, TypeProperty } from "../ast/Node";
-import { Keywords } from "./Keywords";
+import { Keywords } from "../ast/Keywords";
 
 export class Parser {
   private tokens: Token[];

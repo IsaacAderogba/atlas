@@ -1,4 +1,4 @@
-import { TokenType } from "../ast/TokenType";
+import { TokenType } from "./TokenType";
 
 export const Keywords = new Map<string, TokenType>([
   ["break", "BREAK"],
