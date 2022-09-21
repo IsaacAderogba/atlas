@@ -50,6 +50,11 @@ class Tester implements AtlasAPI {
     return this.typechecker.acceptExpr(expression);
   }
 
+  analyzeWorkflow(source: string): ReturnType<Analyzer["analyze"]> {
+    const { statements } = this.parseWorkflow(source);
+    return this.analyze(statements);
+  }
+
   parseWorkflow(source: string): ReturnType<Parser["parse"]> {
     const { tokens } = this.scan(source);
     return this.parse(tokens);
