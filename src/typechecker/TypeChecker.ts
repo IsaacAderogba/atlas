@@ -42,7 +42,7 @@ import { SourceRange } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
-import { AtlasString } from "../primitives/AtlasString";
+import { AtlasString, isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
@@ -51,6 +51,7 @@ import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
+import { Token } from "../ast/Token";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -58,7 +59,7 @@ export class TypeChecker implements TypeVisitor {
   currentFunction?: CurrentFunction;
   currentClass = ClassType.NONE;
 
-  constructor( private readonly atlas: AtlasAPI) {}
+  constructor(private readonly atlas: AtlasAPI) {}
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     this.lookup.beginScope(this.lookup.globalScope);
@@ -185,7 +186,15 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitImportStmt(stmt: ImportStmt): void {
-    // no op
+    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+
+    this.atlas.reader.readFile(
+      stmt.modulePath.literal.value,
+      ({ statements, errors }) => {
+        if (this.atlas.reportErrors(errors)) process.exit(65);
+        this.visitModule(stmt.name, statements);
+      }
+    );
   }
 
   visitModuleStmt({ name, block }: ModuleStmt): void {
@@ -498,6 +507,29 @@ export class TypeChecker implements TypeVisitor {
   }
 
   // utils
+  visitModule(name: Token, statements: Stmt[]): void {
+    const scope = new TypeCheckerScope();
+    this.lookup.beginScope(scope);
+    for (const statement of statements) this.acceptStmt(statement);
+    this.lookup.endScope();
+
+    const values: { [key: string]: AtlasType } = {};
+    for (const [key, value] of scope.valueScope.entries()) {
+      values[key] = value;
+    }
+    this.lookup.defineValue(name, Types.Module.init(name.lexeme, values));
+
+    const types: { [key: string]: AtlasType } = {};
+    for (const [key, { type }] of scope.typeScope.entries()) {
+      types[key] = type;
+    }
+    this.lookup.defineType(
+      name,
+      Types.Module.init(name.lexeme, types),
+      VariableState.SETTLED
+    );
+  }
+
   visitGenericCall(
     genericType: AtlasType,
     typeExpr: GenericTypeExpr | CallExpr
