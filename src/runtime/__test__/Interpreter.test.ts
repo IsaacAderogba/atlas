@@ -1,113 +1,55 @@
 import { describe, it, expect } from "vitest";
-import { Analyzer } from "../../analyzer/Analyzer";
-import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
-import { Parser } from "../../parser/Parser";
-import { Reader } from "../../parser/Reader";
-import { Scanner } from "../../parser/Scanner";
 import { AtlasList } from "../../primitives/AtlasList";
-import { Interpreter } from "../Interpreter";
-
-interface SetupTests {
-  interpreter: Interpreter;
-  interpret: () => ReturnType<Interpreter["interpret"]>;
-  evaluate: () => ReturnType<Interpreter["evaluate"]>;
-}
-
-const setupTests = (source: string): SetupTests => {
-  const reader = new Reader();
-  const scanner = new Scanner();
-  const { tokens, errors: scanErrs } = scanner.scan({ source, module: "test" });
-
-  if (scanErrs.length) {
-    console.error("Scan errors", scanErrs);
-    throw new Error("Scan failed");
-  }
-
-  const parser = new Parser(tokens);
-  const interpreter = new Interpreter(reader);
-
-  const setup: SetupTests = {
-    interpreter,
-    interpret: () => {
-      const { statements, errors: parseErrs } = parser.parse();
-      if (!statements || parseErrs.length) {
-        console.error("Parse errors", parseErrs);
-        throw new Error("Parse failed");
-      }
-
-      new Analyzer(reader, interpreter, statements).analyze();
-      return interpreter.interpret(statements);
-    },
-    evaluate: () => {
-      return interpreter.evaluate(parser.expression());
-    },
-  };
-
-  return setup;
-};
 
 describe("Interpreter statements", () => {
   it("interprets return statements", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       var sayHi = f() { 
         return 3
       }
       var x = sayHi()
     `);
-    interpret();
 
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "Number", value: 3 });
   });
 
   it("interprets block statements", () => {
-    const { interpreter, interpret } = setupTests("var x = 4 { x = 2 }");
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
+    const { tester } = setupTester();
+    tester.interpretWorkflow("var x = 4 { x = 2 }");
+    const result = tester.evaluateWorkflow("x");
 
     expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
   it("interprets class statements", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {}
       
       var x = print(Foo)
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "Foo" });
   });
 
   it("interprets get and set expressions", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {}
       var foo = Foo()
       foo.y = "hi"
       var x = foo.y
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "hi" });
   });
 
   it("interprets method calls", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {
         bar = f() {
           return "hi"
@@ -115,17 +57,13 @@ describe("Interpreter statements", () => {
       }
       var x = Foo().bar()
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "hi" });
   });
 
   it("interprets init calls", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {
         foo = "foo"
         init = f() {
@@ -135,17 +73,13 @@ describe("Interpreter statements", () => {
       
       var x = Foo().bar
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "foobar" });
   });
 
   it("interprets this expressions", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {
         bar = f() {
           return this.flavour
@@ -155,51 +89,32 @@ describe("Interpreter statements", () => {
       foo.flavour = "chocolate"
       var x = foo.bar()
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "chocolate" });
   });
 
   it("interprets class instances", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       class Foo {}
       var foo = Foo()
       var x = print(foo)
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "Foo instance" });
   });
 
   it("interprets var statements", () => {
-    const { interpreter, interpret } = setupTests("var x = 4");
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const { tester } = setupTester();
+    tester.interpretWorkflow("var x = 4");
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "Number", value: 4 });
   });
 
   it("interprets expression statements", () => {
-    const { interpreter, interpret } = setupTests(
-      'var x = true ? "hello" : "goodbye"'
-    );
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const { tester } = setupTester();
+    tester.interpretWorkflow('var x = true ? "hello" : "goodbye"');
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "String", value: "hello" });
   });
 
@@ -210,13 +125,9 @@ describe("Interpreter statements", () => {
     ];
 
     tests.forEach(test => {
-      const { interpreter, interpret } = setupTests(test);
-      interpret();
-
-      const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-      const expression = new Parser(tokens).expression() as VariableExpr;
-      const result = interpreter.visitVariableExpr(expression);
-
+      const { tester } = setupTester();
+      tester.interpretWorkflow(test);
+      const result = tester.evaluateWorkflow("x");
       expect(result).toMatchObject({ type: "Number", value: 5 });
     });
   });
@@ -233,13 +144,9 @@ describe("Interpreter statements", () => {
     ];
 
     tests.forEach(test => {
-      const { interpreter, interpret } = setupTests(test);
-      interpret();
-
-      const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-      const expression = new Parser(tokens).expression() as VariableExpr;
-      const result = interpreter.visitVariableExpr(expression);
-
+      const { tester } = setupTester();
+      tester.interpretWorkflow(test);
+      const result = tester.evaluateWorkflow("x");
       expect(result).toMatchObject({ type: "Number", value: 0 });
     });
   });
@@ -258,8 +165,8 @@ describe("Interpreter statements", () => {
     ];
 
     tests.forEach(test => {
-      const { interpreter, interpret } = setupTests(test);
-      interpret();
+      const { tester } = setupTester();
+      tester.interpretWorkflow(test);
 
       const expressions = [
         { char: "y", object: { type: "Number", value: 4 } },
@@ -267,54 +174,38 @@ describe("Interpreter statements", () => {
       ];
 
       expressions.forEach(({ char, object }) => {
-        const { tokens } = new Scanner().scan({ module: "test", source: char });
-        const expression = new Parser(tokens).expression() as VariableExpr;
-        const result = interpreter.visitVariableExpr(expression);
+        const result = tester.evaluateWorkflow(char);
         expect(result).toMatchObject(object);
       });
     });
   });
 
   it("interprets if statements", () => {
-    const { interpreter, interpret } = setupTests(
-      "var x = 2 if (x == 2) x = 1"
-    );
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const { tester } = setupTester();
+    tester.interpretWorkflow("var x = 2 if (x == 2) x = 1");
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "Number", value: 1 });
   });
 });
 
 describe("Interpreter evaluations", () => {
   it("executes call expressions", () => {
-    const { interpreter, interpret } = setupTests(`
+    const { tester } = setupTester();
+    tester.interpretWorkflow(`
       var x = 1
       var sayHi = f() { 
         x = 2
       }
       sayHi()
     `);
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
-    const expression = new Parser(tokens).expression() as VariableExpr;
-    const result = interpreter.visitVariableExpr(expression);
-
+    const result = tester.evaluateWorkflow("x");
     expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
   it("evaluates assignment expressions", () => {
-    const { interpreter, interpret } = setupTests("var x = 4");
-    interpret();
-
-    const { tokens } = new Scanner().scan({ module: "test", source: "x = 2" });
-    const expression = new Parser(tokens).expression() as AssignExpr;
-    const result = interpreter.visitAssignExpr(expression);
-
+    const { tester } = setupTester();
+    tester.interpretWorkflow("var x = 4");
+    const result = tester.evaluateWorkflow("x = 2");
     expect(result).toMatchObject({ type: "Number", value: 2 });
   });
 
@@ -325,8 +216,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -337,8 +228,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -358,8 +249,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -371,8 +262,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -387,8 +278,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -399,8 +290,8 @@ describe("Interpreter evaluations", () => {
     ];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toMatchObject(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toMatchObject(object);
     });
   });
 
@@ -408,8 +299,8 @@ describe("Interpreter evaluations", () => {
     const tests = [{ source: "[1, 2, 3]", object: AtlasList }];
 
     tests.forEach(({ object, source }) => {
-      const { evaluate } = setupTests(source);
-      expect(evaluate()).toBeInstanceOf(object);
+      const { tester } = setupTester();
+      expect(tester.evaluateWorkflow(source)).toBeInstanceOf(object);
     });
   });
 });
@@ -419,9 +310,8 @@ describe("Interpreter errors", () => {
     const sources = ["4 # '4'"];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.expectedString()
       );
@@ -442,9 +332,8 @@ describe("Interpreter errors", () => {
     ];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.expectedNumber()
       );
@@ -455,9 +344,8 @@ describe("Interpreter errors", () => {
     const sources = ["!'4'", "4 ? true : false"];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.expectedBoolean()
       );
@@ -468,9 +356,8 @@ describe("Interpreter errors", () => {
     const sources = ["4 / 0"];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.prohibitedZeroDivision()
       );
@@ -489,9 +376,8 @@ describe("Interpreter errors", () => {
     ];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.mismatchedArity(2, 3)
       );
@@ -502,9 +388,8 @@ describe("Interpreter errors", () => {
     const sources = [`"hi"()`];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.expectedCallable()
       );
@@ -521,9 +406,8 @@ describe("Interpreter errors", () => {
     ];
 
     sources.forEach(source => {
-      const { interpret } = setupTests(source);
-
-      const { errors } = interpret();
+      const { tester } = setupTester();
+      const { errors } = tester.interpretWorkflow(source);
       expect(errors[0].sourceMessage).toMatchObject(
         RuntimeErrors.undefinedProperty("y")
       );

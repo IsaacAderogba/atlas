@@ -20,12 +20,11 @@ class Tester implements AtlasAPI {
   interpreter = new Interpreter(this.reader);
   typechecker = new TypeChecker(this.reader);
 
-  interpretWorkflow(source: string): void {
+  interpretWorkflow(source: string): ReturnType<Interpreter["interpret"]> {
     const { tokens } = this.scan(source);
     const { statements } = this.parse(tokens);
     this.analyze(statements);
-    // this.typechecker.typeCheck(statements);
-    this.interpreter.interpret(statements);
+    return this.interpreter.interpret(statements);
   }
 
   evaluateWorkflow(source: string): AtlasValue {
