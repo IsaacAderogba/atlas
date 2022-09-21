@@ -185,13 +185,15 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.visitModule(stmt.name, stmt.block.statements);
   }
 
-  visitModule(name: Token, statements: Stmt[]): void {
+  visitModule(name: Token, statements: Stmt[]): Environment {
     const env = new Environment(this.environment);
     this.interpretBlock(statements, env);
     this.environment.define(
       name.lexeme,
       new AtlasModule(name.lexeme, env.values)
     );
+
+    return env;
   }
 
   visitTypeStmt(): void {

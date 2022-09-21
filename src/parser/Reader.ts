@@ -14,7 +14,11 @@ export class Reader {
 
   readFile<T>(
     source: string,
-    onResult: (result: { statements: Stmt[]; errors: SyntaxError[] }) => T
+    onResult: (result: {
+      statements: Stmt[];
+      errors: SyntaxError[];
+      file: SourceFile;
+    }) => T
   ): T {
     let file: SourceFile | undefined;
 
@@ -30,7 +34,7 @@ export class Reader {
     if (!file) throw new NativeError(NativeErrors.invalidFilePath(source));
 
     this.files.push(file);
-    const result = onResult(this.parse(file));
+    const result = onResult({ ...this.parse(file), file });
     this.files.pop();
 
     return result;
@@ -84,9 +88,9 @@ export class Reader {
       const potentialPath = paths.pop()!;
       const modulePath = path.join(callerDir, potentialPath);
 
-      console.log("module path", modulePath);
       if (!fs.existsSync(modulePath)) continue;
 
+      console.log("module path", modulePath);
       const source = fs.readFileSync(modulePath, { encoding: "utf8" });
       return { source, module: modulePath };
     }

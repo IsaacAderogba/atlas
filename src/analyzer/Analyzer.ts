@@ -185,21 +185,27 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.atlas.reader.readFile(
       stmt.modulePath.literal.value,
       ({ statements, errors }) => {
-        if (this.atlas.reportErrors(errors)) process.exit(65);
+        /**
+         * If it exists, then I just need to declare another variable with the same name
+         */
 
-        this.declare(stmt.name);
-        this.beginScope();
-        this.analyzeBlock(statements);
-        this.endScope();
-        this.define(stmt.name);
+
+        if (this.atlas.reportErrors(errors)) process.exit(65);
+        this.visitModule(stmt.name, statements);
       }
     );
   }
 
   visitModuleStmt(stmt: ModuleStmt): void {
-    this.declare(stmt.name);
-    this.visitBlockStmt(stmt.block);
-    this.define(stmt.name);
+    this.visitModule(stmt.name, stmt.block.statements);
+  }
+
+  visitModule(name: Token, statements: Stmt[]): void {
+    this.declare(name);
+    this.beginScope();
+    this.analyzeBlock(statements);
+    this.endScope();
+    this.define(name);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
