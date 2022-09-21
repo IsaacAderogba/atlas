@@ -1,4 +1,3 @@
-import fs from "fs";
 import readline from "readline";
 import { Stmt } from "./ast/Stmt";
 import { Parser } from "./parser/Parser";
@@ -10,9 +9,12 @@ import { SourceError, SourceFile } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
 import { Reporter } from "./reporter/Reporter";
+import { Reader } from "./parser/Reader";
+import { NativeError } from "./errors/NativeError";
 
-interface AtlasAPI {  
+interface AtlasAPI {
   reporter: Reporter;
+  reader: Reader;
   // scanner
   // parser
   // analyzer
@@ -25,12 +27,11 @@ interface AtlasAPI {
   run(file: SourceFile): AtlasStatus;
   check(file: SourceFile): { status: AtlasStatus; statements: Stmt[] };
   parse(file: SourceFile): Stmt[];
-  readFile(path: string): SourceFile;
-  reportErrors(errors: SourceError[]): boolean;
 }
 
 export class Atlas implements AtlasAPI {
   reporter = new ConsoleReporter();
+  reader = new Reader();
   interpreter = new Interpreter();
   typechecker = new TypeChecker();
 
@@ -46,15 +47,24 @@ export class Atlas implements AtlasAPI {
   }
 
   runFile(path: string): void {
-    const status = this.run(this.readFile(path));
+    try {
+      const status = this.run(this.reader.readFile(path));
 
-    switch (status) {
-      case AtlasStatus.STATIC_ERROR:
-        return process.exit(65);
-      case AtlasStatus.RUNTIME_ERROR:
-        return process.exit(70);
-      case AtlasStatus.SUCCESS:
-        return process.exit(0);
+      switch (status) {
+        case AtlasStatus.STATIC_ERROR:
+          return process.exit(65);
+        case AtlasStatus.RUNTIME_ERROR:
+          return process.exit(70);
+        case AtlasStatus.SUCCESS:
+          return process.exit(0);
+      }
+    } catch (err) {
+      if (err instanceof NativeError) {
+        this.reporter.error(
+          `${err.sourceMessage.title}: ${err.sourceMessage.body}`
+        );
+      }
+      process.exit(66);
     }
   }
 
@@ -124,20 +134,7 @@ export class Atlas implements AtlasAPI {
     return statements;
   }
 
-  readFile(path: string): SourceFile {
-    try {
-      // relative imports are resolved relative to the importing file
-
-      const source = fs.readFileSync(path, { encoding: "utf8" });
-
-      return { source, module: path };
-    } catch (error) {
-      this.reporter.error(`Unable to open file: ${path}`);
-      process.exit(66);
-    }
-  }
-
-  reportErrors(errors: SourceError[]): boolean {
+  private reportErrors(errors: SourceError[]): boolean {
     let hasError = false;
     errors.forEach(({ sourceMessage, sourceRange }) => {
       if (sourceMessage.type === "error") hasError = true;

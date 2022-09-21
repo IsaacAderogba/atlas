@@ -1,4 +1,5 @@
 import fs from "fs";
+import { NativeError, ReaderErrors } from "../errors/NativeError";
 import { SourceFile } from "../errors/SourceError";
 
 export class Reader {
@@ -8,7 +9,8 @@ export class Reader {
 
       return { source, module: path };
     } catch (error) {
-      throw error;
+      const message = error instanceof Error ? error.message : "";
+      throw new NativeError(ReaderErrors.invalidFilePath(path, message));
     }
   }
 }
