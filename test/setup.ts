@@ -12,12 +12,13 @@ import { SourceError } from "../src/errors/SourceError";
 import { ConsoleReporter } from "../src/reporter/ConsoleReporter";
 import { AtlasValue } from "../src/primitives/AtlasValue";
 import { Reader } from "../src/parser/Reader";
+import { AtlasAPI } from "../src/AtlasAPI";
 
-class Tester {
-  private reporter = new ConsoleReporter();
-  public reader = new Reader();
-  public interpreter = new Interpreter(this.reader);
-  public typechecker = new TypeChecker(this.reader);
+class Tester implements AtlasAPI {
+  reporter = new ConsoleReporter();
+  reader = new Reader();
+  interpreter = new Interpreter(this.reader);
+  typechecker = new TypeChecker(this.reader);
 
   interpretWorkflow(source: string): void {
     const { tokens } = this.scan(source);
@@ -57,6 +58,10 @@ class Tester {
   testExpress(source: string): Expr {
     const { tokens } = this.scan(source);
     return this.parseExpression(tokens);
+  }
+
+  scanWorkflow(source: string): ReturnType<Scanner["scan"]> {
+    return this.scan(source);
   }
 
   private scan(source: string): ReturnType<Scanner["scan"]> {
