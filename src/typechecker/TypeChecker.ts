@@ -50,12 +50,15 @@ import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { TypeCheckerScope } from "./TypeCheckerScope";
+import { Reader } from "../parser/Reader";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
   readonly subtyper = new TypeCheckerSubtyper(this);
   currentFunction?: CurrentFunction;
   currentClass = ClassType.NONE;
+
+  constructor(private readonly reader: Reader) {}
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     this.lookup.beginScope(this.lookup.globalScope);

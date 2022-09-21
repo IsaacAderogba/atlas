@@ -11,11 +11,13 @@ import { AtlasType } from "../src/primitives/AtlasType";
 import { SourceError } from "../src/errors/SourceError";
 import { ConsoleReporter } from "../src/reporter/ConsoleReporter";
 import { AtlasValue } from "../src/primitives/AtlasValue";
+import { Reader } from "../src/parser/Reader";
 
 class Tester {
   private reporter = new ConsoleReporter();
-  public interpreter = new Interpreter();
-  public typechecker = new TypeChecker();
+  public reader = new Reader();
+  public interpreter = new Interpreter(this.reader);
+  public typechecker = new TypeChecker(this.reader);
 
   interpretWorkflow(source: string): void {
     const { tokens } = this.scan(source);
@@ -73,7 +75,7 @@ class Tester {
   }
 
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
-    const analyzer = new Analyzer(this.interpreter, statements);
+    const analyzer = new Analyzer(this.reader, this.interpreter, statements);
     return analyzer.analyze();
   }
 

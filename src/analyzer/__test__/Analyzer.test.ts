@@ -4,13 +4,15 @@ import { Interpreter } from "../../runtime/Interpreter";
 import { Parser } from "../../parser/Parser";
 import { Scanner } from "../../parser/Scanner";
 import { Analyzer } from "../Analyzer";
+import { Reader } from "../../parser/Reader";
 
 const setupTests = (source: string): { analyzer: Analyzer } => {
+  const reader = new Reader();
   const scanner = new Scanner();
   const { tokens } = scanner.scan({ source, module: "test" });
   const parser = new Parser(tokens);
   const { statements } = parser.parse();
-  const analyzer = new Analyzer(new Interpreter(), statements);
+  const analyzer = new Analyzer(reader, new Interpreter(reader), statements);
 
   return { analyzer };
 };

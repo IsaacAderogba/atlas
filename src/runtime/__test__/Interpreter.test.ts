@@ -3,6 +3,7 @@ import { Analyzer } from "../../analyzer/Analyzer";
 import { AssignExpr, VariableExpr } from "../../ast/Expr";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 import { Parser } from "../../parser/Parser";
+import { Reader } from "../../parser/Reader";
 import { Scanner } from "../../parser/Scanner";
 import { AtlasList } from "../../primitives/AtlasList";
 import { Interpreter } from "../Interpreter";
@@ -14,6 +15,7 @@ interface SetupTests {
 }
 
 const setupTests = (source: string): SetupTests => {
+  const reader = new Reader();
   const scanner = new Scanner();
   const { tokens, errors: scanErrs } = scanner.scan({ source, module: "test" });
 
@@ -23,7 +25,7 @@ const setupTests = (source: string): SetupTests => {
   }
 
   const parser = new Parser(tokens);
-  const interpreter = new Interpreter();
+  const interpreter = new Interpreter(reader);
 
   const setup: SetupTests = {
     interpreter,
@@ -34,7 +36,7 @@ const setupTests = (source: string): SetupTests => {
         throw new Error("Parse failed");
       }
 
-      new Analyzer(interpreter, statements).analyze();
+      new Analyzer(reader, interpreter, statements).analyze();
       return interpreter.interpret(statements);
     },
     evaluate: () => {

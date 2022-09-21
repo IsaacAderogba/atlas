@@ -40,6 +40,7 @@ import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
+import { Reader } from "../parser/Reader";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
@@ -52,6 +53,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private errors: SemanticError[] = [];
 
   constructor(
+    private readonly reader: Reader,
     private readonly interpreter: Interpreter,
     private readonly statements: Stmt[]
   ) {}

@@ -32,8 +32,8 @@ interface AtlasAPI {
 export class Atlas implements AtlasAPI {
   reporter = new ConsoleReporter();
   reader = new Reader();
-  interpreter = new Interpreter();
-  typechecker = new TypeChecker();
+  interpreter = new Interpreter(this.reader);
+  typechecker = new TypeChecker(this.reader);
 
   main(args: string[]): void {
     if (args.length > 1) {
@@ -48,16 +48,19 @@ export class Atlas implements AtlasAPI {
 
   runFile(path: string): void {
     try {
-      const status = this.run(this.reader.readFile(path));
+      this.reader.readFile(path, sourceFile => {
+        const status = this.run(sourceFile);
 
-      switch (status) {
-        case AtlasStatus.STATIC_ERROR:
-          return process.exit(65);
-        case AtlasStatus.RUNTIME_ERROR:
-          return process.exit(70);
-        case AtlasStatus.SUCCESS:
-          return process.exit(0);
-      }
+        switch (status) {
+          case AtlasStatus.STATIC_ERROR:
+            return process.exit(65);
+          case AtlasStatus.RUNTIME_ERROR:
+            return process.exit(70);
+          case AtlasStatus.SUCCESS:
+          case AtlasStatus.VALID:
+            return process.exit(0);
+        }
+      });
     } catch (err) {
       if (err instanceof NativeError) {
         this.reporter.error(
@@ -102,7 +105,7 @@ export class Atlas implements AtlasAPI {
     try {
       const statements = this.parse(file);
 
-      const analyzer = new Analyzer(this.interpreter, statements);
+      const analyzer = new Analyzer(this.reader, this.interpreter, statements);
       const { errors: analyzeErrs } = analyzer.analyze();
       if (this.reportErrors(analyzeErrs)) {
         return { status: AtlasStatus.STATIC_ERROR, statements: [] };
