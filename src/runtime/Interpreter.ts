@@ -40,7 +40,7 @@ import { AtlasCallable, isCallable } from "../primitives/AtlasCallable";
 import { globals } from "../globals";
 import { AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
-import { AtlasString } from "../primitives/AtlasString";
+import { AtlasString, isAtlasString } from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
 import { AtlasNull } from "../primitives/AtlasNull";
 import { AtlasClass } from "../primitives/AtlasClass";
@@ -100,11 +100,8 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     }
   }
 
-  visitBlockStmt(
-    stmt: BlockStmt,
-    env = new Environment(this.environment)
-  ): void {
-    this.interpretBlock(stmt.statements, env);
+  visitBlockStmt(stmt: BlockStmt): void {
+    this.interpretBlock(stmt.statements, new Environment(this.environment));
   }
 
   visitClassStmt(stmt: ClassStmt): void {
@@ -173,15 +170,27 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitImportStmt(stmt: ImportStmt): void {
-    // no op
+    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+
+    this.atlas.reader.readFile(
+      stmt.modulePath.literal.value,
+      ({ statements, errors }) => {
+        if (this.atlas.reportErrors(errors)) process.exit(65);
+        this.visitModule(stmt.name, statements);
+      }
+    );
   }
 
   visitModuleStmt(stmt: ModuleStmt): void {
+    this.visitModule(stmt.name, stmt.block.statements);
+  }
+
+  visitModule(name: Token, statements: Stmt[]): void {
     const env = new Environment(this.environment);
-    this.visitBlockStmt(stmt.block, env);
+    this.interpretBlock(statements, env);
     this.environment.define(
-      stmt.name.lexeme,
-      new AtlasModule(stmt.name.lexeme, env.values)
+      name.lexeme,
+      new AtlasModule(name.lexeme, env.values)
     );
   }
 
