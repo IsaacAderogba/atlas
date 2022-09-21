@@ -11,19 +11,22 @@ export class NativeError extends Error {
   }
 }
 
-export class ReaderErrors {
+export const isNativeError = (value: unknown): value is NativeError =>
+  value instanceof NativeError;
+
+export class NativeErrors {
   static formatError({
     title,
     body = "",
     type = "error",
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
-    return { title: `reader ${type}: ` + title, body, type };
+    return { title: `native ${type}: ` + title, body, type };
   }
 
   static invalidFilePath(path: string, message = ""): SourceMessage {
     return this.formatError({
       title: "invalid file path",
-      body: `Unable to open "${path}"${message ? `- ${message}` : ""}`,
+      body: `Unable to read "${path}"${message ? `\n${message}` : ""}`,
     });
   }
 }

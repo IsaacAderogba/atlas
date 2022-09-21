@@ -1,5 +1,6 @@
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
+import { AtlasValue } from "./AtlasValue";
 
 export class AtlasString extends AtlasObject {
   readonly type = "String";
@@ -12,6 +13,9 @@ export class AtlasString extends AtlasObject {
     return this.value;
   }
 }
+
+export const isAtlasString = (type?: AtlasValue): type is AtlasString =>
+  type?.type === "String";
 
 export const atlasString = (value: string): AtlasString =>
   new AtlasString(value);

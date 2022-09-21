@@ -40,8 +40,8 @@ import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
-import { Reader } from "../parser/Reader";
 import { AtlasAPI } from "../AtlasAPI";
+import { isAtlasString } from "../primitives/AtlasString";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
@@ -180,7 +180,18 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitImportStmt(stmt: ImportStmt): void {
-    // no op
+    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+
+    this.atlas.reader.readFile(
+      stmt.modulePath.literal.value,
+      ({ statements, errors }) => {
+        if (this.atlas.reportErrors(errors)) process.exit(65);
+
+        this.declare(stmt.name);
+        console.log("result to parse", statements);
+        this.define(stmt.name);
+      }
+    );
   }
 
   visitModuleStmt(stmt: ModuleStmt): void {
