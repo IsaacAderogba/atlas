@@ -1,1 +1,2 @@
+import foo from "../bar/foo"
 print("foo/bar.ats")

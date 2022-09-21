@@ -188,7 +188,9 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
         if (this.atlas.reportErrors(errors)) process.exit(65);
 
         this.declare(stmt.name);
-        console.log("result to parse", statements);
+        this.beginScope();
+        this.analyzeBlock(statements);
+        this.endScope();
         this.define(stmt.name);
       }
     );
