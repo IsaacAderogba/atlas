@@ -6,7 +6,7 @@ import { Scanner } from "./parser/Scanner";
 import { Interpreter } from "./runtime/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
-import { SourceError } from "./errors/SourceError";
+import { SourceError, SourceFile } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
 import { ReporterAPI } from "./reporter/Reporter";
@@ -22,11 +22,11 @@ interface AtlasAPI {
   main(args: string[]): void;
   runFile(path: string): void;
   runPrompt(): void;
-  run(source: string): AtlasStatus;
-  check(source: string): { status: AtlasStatus; statements: Stmt[] };
-  parse(source: string): Stmt[];
-  readModule(source: string): string;
-  reportErrors(source: string, errors: SourceError[]): boolean 
+  run(file: SourceFile): AtlasStatus;
+  check(file: SourceFile): { status: AtlasStatus; statements: Stmt[] };
+  parse(file: SourceFile): Stmt[];
+  readFile(path: string): SourceFile;
+  reportErrors(errors: SourceError[]): boolean;
 }
 
 export class Atlas implements AtlasAPI {
@@ -46,7 +46,7 @@ export class Atlas implements AtlasAPI {
   }
 
   runFile(path: string): void {
-    const status = this.run(this.readModule(path));
+    const status = this.run(this.readFile(path));
 
     switch (status) {
       case AtlasStatus.STATIC_ERROR:
@@ -66,21 +66,21 @@ export class Atlas implements AtlasAPI {
 
     rl.setPrompt("> ");
     rl.prompt();
-    rl.on("line", input => {
-      this.run(input);
+    rl.on("line", source => {
+      this.run({ source, module: "repl" });
       rl.prompt();
     });
   }
 
-  run(source: string): AtlasStatus {
-    const { status, statements } = this.check(source);
+  run(file: SourceFile): AtlasStatus {
+    const { status, statements } = this.check(file);
     if (status !== AtlasStatus.VALID) return status;
 
     const { errors } = this.interpreter.interpret(statements);
 
     if (errors.length) {
       errors.forEach(e =>
-        this.reporter.rangeError(source, e.sourceRange, e.sourceMessage)
+        this.reporter.rangeError(e.sourceRange, e.sourceMessage)
       );
       return AtlasStatus.RUNTIME_ERROR;
     }
@@ -88,18 +88,18 @@ export class Atlas implements AtlasAPI {
     return AtlasStatus.SUCCESS;
   }
 
-  check(source: string): { status: AtlasStatus; statements: Stmt[] } {
+  check(file: SourceFile): { status: AtlasStatus; statements: Stmt[] } {
     try {
-      const statements = this.parse(source);
+      const statements = this.parse(file);
 
       const analyzer = new Analyzer(this.interpreter, statements);
       const { errors: analyzeErrs } = analyzer.analyze();
-      if (this.reportErrors(source, analyzeErrs)) {
+      if (this.reportErrors(analyzeErrs)) {
         return { status: AtlasStatus.STATIC_ERROR, statements: [] };
       }
 
       const { errors: typeErrs } = this.typechecker.typeCheck(statements);
-      if (this.reportErrors(source, typeErrs)) {
+      if (this.reportErrors(typeErrs)) {
         return { status: AtlasStatus.STATIC_ERROR, statements: [] };
       }
 
@@ -112,34 +112,36 @@ export class Atlas implements AtlasAPI {
     }
   }
 
-  parse(source: string): Stmt[] {
-    const scanner = new Scanner(source);
-    const { tokens, errors: scanErrs } = scanner.scan();
-    if (this.reportErrors(source, scanErrs)) throw AtlasStatus.STATIC_ERROR;
+  parse(file: SourceFile): Stmt[] {
+    const scanner = new Scanner();
+    const { tokens, errors: scanErrs } = scanner.scan(file);
+    if (this.reportErrors(scanErrs)) throw AtlasStatus.STATIC_ERROR;
 
     const parser = new Parser(tokens);
     const { statements, errors: parseErrs } = parser.parse();
-    if (this.reportErrors(source, parseErrs)) throw AtlasStatus.STATIC_ERROR;
+    if (this.reportErrors(parseErrs)) throw AtlasStatus.STATIC_ERROR;
 
     return statements;
   }
 
-  readModule(path: string): string {
+  readFile(path: string): SourceFile {
     try {
       // relative imports are resolved relative to the importing file
 
-      return fs.readFileSync(path, { encoding: "utf8" });
+      const source = fs.readFileSync(path, { encoding: "utf8" });
+
+      return { source, module: path };
     } catch (error) {
       this.reporter.error(`Unable to open file: ${path}`);
       process.exit(66);
     }
   }
 
-  reportErrors(source: string, errors: SourceError[]): boolean {
+  reportErrors(errors: SourceError[]): boolean {
     let hasError = false;
     errors.forEach(({ sourceMessage, sourceRange }) => {
       if (sourceMessage.type === "error") hasError = true;
-      this.reporter.rangeError(source, sourceRange, sourceMessage);
+      this.reporter.rangeError(sourceRange, sourceMessage);
     });
 
     return hasError;

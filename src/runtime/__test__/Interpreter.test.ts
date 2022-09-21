@@ -14,8 +14,8 @@ interface SetupTests {
 }
 
 const setupTests = (source: string): SetupTests => {
-  const scanner = new Scanner(source);
-  const { tokens, errors: scanErrs } = scanner.scan();
+  const scanner = new Scanner();
+  const { tokens, errors: scanErrs } = scanner.scan({ source, module: "test" });
 
   if (scanErrs.length) {
     console.error("Scan errors", scanErrs);
@@ -55,7 +55,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -66,7 +66,7 @@ describe("Interpreter statements", () => {
     const { interpreter, interpret } = setupTests("var x = 4 { x = 2 }");
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -81,7 +81,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -97,7 +97,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -115,7 +115,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -135,7 +135,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -155,7 +155,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -170,7 +170,7 @@ describe("Interpreter statements", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -181,7 +181,7 @@ describe("Interpreter statements", () => {
     const { interpreter, interpret } = setupTests("var x = 4");
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -194,7 +194,7 @@ describe("Interpreter statements", () => {
     );
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -211,7 +211,7 @@ describe("Interpreter statements", () => {
       const { interpreter, interpret } = setupTests(test);
       interpret();
 
-      const { tokens } = new Scanner("x").scan();
+      const { tokens } = new Scanner().scan({ module: "test", source: "x" });
       const expression = new Parser(tokens).expression() as VariableExpr;
       const result = interpreter.visitVariableExpr(expression);
 
@@ -234,7 +234,7 @@ describe("Interpreter statements", () => {
       const { interpreter, interpret } = setupTests(test);
       interpret();
 
-      const { tokens } = new Scanner("x").scan();
+      const { tokens } = new Scanner().scan({ module: "test", source: "x" });
       const expression = new Parser(tokens).expression() as VariableExpr;
       const result = interpreter.visitVariableExpr(expression);
 
@@ -265,7 +265,7 @@ describe("Interpreter statements", () => {
       ];
 
       expressions.forEach(({ char, object }) => {
-        const { tokens } = new Scanner(char).scan();
+        const { tokens } = new Scanner().scan({ module: "test", source: char });
         const expression = new Parser(tokens).expression() as VariableExpr;
         const result = interpreter.visitVariableExpr(expression);
         expect(result).toMatchObject(object);
@@ -279,7 +279,7 @@ describe("Interpreter statements", () => {
     );
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -298,7 +298,7 @@ describe("Interpreter evaluations", () => {
     `);
     interpret();
 
-    const { tokens } = new Scanner("x").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x" });
     const expression = new Parser(tokens).expression() as VariableExpr;
     const result = interpreter.visitVariableExpr(expression);
 
@@ -309,7 +309,7 @@ describe("Interpreter evaluations", () => {
     const { interpreter, interpret } = setupTests("var x = 4");
     interpret();
 
-    const { tokens } = new Scanner("x = 2").scan();
+    const { tokens } = new Scanner().scan({ module: "test", source: "x = 2" });
     const expression = new Parser(tokens).expression() as AssignExpr;
     const result = interpreter.visitAssignExpr(expression);
 

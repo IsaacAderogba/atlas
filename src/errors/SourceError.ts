@@ -1,12 +1,14 @@
-
-
 export interface SourceError {
   sourceRange: SourceRange;
   sourceMessage: SourceMessage;
 }
 
 export class SourceRange implements SourceRangeable {
-  constructor(readonly start: SourceLocation, readonly end: SourceLocation) {}
+  constructor(
+    readonly file: SourceFile,
+    readonly start: SourceLocation,
+    readonly end: SourceLocation
+  ) {}
 
   length(): number {
     if (this.start.line === this.end.line) {
@@ -31,8 +33,13 @@ export interface SourceLocation {
   column: number;
 }
 
+export interface SourceFile {
+  source: string;
+  module: string;
+}
+
 export interface SourceMessage {
   title: string;
   body: string;
-  type: "error" | "warning"
+  type: "error" | "warning";
 }

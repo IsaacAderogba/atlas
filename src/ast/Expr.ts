@@ -18,9 +18,9 @@ export class AssignExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.name.sourceRange().start;
-    const end = this.value.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.name.sourceRange();
+    const { end } = this.value.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -36,9 +36,9 @@ export class TernaryExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.expression.sourceRange().start;
-    const end = this.elseBranch.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.expression.sourceRange();
+    const { end } = this.elseBranch.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -54,9 +54,9 @@ export class BinaryExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.left.sourceRange().start;
-    const end = this.right.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.left.sourceRange();
+    const { end } = this.right.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -74,9 +74,9 @@ export class CallExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.callee.sourceRange().start;
-    const end = this.close.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.callee.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -93,9 +93,9 @@ export class FunctionExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.body.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -110,9 +110,9 @@ export class GetExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.object.sourceRange().start;
-    const end = this.name.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.object.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -128,9 +128,9 @@ export class GroupingExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.open.sourceRange().start;
-    const end = this.close.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.open.sourceRange();
+    const { end } = this.close.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -146,9 +146,9 @@ export class SetExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.object.sourceRange().start;
-    const end = this.value.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.object.sourceRange();
+    const { end } = this.value.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -160,9 +160,9 @@ export class ThisExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.keyword.sourceRange().start;
-    const end = this.keyword.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.keyword.sourceRange();
+    const { end } = this.keyword.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -174,9 +174,9 @@ export class UnaryExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.operator.sourceRange().start;
-    const end = this.right.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.operator.sourceRange();
+    const { end } = this.right.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -188,9 +188,9 @@ export class LiteralExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.token.sourceRange().start;
-    const end = this.token.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.token.sourceRange();
+    const { end } = this.token.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -206,9 +206,9 @@ export class ListExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
+    const { file, start } = this.open.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -224,9 +224,9 @@ export class LogicalExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.left.sourceRange().start;
-    const end = this.right.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.left.sourceRange();
+    const { end } = this.right.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -254,9 +254,9 @@ export class RecordExpr implements BaseExpr {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
+    const { file, start } = this.open.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -268,9 +268,9 @@ export class VariableExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.name.sourceRange().start;
-    const end = this.name.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.name.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -327,9 +327,9 @@ export class CallableTypeExpr {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
+    const { file, start } = this.open.sourceRange();
     const { end } = this.returnType.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -348,9 +348,9 @@ export class CompositeTypeExpr implements BaseTypeExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.left.sourceRange().start;
-    const end = this.right.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.left.sourceRange();
+    const { end } = this.right.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -362,9 +362,9 @@ export class GetTypeExpr implements BaseTypeExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.object.sourceRange().start;
-    const end = this.name.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.object.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -376,9 +376,9 @@ export class GenericTypeExpr implements BaseTypeExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.callee.sourceRange().start;
-    const end = this.callee.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.callee.sourceRange();
+    const { end } = this.callee.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -390,9 +390,9 @@ export class SubTypeExpr implements BaseTypeExpr {
   }
 
   sourceRange(): SourceRange {
-    const start = this.name.sourceRange().start;
-    const end = this.name.sourceRange().end;
-    return new SourceRange(start, end);
+    const { file, start } = this.name.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 

@@ -1,15 +1,18 @@
 import { describe, it, expect } from "vitest";
+import { Token } from "../../ast/Token";
 import { TokenType } from "../../ast/TokenType";
-import { SyntaxErrors } from "../../errors/SyntaxError";
+import { SyntaxError, SyntaxErrors } from "../../errors/SyntaxError";
 import { atlasBoolean } from "../../primitives/AtlasBoolean";
 import { AtlasNull } from "../../primitives/AtlasNull";
 import { AtlasNumber } from "../../primitives/AtlasNumber";
 import { AtlasString } from "../../primitives/AtlasString";
 import { Scanner } from "../Scanner";
 
-const setupTests = (source: string): { scanner: Scanner } => {
-  const scanner = new Scanner(source);
-  return { scanner };
+const setupTests = (
+  source: string
+): { scan: () => { tokens: Token[]; errors: SyntaxError[] } } => {
+  const scanner = new Scanner();
+  return { scan: () => scanner.scan({ source, module: "test" }) };
 };
 
 describe("Scanner tokens", () => {
@@ -40,8 +43,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -56,8 +59,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -80,8 +83,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(1);
     });
@@ -112,22 +115,31 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
   });
 
   it("tokenizes string", () => {
-    const charTypes: { char: string; type: TokenType; literal: AtlasString }[] = [
-      { char: '"string"', type: "STRING", literal: new AtlasString("string") },
-      { char: "'string'", type: "STRING", literal: new AtlasString("string") },
-    ];
+    const charTypes: { char: string; type: TokenType; literal: AtlasString }[] =
+      [
+        {
+          char: '"string"',
+          type: "STRING",
+          literal: new AtlasString("string"),
+        },
+        {
+          char: "'string'",
+          type: "STRING",
+          literal: new AtlasString("string"),
+        },
+      ];
 
     charTypes.forEach(({ char, type, literal }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -136,14 +148,15 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes number", () => {
-    const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] = [
-      { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
-      { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
-    ];
+    const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] =
+      [
+        { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
+        { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
+      ];
 
     charTypes.forEach(({ char, type, literal }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { scan } = setupTests(char);
+      const { tokens } = scan();
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -152,8 +165,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes true", () => {
-    const { scanner } = setupTests("true");
-    const { tokens } = scanner.scan();
+    const { scan } = setupTests("true");
+    const { tokens } = scan();
 
     expect(tokens[0].type).toEqual("TRUE");
     expect(tokens[0].literal).toEqual(atlasBoolean(true));
@@ -162,8 +175,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes false", () => {
-    const { scanner } = setupTests("false");
-    const { tokens } = scanner.scan();
+    const { scan } = setupTests("false");
+    const { tokens } = scan();
 
     expect(tokens[0].type).toEqual("FALSE");
     expect(tokens[0].literal).toEqual(atlasBoolean(false));
@@ -172,8 +185,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes null", () => {
-    const { scanner } = setupTests("null");
-    const { tokens } = scanner.scan();
+    const { scan } = setupTests("null");
+    const { tokens } = scan();
 
     expect(tokens[0].type).toEqual("NULL");
     expect(tokens[0].literal).toEqual(new AtlasNull());
@@ -182,27 +195,35 @@ describe("Scanner tokens", () => {
   });
 });
 
-describe("Scanner errors", () => {
+describe("scan errors", () => {
   it("errors with unsupported character", () => {
-    const { scanner } = setupTests("£");
+    const { scan } = setupTests("£");
 
-    const { errors } = scanner.scan();
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    const { errors } = scan();
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unsupportedCharacter()
+    );
   });
 
   it("errors with unterminated string", () => {
-    const { scanner } = setupTests('"Hello');
+    const { scan } = setupTests('"Hello');
 
-    const { errors } = scanner.scan();
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
+    const { errors } = scan();
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unterminatedString()
+    );
   });
 
   it("cascades multiple errors", () => {
-    const { scanner } = setupTests('£"Hello');
+    const { scan } = setupTests('£"Hello');
 
-    const { errors } = scanner.scan();
+    const { errors } = scan();
 
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
-    expect(errors[1].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unsupportedCharacter()
+    );
+    expect(errors[1].sourceMessage).toMatchObject(
+      SyntaxErrors.unterminatedString()
+    );
   });
 });

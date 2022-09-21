@@ -6,8 +6,8 @@ import { Scanner } from "../../parser/Scanner";
 import { Analyzer } from "../Analyzer";
 
 const setupTests = (source: string): { analyzer: Analyzer } => {
-  const scanner = new Scanner(source);
-  const { tokens } = scanner.scan();
+  const scanner = new Scanner();
+  const { tokens } = scanner.scan({ source, module: "test" });
   const parser = new Parser(tokens);
   const { statements } = parser.parse();
   const analyzer = new Analyzer(new Interpreter(), statements);
@@ -23,7 +23,9 @@ describe("Analyzer warnings", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.unusedVariable());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SemanticErrors.unusedVariable()
+      );
     });
   });
 });
@@ -36,7 +38,9 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.prohibitedBreak());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SemanticErrors.prohibitedBreak()
+      );
     });
   });
 
@@ -133,7 +137,9 @@ describe("Analyzer errors", () => {
       const { analyzer } = setupTests(expr);
 
       const { errors } = analyzer.analyze();
-      expect(errors[0].sourceMessage).toMatchObject(SemanticErrors.prohibitedThis());
+      expect(errors[0].sourceMessage).toMatchObject(
+        SemanticErrors.prohibitedThis()
+      );
     });
   });
 

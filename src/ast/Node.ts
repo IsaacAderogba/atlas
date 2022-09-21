@@ -9,9 +9,9 @@ export class Parameter implements BaseNode {
   constructor(readonly name: Token, readonly baseType?: TypeExpr) {}
 
   sourceRange(): SourceRange {
-    const { start } = this.name.sourceRange();
+    const { file, start } = this.name.sourceRange();
     const { end } = (this.baseType || this.name).sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -23,9 +23,9 @@ export class Property implements BaseNode {
   ) {}
 
   sourceRange(): SourceRange {
-    const { start } = this.name.sourceRange();
+    const { file, start } = this.name.sourceRange();
     const { end } = this.initializer.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -33,9 +33,9 @@ export class Entry implements BaseNode {
   constructor(readonly key: Token, readonly value: Expr) {}
 
   sourceRange(): SourceRange {
-    const { start } = this.key.sourceRange();
+    const { file, start } = this.key.sourceRange();
     const { end } = this.value.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -43,8 +43,8 @@ export class TypeProperty implements BaseNode {
   constructor(readonly key: Token, readonly value: TypeExpr) {}
 
   sourceRange(): SourceRange {
-    const { start } = this.key.sourceRange();
+    const { file, start } = this.key.sourceRange();
     const { end } = this.value.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }

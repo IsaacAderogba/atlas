@@ -20,9 +20,9 @@ export class BlockStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
+    const { file, start } = this.open.sourceRange();
     const { end } = this.open.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -54,9 +54,9 @@ export class ClassStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -110,12 +110,12 @@ export class IfStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
 
     if (this.elseBranch) {
-      return new SourceRange(start, this.elseBranch.sourceRange().end);
+      return new SourceRange(file, start, this.elseBranch.sourceRange().end);
     } else {
-      return new SourceRange(start, this.thenBranch.sourceRange().end);
+      return new SourceRange(file, start, this.thenBranch.sourceRange().end);
     }
   }
 }
@@ -132,9 +132,9 @@ export class ImportStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.name.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -153,9 +153,9 @@ export class InterfaceStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -171,9 +171,9 @@ export class ModuleStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.name.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -185,9 +185,9 @@ export class ReturnStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.value.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -204,9 +204,9 @@ export class TypeStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.type.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -218,9 +218,9 @@ export class VarStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.property.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -236,9 +236,9 @@ export class WhileStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.body.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 

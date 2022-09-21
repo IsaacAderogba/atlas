@@ -33,7 +33,7 @@ class Tester {
   typeCheckWorkflow(source: string): ReturnType<TypeChecker["typeCheck"]> {
     const { statements } = this.parseWorkflow(source);
     const { errors } = this.analyze(statements);
-    if (this.reportErrors(source, errors)) throw new Error("Analysis error");
+    if (this.reportErrors(errors)) throw new Error("Analysis error");
     return this.typechecker.typeCheck(statements);
   }
 
@@ -58,8 +58,8 @@ class Tester {
   }
 
   private scan(source: string): ReturnType<Scanner["scan"]> {
-    const scanner = new Scanner(source);
-    return scanner.scan();
+    const scanner = new Scanner();
+    return scanner.scan({ source, module: "test" });
   }
 
   private parse(tokens: Token[]): ReturnType<Parser["parse"]> {
@@ -77,13 +77,13 @@ class Tester {
     return analyzer.analyze();
   }
 
-  private reportErrors(source: string, errors: SourceError[]): boolean {
+  private reportErrors(errors: SourceError[]): boolean {
     let hasError = false;
 
     errors.forEach(({ sourceMessage, sourceRange }) => {
       if (sourceMessage.type === "error") {
         hasError = true;
-        this.reporter.rangeError(source, sourceRange, sourceMessage);
+        this.reporter.rangeError(sourceRange, sourceMessage);
       }
     });
 

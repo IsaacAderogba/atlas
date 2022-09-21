@@ -4,8 +4,8 @@ import { Parser } from "../Parser";
 import { Scanner } from "../Scanner";
 
 const setupTests = (source: string): { parser: Parser } => {
-  const scanner = new Scanner(source);
-  const { tokens } = scanner.scan();
+  const scanner = new Scanner();
+  const { tokens } = scanner.scan({ source, module: "test" });
   const parser = new Parser(tokens);
 
   return { parser };

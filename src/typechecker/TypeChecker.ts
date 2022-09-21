@@ -139,8 +139,9 @@ export class TypeChecker implements TypeVisitor {
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
+      const { file, start } = name.sourceRange();
       this.subtyper.check(
-        new SourceRange(name.sourceRange().start, typeExpr.sourceRange().end),
+        new SourceRange(file, start, typeExpr.sourceRange().end),
         classType,
         this.acceptTypeExpr(typeExpr)
       );
@@ -295,7 +296,7 @@ export class TypeChecker implements TypeVisitor {
       if (typeExprs.length > 0) {
         type = this.visitGenericCall(calleeType, expr);
       } else {
-        type = calleeType
+        type = calleeType;
       }
 
       if (isAnyType(type)) return type;
@@ -308,7 +309,7 @@ export class TypeChecker implements TypeVisitor {
 
       if (type.arity() !== args.length) {
         return this.subtyper.error(
-          new SourceRange(open, close),
+          new SourceRange(open.sourceRange().file, open, close),
           TypeCheckErrors.mismatchedArity(type.arity(), args.length)
         );
       }
@@ -476,7 +477,7 @@ export class TypeChecker implements TypeVisitor {
   visitGetTypeExpr({ object, name }: GetTypeExpr): AtlasType {
     const objectType = this.acceptTypeExpr(object);
     const memberType = objectType.get(name);
-    if (memberType) return memberType
+    if (memberType) return memberType;
 
     return this.subtyper.error(
       name,
