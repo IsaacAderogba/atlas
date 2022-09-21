@@ -50,7 +50,7 @@ import { AtlasRecord } from "../primitives/AtlasRecord";
 import { Scheduler } from "./Scheduler";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
 import { AtlasModule } from "../primitives/AtlasModule";
-import { Reader } from "../parser/Reader";
+import { AtlasAPI } from "../AtlasAPI";
 
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
@@ -58,7 +58,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly scheduler = new Scheduler();
   private readonly locals: Map<Expr, number> = new Map();
 
-  constructor(private readonly reader: Reader) {}
+  constructor(private readonly atlas: AtlasAPI) {}
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {

@@ -15,8 +15,8 @@ import { AtlasAPI } from "./AtlasAPI";
 export class Atlas implements AtlasAPI {
   reporter = new ConsoleReporter();
   reader = new Reader();
-  interpreter = new Interpreter(this.reader);
-  typechecker = new TypeChecker(this.reader);
+  interpreter = new Interpreter(this);
+  typechecker = new TypeChecker(this);
 
   main(args: string[]): void {
     if (args.length > 1) {
@@ -88,7 +88,7 @@ export class Atlas implements AtlasAPI {
     try {
       const statements = this.parse(file);
 
-      const analyzer = new Analyzer(this.reader, this.interpreter, statements);
+      const analyzer = new Analyzer(this, this.interpreter, statements);
       const { errors: analyzeErrs } = analyzer.analyze();
       if (this.reportErrors(analyzeErrs)) {
         return { status: AtlasStatus.STATIC_ERROR, statements: [] };

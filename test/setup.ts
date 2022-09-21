@@ -17,8 +17,8 @@ import { AtlasAPI } from "../src/AtlasAPI";
 class Tester implements AtlasAPI {
   reporter = new ConsoleReporter();
   reader = new Reader();
-  interpreter = new Interpreter(this.reader);
-  typechecker = new TypeChecker(this.reader);
+  interpreter = new Interpreter(this);
+  typechecker = new TypeChecker(this);
 
   interpretWorkflow(source: string): ReturnType<Interpreter["interpret"]> {
     const { tokens } = this.scan(source);
@@ -84,7 +84,7 @@ class Tester implements AtlasAPI {
   }
 
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
-    const analyzer = new Analyzer(this.reader, this.interpreter, statements);
+    const analyzer = new Analyzer(this, this.interpreter, statements);
     return analyzer.analyze();
   }
 

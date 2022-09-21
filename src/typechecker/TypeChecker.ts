@@ -50,7 +50,7 @@ import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { TypeCheckerScope } from "./TypeCheckerScope";
-import { Reader } from "../parser/Reader";
+import { AtlasAPI } from "../AtlasAPI";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -58,7 +58,7 @@ export class TypeChecker implements TypeVisitor {
   currentFunction?: CurrentFunction;
   currentClass = ClassType.NONE;
 
-  constructor(private readonly reader: Reader) {}
+  constructor( private readonly atlas: AtlasAPI) {}
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
     this.lookup.beginScope(this.lookup.globalScope);
