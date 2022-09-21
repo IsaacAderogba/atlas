@@ -8,26 +8,9 @@ import { Analyzer } from "./analyzer/Analyzer";
 import { SourceError, SourceFile } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
-import { Reporter } from "./reporter/Reporter";
 import { Reader } from "./parser/Reader";
 import { NativeError } from "./errors/NativeError";
-
-interface AtlasAPI {
-  reporter: Reporter;
-  reader: Reader;
-  // scanner
-  // parser
-  // analyzer
-  // typechecker
-  // interpreter
-
-  main(args: string[]): void;
-  runFile(path: string): void;
-  runPrompt(): void;
-  run(file: SourceFile): AtlasStatus;
-  check(file: SourceFile): { status: AtlasStatus; statements: Stmt[] };
-  parse(file: SourceFile): Stmt[];
-}
+import { AtlasAPI } from "./AtlasAPI";
 
 export class Atlas implements AtlasAPI {
   reporter = new ConsoleReporter();

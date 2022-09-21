@@ -20,7 +20,7 @@ export class ReaderErrors {
     return { title: `reader ${type}: ` + title, body, type };
   }
 
-  static invalidFilePath(path: string, message: string): SourceMessage {
+  static invalidFilePath(path: string, message = ""): SourceMessage {
     return this.formatError({
       title: "invalid file path",
       body: `Unable to open "${path}"${message ? `- ${message}` : ""}`,

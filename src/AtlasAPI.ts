@@ -1,0 +1,22 @@
+import { Stmt } from "./ast/Stmt";
+import { SourceFile } from "./errors/SourceError";
+import { Reader } from "./parser/Reader";
+import { Reporter } from "./reporter/Reporter";
+import { AtlasStatus } from "./utils/AtlasStatus";
+
+export interface AtlasAPI {
+  reporter: Reporter;
+  reader: Reader;
+  // scanner
+  // parser
+  // analyzer
+  // typechecker
+  // interpreter
+
+  main(args: string[]): void;
+  runFile(path: string): void;
+  runPrompt(): void;
+  run(file: SourceFile): AtlasStatus;
+  check(file: SourceFile): { status: AtlasStatus; statements: Stmt[] };
+  parse(file: SourceFile): Stmt[];
+}
