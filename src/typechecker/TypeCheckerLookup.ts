@@ -7,20 +7,20 @@ import { AtlasType, Types } from "../primitives/AtlasType";
 import { ClassType, VariableState } from "../utils/Enums";
 import { Parameter } from "../ast/Node";
 import { GenericType } from "../primitives/GenericType";
-import { TypeModuleEntry } from "./TypeUtils";
+import { TypeModuleEnv } from "./TypeUtils";
 
 export class TypeCheckerLookup {
   private readonly scopes: Stack<TypeCheckerScope> = new Stack();
   readonly globalScope = globalTypeScope();
-  private cachedModules: { [path: string]: TypeModuleEntry } = {};
+  private cachedModules: { [path: string]: TypeModuleEnv } = {};
 
   constructor(public typechecker: TypeChecker) {}
 
-  cachedModule(path: string): TypeModuleEntry | undefined {
+  cachedModule(path: string): TypeModuleEnv | undefined {
     return this.cachedModules[path];
   }
 
-  setCachedModule(path: string, value: TypeModuleEntry): void {
+  setCachedModule(path: string, value: TypeModuleEnv): void {
     this.cachedModules[path] = value;
   }
 
@@ -66,7 +66,7 @@ export class TypeCheckerLookup {
     return undefined;
   }
 
-  defineModule(name: Token, { values, types }: TypeModuleEntry): void {
+  defineModule(name: Token, { values, types }: TypeModuleEnv): void {
     this.defineValue(name, Types.Module.init(name.lexeme, values));
     this.defineType(
       name,

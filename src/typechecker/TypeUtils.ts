@@ -7,7 +7,7 @@ export type TypeVisitor = ExprVisitor<AtlasType> &
   TypeExprVisitor<AtlasType> &
   StmtVisitor<void>;
 
-export type TypeModuleEntry = {
+export type TypeModuleEnv = {
   values: { [key: string]: AtlasType };
   types: { [key: string]: AtlasType };
 };

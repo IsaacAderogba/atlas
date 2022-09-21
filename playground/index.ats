@@ -1,4 +1,4 @@
-import bar from "./foo/bar"
-import foo from "./bar/foo"
-print("playground/index.ats")
+import AMod from "./modA/a"
 
+
+print(AMod.aValue)

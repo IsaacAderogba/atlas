@@ -55,6 +55,7 @@ import { AtlasAPI } from "../AtlasAPI";
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   readonly globals: Environment = Environment.fromGlobals(globals);
   private environment = this.globals;
+  private cachedModules: { [path: string]: Environment } = {};
   readonly scheduler = new Scheduler();
   private readonly locals: Map<Expr, number> = new Map();
 
@@ -169,31 +170,42 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     // no op
   }
 
-  visitImportStmt(stmt: ImportStmt): void {
-    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+  visitImportStmt({ modulePath, name }: ImportStmt): void {
+    if (!isAtlasString(modulePath.literal)) throw new Error("invariant");
 
     this.atlas.reader.readFile(
-      stmt.modulePath.literal.value,
-      ({ statements, errors }) => {
-        if (this.atlas.reportErrors(errors)) process.exit(65);
-        this.visitModule(stmt.name, statements);
+      modulePath.literal.value,
+      ({ statements, errors, file }) => {
+        const cachedModule = this.cachedModules[file.module];
+
+        if (cachedModule) {
+          this.defineModule(name, cachedModule);
+        } else {
+          if (this.atlas.reportErrors(errors)) process.exit(65);
+          const moduleEnv = this.visitModule(statements);
+          this.defineModule(name, moduleEnv);
+          this.cachedModules[file.module] = moduleEnv
+        }
       }
     );
   }
 
-  visitModuleStmt(stmt: ModuleStmt): void {
-    this.visitModule(stmt.name, stmt.block.statements);
+  visitModuleStmt({ name, block }: ModuleStmt): void {
+    this.defineModule(name, this.visitModule(block.statements));
   }
 
-  visitModule(name: Token, statements: Stmt[]): Environment {
+  visitModule(statements: Stmt[]): Environment {
     const env = new Environment(this.environment);
     this.interpretBlock(statements, env);
+    return env;
+  }
+
+  defineModule(name: Token, env: Environment): void {
+    console.log("defined module", name.lexeme);
     this.environment.define(
       name.lexeme,
       new AtlasModule(name.lexeme, env.values)
     );
-
-    return env;
   }
 
   visitTypeStmt(): void {

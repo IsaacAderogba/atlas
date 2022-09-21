@@ -47,7 +47,7 @@ import { Types, AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
-import { CurrentFunction, TypeModuleEntry, TypeVisitor } from "./TypeUtils";
+import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
@@ -184,21 +184,21 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
   }
 
-  visitImportStmt(stmt: ImportStmt): void {
-    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+  visitImportStmt({ modulePath, name }: ImportStmt): void {
+    if (!isAtlasString(modulePath.literal)) throw new Error("invariant");
 
     this.atlas.reader.readFile(
-      stmt.modulePath.literal.value,
+      modulePath.literal.value,
       ({ statements, errors, file }) => {
         const cachedModule = this.lookup.cachedModule(file.module);
 
         if (cachedModule) {
-          this.lookup.defineModule(stmt.name, cachedModule);
+          this.lookup.defineModule(name, cachedModule);
         } else {
           if (this.atlas.reportErrors(errors)) process.exit(65);
-          const moduleEntry = this.visitModule(statements);
-          this.lookup.defineModule(stmt.name, moduleEntry);
-          this.lookup.setCachedModule(file.module, moduleEntry);
+          const moduleEnv = this.visitModule(statements);
+          this.lookup.defineModule(name, moduleEnv);
+          this.lookup.setCachedModule(file.module, moduleEnv);
         }
       }
     );
@@ -495,7 +495,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   // utils
-  visitModule(statements: Stmt[]): TypeModuleEntry {
+  visitModule(statements: Stmt[]): TypeModuleEnv {
     const scope = new TypeCheckerScope();
     this.lookup.beginScope(scope);
     for (const statement of statements) this.acceptStmt(statement);
@@ -547,6 +547,7 @@ export class TypeChecker implements TypeVisitor {
   visitField({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name);
+
       if (memberType) return memberType;
       return this.subtyper.error(
         name,
