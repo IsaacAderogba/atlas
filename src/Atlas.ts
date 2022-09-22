@@ -3,7 +3,7 @@ import { Stmt } from "./ast/Stmt";
 import { Interpreter } from "./runtime/Interpreter";
 import { AtlasStatus } from "./utils/AtlasStatus";
 import { Analyzer } from "./analyzer/Analyzer";
-import { SourceError } from "./errors/SourceError";
+import { SourceError, SourceFile } from "./errors/SourceError";
 import { ConsoleReporter } from "./reporter/ConsoleReporter";
 import { TypeChecker } from "./typechecker/TypeChecker";
 import { Reader } from "./parser/Reader";
@@ -71,6 +71,11 @@ export class Atlas implements AtlasAPI {
       if (!this.reportErrors(errors)) this.run(statements);
       rl.prompt();
     });
+  }
+
+  runSource(file: SourceFile): void {
+    const { statements, errors } = this.reader.parse(file);
+    if (!this.reportErrors(errors)) this.run(statements);
   }
 
   run(statements: Stmt[]): AtlasStatus {

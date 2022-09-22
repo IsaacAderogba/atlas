@@ -1,4 +1,5 @@
 import fs from "fs";
+import { test, expect } from "vitest";
 import { Atlas } from "../src/Atlas";
 import { Reporter } from "../src/reporter/Reporter";
 import { SourceMessage, SourceRange } from "../src/errors/SourceError";
@@ -49,15 +50,20 @@ for (const fileName of findFilesRecursively(testsDirPath, ".ats")) {
     let target: keyof typeof spec = "source";
 
     for (const line of content.split("\n")) {
-      if (line.startsWith("-- OUTPUT --")) target = "stdout";
-      else if (line.startsWith("-- ERROR --")) target = "stderr";
-      else spec[target] += (spec[target] ? "\n" : "") + line;
+      if (line.startsWith("-- OUTPUT --")) {
+        target = "stdout";
+      } else if (line.startsWith("-- ERROR --")) {
+        target = "stderr";
+      } else {
+        spec[target] += (spec[target] ? "\n" : "") + line;
+      }
     }
 
     const testReporter = new TestReporter();
     const atlas = new Atlas(testReporter);
 
-    atlas.runFile(spec.source);
+    atlas.runSource({ module: filePath, source: spec.source });
+
     expect(testReporter.stderr).toBe(spec.stderr);
     expect(testReporter.stdout).toBe(spec.stdout);
   });
