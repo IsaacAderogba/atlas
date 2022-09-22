@@ -1,0 +1,9 @@
+var count = 0
+
+var incrementCount: () -> Number = f() {
+	count = count + 1
+	return count
+}
+
+print(incrementCount()) // 1
+print(incrementCount()) // 2

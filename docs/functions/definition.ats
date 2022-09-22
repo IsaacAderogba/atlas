@@ -1,0 +1,3 @@
+var func: () -> Null = f() {
+	print("invoked")
+}
