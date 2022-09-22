@@ -11,10 +11,11 @@ import { AtlasAPI } from "./AtlasAPI";
 import { isNativeError } from "./errors/NativeError";
 
 export class Atlas implements AtlasAPI {
-  reporter = new ConsoleReporter();
   reader = new Reader();
   interpreter = new Interpreter(this);
   typechecker = new TypeChecker(this);
+
+  constructor(public reporter = new ConsoleReporter()) {}
 
   main(args: string[]): void {
     try {
