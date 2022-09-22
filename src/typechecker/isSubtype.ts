@@ -52,19 +52,14 @@ export const createSubtyper = (): ((
     }
 
     if (isInterfaceType(a) && isInterfaceType(b)) {
-      const fields = [...b.fields.entries()].every(([name, type]) => {
-        const compare = a.fields.get(name);
+      const mergedA = new Map([...a.methods, ...a.fields]);
+      const mergedB = new Map([...b.methods, ...b.fields]);
+
+      return [...mergedB.entries()].every(([name, type]) => {
+        const compare = mergedA.get(name);
         if (compare) return isSubtype(compare, type);
         return false;
       });
-
-      const methods = [...b.methods.entries()].every(([name, type]) => {
-        const compare = a.methods.get(name);
-        if (compare) return isSubtype(compare, type);
-        return false;
-      });
-
-      if (fields && methods) return true;
     }
 
     if (isCallableType(a) && isCallableType(b)) {

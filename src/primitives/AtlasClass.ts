@@ -6,8 +6,6 @@ import {
   ObjectType,
   ObjectTypeProps,
 } from "./AtlasObject";
-import { Token } from "../ast/Token";
-import { RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
@@ -31,10 +29,6 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
 
   bind(): AtlasClass {
     return this;
-  }
-
-  set(name: Token): void {
-    throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {

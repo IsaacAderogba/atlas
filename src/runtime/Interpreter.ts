@@ -345,7 +345,16 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitGetExpr(expr: GetExpr): AtlasValue {
     const object = this.evaluate(expr.object);
-    return object.get(expr.name);
+    const result = object.get(expr.name.lexeme);
+
+    if (!result) {
+      throw this.error(
+        expr.name,
+        RuntimeErrors.undefinedProperty(expr.name.lexeme)
+      );
+    }
+
+    return result;
   }
 
   visitFunctionExpr(expr: FunctionExpr): AtlasFunction {
@@ -394,7 +403,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     const object = this.evaluate(expr.object);
     const value = this.evaluate(expr.value);
 
-    object.set(expr.name, value);
+    object.set(expr.name.lexeme, value);
     return value;
   }
 

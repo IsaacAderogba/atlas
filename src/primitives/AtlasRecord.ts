@@ -1,5 +1,10 @@
+import { NativeError } from "../errors/NativeError";
+import { RuntimeErrors } from "../errors/RuntimeError";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { toNativeFunctions } from "./AtlasNativeFn";
+import { AtlasNull } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
+import { isAtlasString } from "./AtlasString";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
 import { bindInterfaceGenerics, toInterfaceString } from "./InterfaceType";
@@ -8,8 +13,40 @@ export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
 
   constructor(entries: { [key: string]: AtlasValue } = {}) {
-    super(entries);
+    super({
+      ...entries,
+      ...toNativeFunctions({
+        put: AtlasRecord.prototype.put,
+        // remove: AtlasRecord.prototype.remove,
+      }),
+    });
   }
+
+  put(key: AtlasValue, value: AtlasValue): AtlasValue {
+    if (!isAtlasString(key)) {
+      throw new NativeError(RuntimeErrors.expectedString());
+    }
+    super.set(key.value, value);
+    return value;
+  }
+
+  // remove(name: AtlasValue): AtlasValue {
+  //   const field = this.fields.get(name.lexeme);
+
+  //   if (field) {
+  //     this.fields.delete(name.lexeme);
+  //     return field;
+  //   }
+
+  //   const method = this.methods.get(name.lexeme);
+
+  //   if (method) {
+  //     this.methods.delete(name.lexeme);
+  //     return method;
+  //   }
+
+  //   return new AtlasNull();
+  // }
 
   toString(): string {
     return "record";
