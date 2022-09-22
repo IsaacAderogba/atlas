@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RuntimeErrors } from "../../errors/RuntimeError";
 
-describe("Module annotations", () => {
+describe("Module usage", () => {
   it("dot access module values without error", () => {
     const { tester } = setupTester();
 
@@ -18,7 +18,7 @@ describe("Module annotations", () => {
   });
 });
 
-describe("Module, errors", () => {
+describe("Module errors", () => {
   it("errors with undefined value if module attempts to use itself", () => {
     const { tester } = setupTester();
 
