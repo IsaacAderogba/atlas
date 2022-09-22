@@ -1,4 +1,3 @@
-import { Parameter } from "../ast/Node";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
@@ -6,7 +5,7 @@ import { AtlasType } from "./AtlasType";
 export class GenericType extends ObjectType {
   readonly type = "Generic";
 
-  constructor(public param: Parameter, public constraint?: AtlasType) {
+  constructor(public name: string, public constraint?: AtlasType) {
     super();
   }
 
@@ -14,10 +13,10 @@ export class GenericType extends ObjectType {
     return genericTypeMap.get(this) ?? this;
   }
 
-  init = (param: Parameter, constraint?: AtlasType): GenericType =>
-    new GenericType(param, constraint);
+  init = (name: string, constraint?: AtlasType): GenericType =>
+    new GenericType(name, constraint);
 
-  toString = (): string => this.param.name.lexeme;
+  toString = (): string => this.name;
 }
 
 export const isGenericType = (value: unknown): value is GenericType =>

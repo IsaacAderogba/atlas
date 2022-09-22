@@ -2,8 +2,10 @@ import { isAliasType } from "../primitives/AliasType";
 import { isAnyType } from "../primitives/AnyType";
 import { isBooleanType } from "../primitives/AtlasBoolean";
 import { isCallableType } from "../primitives/AtlasCallable";
+import { isListType } from "../primitives/AtlasList";
 import { isNullType } from "../primitives/AtlasNull";
 import { isNumberType } from "../primitives/AtlasNumber";
+import { isRecordType } from "../primitives/AtlasRecord";
 import { isStringType } from "../primitives/AtlasString";
 import { AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
@@ -46,20 +48,23 @@ export const createSubtyper = (): ((
     if (isNumberType(a) && isNumberType(b)) return true;
     if (isStringType(a) && isStringType(b)) return true;
 
+    if (isListType(a) && isListType(b)) {
+      return isSubtype(a.itemType, b.itemType);
+    }
+
+    if (isRecordType(a) && isRecordType(b)) {
+      return isSubtype(a.itemType, b.itemType);
+    }
+
     if (isInterfaceType(a) && isInterfaceType(b)) {
-      const fields = [...b.fields.entries()].every(([name, type]) => {
-        const compare = a.fields.get(name);
+      const mergedA = new Map([...a.methods, ...a.fields]);
+      const mergedB = new Map([...b.methods, ...b.fields]);
+
+      return [...mergedB.entries()].every(([name, type]) => {
+        const compare = mergedA.get(name);
         if (compare) return isSubtype(compare, type);
         return false;
       });
-
-      const methods = [...b.methods.entries()].every(([name, type]) => {
-        const compare = a.methods.get(name);
-        if (compare) return isSubtype(compare, type);
-        return false;
-      });
-
-      if (fields && methods) return true;
     }
 
     if (isCallableType(a) && isCallableType(b)) {

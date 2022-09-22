@@ -16,11 +16,11 @@ export class AtlasInstance extends AtlasObject {
     super({});
   }
 
-  get(name: Token): AtlasValue {
-    const field = this.fields.get(name.lexeme);
+  get(name: string): AtlasValue | undefined {
+    const field = this.fields.get(name);
     if (field) return field;
 
-    const method = this.atlasClass.findMethod(name.lexeme);
+    const method = this.atlasClass.findMethod(name);
     if (method) return method.bind(this);
 
     return super.get(name);
@@ -47,11 +47,11 @@ export class InstanceType extends ObjectType {
   }
 
   get fields(): ObjectType["fields"] {
-    return this.classType.fields;
+    return new Map([...this.internalFields, ...this.classType.fields])
   }
 
   get methods(): ObjectType["methods"] {
-    return this.classType.methods;
+    return new Map([...this.internalMethods, ...this.classType.methods])
   }
 
   init = (classType: ClassType): InstanceType => new InstanceType(classType);

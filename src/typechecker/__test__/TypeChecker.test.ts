@@ -61,40 +61,6 @@ describe("Typechecker inference", () => {
     ).toEqual(false);
   });
 
-  it("infers record", () => {
-    const { tester } = setupTester();
-
-    tester.typeCheckWorkflow(`
-      var x = {
-        "foo": "bar",
-        "1": 2
-      }
-    `);
-
-    expect(
-      createSubtyper()(
-        Types.Record.init({
-          foo: Types.String,
-          "1": Types.Number,
-        }),
-        tester.evalTypeWorkflow("x")
-      ).isSubtype
-    ).toEqual(true);
-  });
-
-  it("infers get expression", () => {
-    const { tester } = setupTester();
-
-    tester.typeCheckWorkflow(`
-      var x = { "foo": { "foo": "bar" } }
-    `);
-
-    expect(
-      createSubtyper()(Types.String, tester.evalTypeWorkflow("x.foo.foo"))
-        .isSubtype
-    ).toEqual(true);
-  });
-
   it("infers unary expressions", () => {
     const types = [
       { source: "!!true", subtype: Types.Boolean },
@@ -345,7 +311,7 @@ describe("Typechecker errors", () => {
             Types.Function.init({
               params: [],
               returns: Types.Null,
-            }),
+            })
           ).error
         ),
       },

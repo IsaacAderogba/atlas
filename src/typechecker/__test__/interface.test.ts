@@ -79,24 +79,6 @@ describe("Interface annotations", () => {
 
     expect(errors.length).toEqual(0);
   });
-
-  it("infers record annotation assignments without error", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      interface Foo {
-        bar: () -> Null
-        foo: String
-      }
-      
-      var foo: Foo = {
-        "bar": f() {},
-        "foo": ""
-      }
-    `);
-
-    expect(errors.length).toEqual(0);
-  });
 });
 
 describe("Interface errors", () => {
@@ -127,30 +109,7 @@ describe("Interface errors", () => {
           params: [Types.Number],
           returns: Types.Null,
         }),
-      }),
-    );
-
-    expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.invalidSubtype(error)
-    );
-  });
-
-  it("errors with invalid subtype for records", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      interface Foo {
-        foo: String
-      }
-      
-      var foo: Foo = {
-        "foo": 0
-      }
-    `);
-
-    const { error } = createSubtyper()(
-      Types.Record.init({ foo: Types.Number }),
-      Types.Interface.init("Foo", { foo: Types.String }),
+      })
     );
 
     expect(errors[0].sourceMessage).toEqual(
@@ -173,7 +132,7 @@ describe("Interface errors", () => {
 
     const { error } = createSubtyper()(
       Types.Class.init("FooBar", { foo: Types.Number }),
-      Types.Interface.init("Foo", { foo: Types.String }),
+      Types.Interface.init("Foo", { foo: Types.String })
     );
 
     expect(errors[0].sourceMessage).toEqual(
@@ -204,7 +163,7 @@ describe("Interface errors", () => {
 
     const { error } = createSubtyper()(
       Types.Class.init("BarClass", { bar: Types.Number }),
-      Types.Interface.init("Foo", { bar: Types.String }),
+      Types.Interface.init("Foo", { bar: Types.String })
     );
 
     expect(errors[0].sourceMessage).toEqual(

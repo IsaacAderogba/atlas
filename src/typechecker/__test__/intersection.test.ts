@@ -17,10 +17,10 @@ describe("Interface annotations", () => {
     }
     
     type FooBar = Foo & Bar
-    
-    var foobar: FooBar = {
-        "foo": "string",
-        "bar": "string"
+
+    class FooBarImpl implements FooBar {
+      foo = "string"
+      bar = "string"
     }
     `);
 
@@ -90,13 +90,11 @@ describe("Intersection errors", () => {
 
       }
 
-      func({
-        "foo": "foo"
-      })
+      func("")
     `);
 
     const { error } = createSubtyper()(
-      Types.Record.init({ foo: Types.String }),
+      Types.String,
       Types.Intersection.init([
         Types.Interface.init("Foo", { foo: Types.String }),
         Types.Interface.init("Bar", { bar: Types.String }),

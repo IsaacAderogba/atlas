@@ -1,6 +1,9 @@
-import Path from "path"
-import Foo from "foo"
-import Local from "./local"
+// import Path from "path"
+// import Foo from "foo"
+// import Local from "./local"
 
+// var list = ["", 0]
+// list.add(null)
 
-Path.join(0, 0)
+var record: Record[String] = { }
+record.put("key", 0)

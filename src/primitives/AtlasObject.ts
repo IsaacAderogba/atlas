@@ -1,5 +1,5 @@
 import { Token } from "../ast/Token";
-import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
+import { RuntimeError } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
 import type { GenericType } from "./GenericType";
@@ -31,18 +31,22 @@ export abstract class AtlasObject {
     }
   }
 
-  get(name: Token): AtlasValue {
-    const value = this.fields.get(name.lexeme);
+  get(name: string): AtlasValue | undefined {
+    const value = this.fields.get(name);
     if (value) return value;
 
-    const method = this.methods.get(name.lexeme);
+    const method = this.methods.get(name);
     if (method) return method.bind(this);
 
-    throw this.error(name, RuntimeErrors.undefinedProperty(name.lexeme));
+    return undefined
   }
 
-  set(name: Token, value: AtlasValue): void {
-    this.fields.set(name.lexeme, value);
+  set(name: string, value: AtlasValue): void {
+    if (isCallable(value)) {
+      this.methods.set(name, value);
+    } else {
+      this.fields.set(name, value);
+    }
   }
 
   protected error(
@@ -100,8 +104,12 @@ export abstract class ObjectType {
     return undefined;
   }
 
-  set(name: Token, value: AtlasType): void {
-    this.internalFields.set(name.lexeme, value);
+  set(name: string, value: AtlasType): void {
+    if (isCallableType(value)) {
+      this.internalMethods.set(name, value);
+    } else {
+      this.internalFields.set(name, value);
+    }
   }
 
   protected error(

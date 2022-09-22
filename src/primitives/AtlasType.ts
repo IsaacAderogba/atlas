@@ -4,6 +4,7 @@ import { BooleanType } from "./AtlasBoolean";
 import { ClassType } from "./AtlasClass";
 import { FunctionType } from "./AtlasFunction";
 import { InstanceType } from "./AtlasInstance";
+import { ListType } from "./AtlasList";
 import { ModuleType } from "./AtlasModule";
 import { NativeFnType } from "./AtlasNativeFn";
 import { NullType } from "./AtlasNull";
@@ -31,6 +32,7 @@ export type AtlasType =
   | InstanceType
   | InterfaceType
   | IntersectionType
+  | ListType
   | UnionType;
 
 const Any = new AnyType();
@@ -43,7 +45,7 @@ export const Types = {
   Boolean: new BooleanType(),
   Number: new NumberType(),
   String: new StringType(),
-  Record: new RecordType({}),
+  Record: new RecordType(Any),
   Function: new FunctionType({ params: [], returns: Any }),
   Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),
@@ -51,5 +53,6 @@ export const Types = {
   Instance: new InstanceType(Class),
   Interface: new InterfaceType("Interface"),
   Intersection: new IntersectionType([]),
+  List: new ListType(Any),
   Union: new UnionType([]),
 } as const;

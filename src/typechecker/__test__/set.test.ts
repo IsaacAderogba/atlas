@@ -17,20 +17,6 @@ describe("Class annotations", () => {
 
     expect(errors.length).toEqual(0);
   });
-
-  it("annotates record set expressions without error", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      var foo = {
-        "bar": ""
-      }
-
-      foo.bar = "hi"
-    `);
-
-    expect(errors.length).toEqual(0);
-  });
 });
 
 describe("Class errors", () => {
