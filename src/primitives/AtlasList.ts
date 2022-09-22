@@ -1,9 +1,11 @@
-import { AtlasNull } from "./AtlasNull";
+import { AtlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
-import { toNativeFunctions } from "./AtlasNativeFn";
+import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
 import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericType } from "./GenericType";
+import { UnionType } from "./UnionType";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -36,7 +38,18 @@ export class ListType extends ObjectType {
   readonly type = "List";
 
   constructor(readonly types: AtlasType[] = []) {
-    super();
+    const T = new GenericType("T");
+
+    super(
+      {
+        add: new NativeFnType({ params: [T], returns: T }),
+        remove: new NativeFnType({
+          params: [],
+          returns: new UnionType([T, new NullType()]),
+        }),
+      },
+      [T]
+    );
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
