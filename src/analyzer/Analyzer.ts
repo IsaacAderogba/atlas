@@ -46,8 +46,11 @@ import { isAtlasString } from "../primitives/AtlasString";
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
 
+const globalScope = (): AnalyzerScope =>
+  Scope.fromGlobals(globals, () => ({ state: VariableState.SETTLED }));
+
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
-  private readonly scopes: Stack<AnalyzerScope> = new Stack();
+  private scopes: Stack<AnalyzerScope> = new Stack();
   private currentFunction?: CurrentFunction;
   private currentClass = ClassType.NONE;
   private loopDepth = 0;
@@ -60,9 +63,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   ) {}
 
   analyze(): { errors: SemanticError[] } {
-    this.beginScope(
-      Scope.fromGlobals(globals, () => ({ state: VariableState.SETTLED }))
-    );
+    this.beginScope(globalScope());
     for (const statement of this.statements) {
       this.analyzeStmt(statement);
     }
@@ -111,13 +112,12 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  private analyzeLocal(expr: Expr, name: Token, isSettled: boolean): void {
+  private analyzeLocal(_expr: Expr, name: Token, isSettled: boolean): void {
     for (let i = this.scopes.size - 1; i >= 0; i--) {
       const scope = this.scopes.get(i);
       if (scope && scope.has(name.lexeme)) {
         const entry = scope.get(name.lexeme);
         if (isSettled && entry) entry.state = VariableState.SETTLED;
-        return this.interpreter.resolve(expr, this.scopes.size - 1 - i);
       }
     }
   }
@@ -196,10 +196,15 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitModule(name: Token, statements: Stmt[]): void {
+    this.withModuleScope(() => {
+      const scope: AnalyzerScope = new Scope();
+      this.beginScope(scope);
+      this.analyzeBlock(statements);
+      this.endScope();
+      return scope;
+    });
+
     this.declare(name);
-    this.beginScope();
-    this.analyzeBlock(statements);
-    this.endScope();
     this.define(name);
   }
 
@@ -323,6 +328,18 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.analyzeLocal(expr, expr.name, true);
+  }
+
+  private withModuleScope<T extends AnalyzerScope>(callback: () => T): T {
+    const enclosingScopes = this.scopes;
+    this.scopes = new Stack();
+
+    this.beginScope(globalScope());
+    const scope = callback();
+    this.endScope();
+
+    this.scopes = enclosingScopes;
+    return scope;
   }
 
   private beginScope(scope: AnalyzerScope = new Scope()): void {

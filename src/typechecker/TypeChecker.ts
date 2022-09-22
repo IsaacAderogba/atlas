@@ -496,10 +496,13 @@ export class TypeChecker implements TypeVisitor {
 
   // utils
   visitModule(statements: Stmt[]): TypeModuleEnv {
-    const scope = new TypeCheckerScope();
-    this.lookup.beginScope(scope);
-    for (const statement of statements) this.acceptStmt(statement);
-    this.lookup.endScope();
+    const scope = this.lookup.withModuleScope(() => {
+      const scope = new TypeCheckerScope();
+      this.lookup.beginScope(scope);
+      for (const statement of statements) this.acceptStmt(statement);
+      this.lookup.endScope();
+      return scope;
+    });
 
     const values: { [key: string]: AtlasType } = {};
     for (const [key, value] of scope.valueScope.entries()) {

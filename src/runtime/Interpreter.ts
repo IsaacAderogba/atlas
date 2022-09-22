@@ -52,12 +52,12 @@ import { atlasBoolean } from "../primitives/AtlasBoolean";
 import { AtlasModule } from "../primitives/AtlasModule";
 import { AtlasAPI } from "../AtlasAPI";
 
+const globalEnv = (): Environment => Environment.fromGlobals(globals);
+
 export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
-  readonly globals: Environment = Environment.fromGlobals(globals);
-  private environment = this.globals;
+  private environment = globalEnv();
   private cachedModules: { [path: string]: Environment } = {};
   readonly scheduler = new Scheduler();
-  private readonly locals: Map<Expr, number> = new Map();
 
   constructor(private readonly atlas: AtlasAPI) {}
 
@@ -82,10 +82,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   execute(stmt: Stmt): void {
     stmt.accept(this);
-  }
-
-  resolve(expr: Expr, depth: number): void {
-    this.locals.set(expr, depth);
   }
 
   interpretBlock(statements: Stmt[], environment: Environment): void {
@@ -184,7 +180,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
           if (this.atlas.reportErrors(errors)) process.exit(65);
           const moduleEnv = this.visitModule(statements);
           this.defineModule(name, moduleEnv);
-          this.cachedModules[file.module] = moduleEnv
+          this.cachedModules[file.module] = moduleEnv;
         }
       }
     );
@@ -195,13 +191,23 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitModule(statements: Stmt[]): Environment {
-    const env = new Environment(this.environment);
-    this.interpretBlock(statements, env);
+    const env = this.withModuleScope(() => {
+      const env = new Environment(this.environment);
+      this.interpretBlock(statements, env);
+      return env;
+    });
+    return env;
+  }
+
+  private withModuleScope<T extends Environment>(callback: () => T): T {
+    const enclosingEnv = this.environment;
+    this.environment = globalEnv();
+    const env = callback();
+    this.environment = enclosingEnv;
     return env;
   }
 
   defineModule(name: Token, env: Environment): void {
-    console.log("defined module", name.lexeme);
     this.environment.define(
       name.lexeme,
       new AtlasModule(name.lexeme, env.values)
@@ -214,14 +220,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): AtlasValue {
     const value = this.evaluate(expr.value);
-
-    const distance = this.locals.get(expr);
-    if (distance !== undefined) {
-      this.environment.assignAt(distance, expr.name, value);
-    } else {
-      this.globals.assign(expr.name, value);
-    }
-
+    this.environment.assign(expr.name, value);
     return value;
   }
 
@@ -398,25 +397,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: ThisExpr): AtlasValue {
-    return this.lookupVariable(expr.keyword, expr);
+    return this.environment.get(expr.keyword.lexeme, expr.keyword);
   }
 
   visitVariableExpr(expr: VariableExpr): AtlasValue {
-    return this.lookupVariable(expr.name, expr);
-  }
-
-  private lookupVariable(name: Token, expr: Expr): AtlasValue {
-    const distance = this.locals.get(expr);
-
-    if (distance !== undefined) {
-      try {
-        return this.environment.getAt(name.lexeme, distance, name);
-      } catch {
-        console.log("fall back");
-        return this.environment.getAt(name.lexeme, distance + 1, name);
-      }
-    }
-    return this.globals.get(name);
+    return this.environment.get(expr.name.lexeme, expr.name);
   }
 
   private getStringValue(source: SourceRangeable, operand: AtlasValue): string {

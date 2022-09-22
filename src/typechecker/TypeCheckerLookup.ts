@@ -10,7 +10,7 @@ import { GenericType } from "../primitives/GenericType";
 import { TypeModuleEnv } from "./TypeUtils";
 
 export class TypeCheckerLookup {
-  private readonly scopes: Stack<TypeCheckerScope> = new Stack();
+  private scopes: Stack<TypeCheckerScope> = new Stack();
   readonly globalScope = globalTypeScope();
   private cachedModules: { [path: string]: TypeModuleEnv } = {};
 
@@ -113,6 +113,18 @@ export class TypeCheckerLookup {
       this.defineType(param.name, constraint || type);
       return type;
     });
+  }
+
+  withModuleScope<T extends TypeCheckerScope>(callback: () => T): T {
+    const enclosingScopes = this.scopes;
+    this.scopes = new Stack();
+
+    this.beginScope(globalTypeScope());
+    const scope = callback();
+    this.endScope();
+
+    this.scopes = enclosingScopes;
+    return scope;
   }
 
   beginScope(newScope = new TypeCheckerScope()): void {

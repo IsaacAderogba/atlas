@@ -19,25 +19,13 @@ export class Environment {
     return environment;
   }
 
-  get(token: Token): AtlasValue {
-    const value = this.values[token.lexeme];
+  get(name: string, token: Token): AtlasValue {
+    const value = this.values[name];
 
     if (value) return value;
-    if (this.enclosing) return this.enclosing.get(token);
+    if (this.enclosing) return this.enclosing.get(name, token);
 
-    throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
-  }
-
-  getAt(name: string, distance: number, token?: Token): AtlasValue {
-    const value = this.ancestor(distance).values[name];
-
-    if (value === undefined) {
-      const err = RuntimeErrors.unresolvedVariable(name, distance);
-      if (!token) throw new Error(`${err.title}: ${err.body}`);
-      throw this.error(token, err);
-    }
-
-    return value;
+    throw this.error(token, RuntimeErrors.undefinedVariable(name));
   }
 
   assign(token: Token, value: AtlasValue): void {
@@ -48,10 +36,6 @@ export class Environment {
     } else {
       throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
     }
-  }
-
-  assignAt(distance: number, name: Token, value: AtlasValue): void {
-    this.ancestor(distance).values[name.lexeme] = value;
   }
 
   define(name: string, value: AtlasValue): void {

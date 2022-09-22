@@ -53,7 +53,9 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
         throw err;
       }
 
-      if (this.isInitializer) return this.closure.getAt("this", 0);
+      if (this.isInitializer) {
+        return this.closure.get("this", this.expression.keyword);
+      }
       return new AtlasNull();
     };
 
