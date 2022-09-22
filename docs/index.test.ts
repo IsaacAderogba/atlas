@@ -36,35 +36,16 @@ function findFilesRecursively(dirPath: string, suffix: string): string[] {
 }
 
 const testsDirPath = __dirname;
-
 for (const fileName of findFilesRecursively(testsDirPath, ".ats")) {
   test(fileName, () => {
     const filePath = `${testsDirPath}/${fileName}`;
-    const content = fs.readFileSync(filePath, { encoding: "utf8" });
-
-    const spec = {
-      source: "",
-      stdout: "",
-      stderr: "",
-    };
-    let target: keyof typeof spec = "source";
-
-    for (const line of content.split("\n")) {
-      if (line.startsWith("-- OUTPUT --")) {
-        target = "stdout";
-      } else if (line.startsWith("-- ERROR --")) {
-        target = "stderr";
-      } else {
-        spec[target] += (spec[target] ? "\n" : "") + line;
-      }
-    }
+    const source = fs.readFileSync(filePath, { encoding: "utf8" });
 
     const testReporter = new TestReporter();
     const atlas = new Atlas(testReporter);
 
-    atlas.runSource({ module: filePath, source: spec.source });
+    atlas.runSource({ module: filePath, source });
 
-    expect(testReporter.stderr).toBe(spec.stderr);
-    expect(testReporter.stdout).toBe(spec.stdout);
+    expect(testReporter.stderr).toBe("");
   });
 }
