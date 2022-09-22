@@ -49,7 +49,7 @@ import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
-import { TypeCheckerScope } from "./TypeCheckerScope";
+import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 
 export class TypeChecker implements TypeVisitor {
@@ -61,7 +61,7 @@ export class TypeChecker implements TypeVisitor {
   constructor(private readonly atlas: AtlasAPI) {}
 
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    this.lookup.beginScope(this.lookup.globalScope);
+    this.lookup.beginScope(globalTypeScope());
     for (const statement of statements) {
       this.acceptStmt(statement);
     }

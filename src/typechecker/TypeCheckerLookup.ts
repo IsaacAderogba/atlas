@@ -11,7 +11,6 @@ import { TypeModuleEnv } from "./TypeUtils";
 
 export class TypeCheckerLookup {
   private scopes: Stack<TypeCheckerScope> = new Stack();
-  readonly globalScope = globalTypeScope();
   private cachedModules: { [path: string]: TypeModuleEnv } = {};
 
   constructor(public typechecker: TypeChecker) {}
@@ -42,12 +41,6 @@ export class TypeCheckerLookup {
       }
     }
 
-    const entry = this.globalScope.typeScope.get(name.lexeme);
-    if (entry) {
-      entry.state = VariableState.DEFINED;
-      return entry.type;
-    }
-
     return this.typechecker.subtyper.error(
       name,
       TypeCheckErrors.undefinedType(name.lexeme)
@@ -59,9 +52,6 @@ export class TypeCheckerLookup {
       const type = scope.valueScope.get(name);
       if (type) return type;
     }
-
-    const type = this.globalScope.valueScope.get(name);
-    if (type) return type;
 
     return undefined;
   }

@@ -201,9 +201,11 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
   private withModuleScope<T extends Environment>(callback: () => T): T {
     const enclosingEnv = this.environment;
+
     this.environment = globalEnv();
     const env = callback();
     this.environment = enclosingEnv;
+
     return env;
   }
 

@@ -15,22 +15,6 @@ describe("Module annotations", () => {
 
     expect(errors.length).toEqual(0);
   });
-
-  it("dot access modules from other modules without error", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      module Mod {
-        type Foo[T] = T
-      }
-      
-      module Bar {
-        var foo: Mod.Foo[String] = ""
-      }
-    `);
-
-    expect(errors.length).toEqual(0);
-  });
 });
 
 describe("Module, errors", () => {

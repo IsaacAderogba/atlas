@@ -1,8 +1,10 @@
-import foo from "foo"
-import Path from "path"
+// import foo from "foo"
+// import Path from "path"
 
 module Mod {
-  type Foo[T] = T
+  var foo = 3
+}
 
-  var foo: Mod.Foo[String] = ""
+module Bar {
+  var x = Mod.foo
 }
