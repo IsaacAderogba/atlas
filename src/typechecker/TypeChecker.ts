@@ -521,6 +521,8 @@ export class TypeChecker implements TypeVisitor {
     genericType: AtlasType,
     typeExpr: GenericTypeExpr | CallExpr
   ): AtlasType {
+    if (isAnyType(genericType)) return genericType;
+
     const actuals = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
 
     if (genericType.generics.length !== actuals.length) {
