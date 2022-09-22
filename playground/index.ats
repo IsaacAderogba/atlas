@@ -5,20 +5,5 @@
 // var list = ["", 0]
 // list.add(null)
 
-interface Foo[T] {
-  foo: T
-}
-
-interface Bar[T] {
-  bar: T
-}
-
-type FooBar[T] = Foo[Bar[T]]
-
-class FooImpl {
-  bar = null
-}
-
-class FooBarImpl implements FooBar[Null] {
-  foo = FooImpl()
-}
+var record: Record[String] = { }
+record.put("key", 0)
