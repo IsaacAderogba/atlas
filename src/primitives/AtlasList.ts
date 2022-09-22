@@ -17,6 +17,7 @@ export class AtlasList extends AtlasObject {
     super(
       toNativeFunctions({
         add: AtlasList.prototype.add,
+        at: AtlasList.prototype.at,
         remove: AtlasList.prototype.remove,
       })
     );

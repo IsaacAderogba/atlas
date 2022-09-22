@@ -16,13 +16,22 @@ export class AtlasRecord extends AtlasObject {
   constructor(readonly entries: { [key: string]: AtlasValue } = {}) {
     super(
       toNativeFunctions({
-        put: AtlasRecord.prototype.put,
+        add: AtlasRecord.prototype.add,
+        at: AtlasRecord.prototype.at,
         remove: AtlasRecord.prototype.remove,
       })
     );
   }
 
-  put(key: AtlasValue, value: AtlasValue): AtlasValue {
+  at(key: AtlasValue): AtlasValue {
+    if (!isAtlasString(key)) {
+      throw new NativeError(RuntimeErrors.expectedString());
+    }
+
+    return this.entries[key.value] ?? new AtlasNull();
+  }
+
+  add(key: AtlasValue, value: AtlasValue): AtlasValue {
     if (!isAtlasString(key)) {
       throw new NativeError(RuntimeErrors.expectedString());
     }
@@ -56,9 +65,13 @@ export class RecordType extends ObjectType {
   constructor(readonly itemType: AtlasType) {
     super(
       {
-        put: new NativeFnType({
+        add: new NativeFnType({
           params: [new StringType(), itemType],
           returns: itemType,
+        }),
+        at: new NativeFnType({
+          params: [new StringType()],
+          returns: new UnionType([itemType, new NullType()]),
         }),
         remove: new NativeFnType({
           params: [],
