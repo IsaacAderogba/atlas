@@ -1,0 +1,3 @@
+var numberList: List[Number] = [1, 2, 3]
+
+print(numberList.at(0)) // 1

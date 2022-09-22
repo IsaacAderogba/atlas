@@ -9,7 +9,7 @@ describe("Record annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       var record = { "key": 0 }
-      record.put("key", 2)
+      record.add("key", 2)
     `);
 
     expect(errors.length).toEqual(0);
@@ -20,7 +20,7 @@ describe("Record annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       var record: Record[String] = { }
-      record.put("key", "2")
+      record.add("key", "2")
     `);
 
     expect(errors.length).toEqual(0);
@@ -65,7 +65,7 @@ describe("Record errors", () => {
         "key": "",
         "key": 0
       }
-      record.put("key", null)
+      record.add("key", null)
     `);
 
     const { error } = createSubtyper()(

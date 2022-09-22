@@ -1,0 +1,3 @@
+var numberList: List[Number] = [1, 2, 3]
+
+numberList.add(4)
