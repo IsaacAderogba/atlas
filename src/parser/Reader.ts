@@ -23,9 +23,10 @@ export class Reader {
     let file: SourceFile | undefined;
 
     try {
-      file = path.isAbsolute(source)
-        ? this.readAbsolute(source)
-        : this.readRelative(source);
+      file =
+        source[0] !== "."
+          ? this.readAbsolute(source)
+          : this.readRelative(source);
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       throw new NativeError(NativeErrors.invalidFilePath(source, message));
@@ -60,37 +61,58 @@ export class Reader {
   }
 
   private readAbsolute(sourcePath: string): SourceFile | undefined {
-    // const relativePath = this.files.peek()?.module || "";
-    // let currentPath = path.join(relativePath, sourcePath);
-    // let file: SourceFile | undefined = undefined;
-    // while(!file) {
-    // }
-    // walk up the chain until it finds atlas_modules
-    // import x from "foo"
-    // src/atlas_modules/foo.ats
-    // src/atlas_modules/foo/index.ats
-    // jump up a directory
-    // read stdlib
-    /**
-     * When to stop?
-     * When it's beyond where the interpreter started
-     * Need to capture the cwd
-     */
+    const callerDir = this.getCallerDir();
+
+    const modulePath = this.modulePath(sourcePath);
+    let start = path.join(this.cwd, callerDir);
+    const end = path.dirname(this.cwd);
+
+    while (start !== end) {
+      const paths = [
+        path.join(start, "atlas_modules", `${modulePath}.ats`),
+        path.join(start, "atlas_modules", modulePath, "index.ats"),
+      ];
+
+      for (const potentialPath of paths) {
+        if (!fs.existsSync(potentialPath)) continue;
+        
+        const source = fs.readFileSync(potentialPath, { encoding: "utf8" });
+        return { source, module: potentialPath };
+      }
+
+      start = path.dirname(start);
+    }
+
+    return this.readStdlib(sourcePath);
+  }
+
+  private readStdlib(dirPath: string): SourceFile | undefined {
+    const libModule = path.join(
+      __dirname,
+      "../",
+      "stdlib",
+      dirPath,
+      "index.ats"
+    );
+
+    if (fs.existsSync(libModule)) {
+      const source = fs.readFileSync(libModule, { encoding: "utf8" });
+      return { source, module: libModule };
+    }
+
     return undefined;
   }
 
   private readRelative(sourcePath: string): SourceFile | undefined {
     const callerDir = this.getCallerDir();
     const modulePath = this.modulePath(sourcePath);
-    const paths = [`${modulePath}.ats`, `${modulePath}/index.ats`];
+    const paths = [`${modulePath}.ats`, path.join(modulePath, "index.ats")];
 
-    while (paths.length > 0) {
-      const potentialPath = paths.pop()!;
+    for (const potentialPath of paths) {
       const modulePath = path.join(callerDir, potentialPath);
 
       if (!fs.existsSync(modulePath)) continue;
 
-      console.log("module path", modulePath);
       const source = fs.readFileSync(modulePath, { encoding: "utf8" });
       return { source, module: modulePath };
     }

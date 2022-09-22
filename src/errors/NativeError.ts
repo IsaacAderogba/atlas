@@ -26,7 +26,7 @@ export class NativeErrors {
   static invalidFilePath(path: string, message = ""): SourceMessage {
     return this.formatError({
       title: "invalid file path",
-      body: `Unable to read "${path}"${message ? `\n${message}` : ""}`,
+      body: `unable to read "${path}"${message ? `\n${message}` : ""}`,
     });
   }
 }

@@ -27,7 +27,11 @@ export class Atlas implements AtlasAPI {
         this.runPrompt();
       }
     } catch (err) {
-      if (isNativeError(err)) this.reporter.error(err.message);
+      if (isNativeError(err)) {
+        this.reporter.error(
+          `${err.sourceMessage.title}, ${err.sourceMessage.body}`
+        );
+      }
       process.exit(66);
     }
   }
