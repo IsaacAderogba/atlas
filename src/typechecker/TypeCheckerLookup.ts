@@ -4,7 +4,7 @@ import type { TypeChecker } from "./TypeChecker";
 import { TypeCheckErrors } from "../errors/TypeCheckError";
 import { Token } from "../ast/Token";
 import { AtlasType, Types } from "../primitives/AtlasType";
-import { ClassType, VariableState } from "../utils/Enums";
+import { VariableState } from "../utils/Enums";
 import { Parameter } from "../ast/Node";
 import { GenericType } from "../primitives/GenericType";
 import { TypeModuleEnv } from "./TypeUtils";
@@ -37,14 +37,14 @@ export class TypeCheckerLookup {
     for (const scope of this.scopes) {
       const entry = scope.typeScope.get(name.lexeme);
       if (entry) {
-        entry.state = VariableState.SETTLED;
+        entry.state = VariableState.DEFINED;
         return entry.type;
       }
     }
 
     const entry = this.globalScope.typeScope.get(name.lexeme);
     if (entry) {
-      entry.state = VariableState.SETTLED;
+      entry.state = VariableState.DEFINED;
       return entry.type;
     }
 
@@ -68,18 +68,10 @@ export class TypeCheckerLookup {
 
   defineModule(name: Token, { values, types }: TypeModuleEnv): void {
     this.defineValue(name, Types.Module.init(name.lexeme, values));
-    this.defineType(
-      name,
-      Types.Module.init(name.lexeme, types),
-      VariableState.SETTLED
-    );
+    this.defineType(name, Types.Module.init(name.lexeme, types));
   }
 
-  defineType(
-    name: Token,
-    type: AtlasType,
-    state = VariableState.DEFINED
-  ): AtlasType {
+  defineType(name: Token, type: AtlasType): AtlasType {
     const scope = this.getScope();
 
     if (scope.typeScope.has(name.lexeme)) {
@@ -88,7 +80,11 @@ export class TypeCheckerLookup {
         TypeCheckErrors.prohibitedTypeRedeclaration()
       );
     } else {
-      scope.typeScope.set(name.lexeme, { type, source: name, state });
+      scope.typeScope.set(name.lexeme, {
+        type,
+        source: name,
+        state: VariableState.DEFINED,
+      });
       return type;
     }
   }

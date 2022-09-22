@@ -97,7 +97,7 @@ export class TypeChecker implements TypeVisitor {
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
     this.lookup.defineValue(name, classType);
-    this.lookup.defineType(name, classType, VariableState.SETTLED);
+    this.lookup.defineType(name, classType);
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
@@ -119,7 +119,7 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.getScope().valueScope.set("this", thisInstance);
     this.lookup.getScope().typeScope.set("this", {
       type: thisInstance,
-      state: VariableState.SETTLED,
+      state: VariableState.DEFINED,
     });
 
     // *only* type functions
@@ -176,12 +176,12 @@ export class TypeChecker implements TypeVisitor {
     const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, generics);
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
-      this.lookup.defineType(key, type, VariableState.SETTLED);
+      this.lookup.defineType(key, type);
       interfaceType.setProp(key.lexeme, type);
     });
     this.lookup.endScope();
 
-    this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
+    this.lookup.defineType(stmt.name, interfaceType);
   }
 
   visitImportStmt({ modulePath, name }: ImportStmt): void {

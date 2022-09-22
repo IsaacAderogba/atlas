@@ -36,7 +36,6 @@ import { Token } from "../ast/Token";
 import { SemanticError, SemanticErrors } from "../errors/SemanticError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { globals } from "../globals";
-import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
@@ -47,7 +46,7 @@ type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
 
 const globalScope = (): AnalyzerScope =>
-  Scope.fromGlobals(globals, () => ({ state: VariableState.SETTLED }));
+  Scope.fromGlobals(globals, () => ({ state: VariableState.DEFINED }));
 
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private scopes: Stack<AnalyzerScope> = new Stack();
@@ -58,7 +57,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   constructor(
     private readonly atlas: AtlasAPI,
-    private readonly interpreter: Interpreter,
     private readonly statements: Stmt[]
   ) {}
 
@@ -112,16 +110,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  private analyzeLocal(_expr: Expr, name: Token, isSettled: boolean): void {
-    for (let i = this.scopes.size - 1; i >= 0; i--) {
-      const scope = this.scopes.get(i);
-      if (scope && scope.has(name.lexeme)) {
-        const entry = scope.get(name.lexeme);
-        if (isSettled && entry) entry.state = VariableState.SETTLED;
-      }
-    }
-  }
-
   analyzeBlock(statements: Stmt[]): void {
     for (const statement of statements) {
       this.analyzeStmt(statement);
@@ -141,7 +129,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(stmt.name);
 
     this.beginScope();
-    this.getScope().set("this", { state: VariableState.SETTLED });
+    this.getScope().set("this", { state: VariableState.DEFINED });
     for (const prop of stmt.properties) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
@@ -247,7 +235,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): void {
     this.analyzeExpr(expr.value);
-    this.analyzeLocal(expr, expr.name, false);
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {
@@ -305,7 +292,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     if (this.currentClass === ClassType.NONE) {
       this.error(expr.keyword, SemanticErrors.prohibitedThis());
     }
-    this.analyzeLocal(expr, expr.keyword, true);
   }
 
   visitTernaryExpr(expr: TernaryExpr): void {
@@ -326,8 +312,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     ) {
       this.error(expr, SemanticErrors.prohibitedVariableInitializer());
     }
-
-    this.analyzeLocal(expr, expr.name, true);
   }
 
   private withModuleScope<T extends AnalyzerScope>(callback: () => T): T {

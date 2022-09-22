@@ -84,11 +84,11 @@ class Tester implements AtlasAPI {
   }
 
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
-    const analyzer = new Analyzer(this, this.interpreter, statements);
+    const analyzer = new Analyzer(this, statements);
     return analyzer.analyze();
   }
 
-  private reportErrors(errors: SourceError[]): boolean {
+  reportErrors(errors: SourceError[]): boolean {
     let hasError = false;
 
     errors.forEach(({ sourceMessage, sourceRange }) => {

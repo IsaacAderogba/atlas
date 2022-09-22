@@ -12,8 +12,7 @@ export enum ClassType {
 
 export enum VariableState {
   DECLARED = "DECLARED",
-  DEFINED = "DEFINED",
-  SETTLED = "SETTLED",
+  DEFINED = "DEFINED"
 }
 
 export enum SynthesizeContext {

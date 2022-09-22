@@ -85,7 +85,7 @@ export class Atlas implements AtlasAPI {
   }
 
   check(statements: Stmt[]): AtlasStatus {
-    const analyzer = new Analyzer(this, this.interpreter, statements);
+    const analyzer = new Analyzer(this, statements);
     const { errors: analyzeErrs } = analyzer.analyze();
     if (this.reportErrors(analyzeErrs)) return AtlasStatus.STATIC_ERROR;
 
