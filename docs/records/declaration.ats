@@ -1,0 +1,4 @@
+var numberRecord: Record[Number] = {
+  "1": 1,
+  "2": 2
+}

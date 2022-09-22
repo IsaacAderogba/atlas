@@ -74,7 +74,7 @@ export class RecordType extends ObjectType {
           returns: new UnionType([itemType, new NullType()]),
         }),
         remove: new NativeFnType({
-          params: [],
+          params: [new StringType()],
           returns: new UnionType([itemType, new NullType()]),
         }),
       },
