@@ -2,6 +2,8 @@
 // import Foo from "foo"
 // import Local from "./local"
 
-var list = ["", 0]
+var foo = {
+  "bar": ""
+}
 
-list.add(null)
+foo.bar = "hi"

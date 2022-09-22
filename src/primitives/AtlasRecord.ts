@@ -1,6 +1,7 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { isCallableType } from "./AtlasCallable";
 import { toNativeFunctions } from "./AtlasNativeFn";
 import { AtlasNull } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -12,21 +13,21 @@ import { bindInterfaceGenerics, toInterfaceString } from "./InterfaceType";
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
 
-  constructor(entries: { [key: string]: AtlasValue } = {}) {
-    super({
-      ...entries,
-      ...toNativeFunctions({
+  constructor(readonly entries: { [key: string]: AtlasValue } = {}) {
+    super(
+      toNativeFunctions({
         put: AtlasRecord.prototype.put,
         remove: AtlasRecord.prototype.remove,
-      }),
-    });
+      })
+    );
   }
 
   put(key: AtlasValue, value: AtlasValue): AtlasValue {
     if (!isAtlasString(key)) {
       throw new NativeError(RuntimeErrors.expectedString());
     }
-    super.set(key.value, value);
+
+    this.entries[key.value] = value;
     return value;
   }
 
@@ -35,16 +36,10 @@ export class AtlasRecord extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedString());
     }
 
-    const field = this.fields.get(key.value);
-    if (field) {
-      this.fields.delete(key.value);
-      return field;
-    }
-
-    const method = this.methods.get(key.value);
-    if (method) {
-      this.methods.delete(key.value);
-      return method;
+    const entry = this.entries[key.value];
+    if (entry) {
+      delete this.entries[key.value];
+      return entry;
     }
 
     return new AtlasNull();
@@ -58,8 +53,28 @@ export class AtlasRecord extends AtlasObject {
 export class RecordType extends ObjectType {
   readonly type = "Record";
 
-  constructor(entries: { [key: string]: AtlasType } = {}) {
-    super(entries);
+  constructor(readonly entries: { [key: string]: AtlasType } = {}) {
+    super();
+  }
+
+  get fields(): ObjectType["fields"] {
+    const map: ObjectType["fields"] = new Map();
+
+    Object.entries(this.entries).forEach(([key, value]) => {
+      if (!isCallableType(value)) map.set(key, value);
+    });
+
+    return map;
+  }
+
+  get methods(): ObjectType["methods"] {
+    const map: ObjectType["methods"] = new Map();
+
+    Object.entries(this.entries).forEach(([key, value]) => {
+      if (isCallableType(value)) map.set(key, value);
+    });
+
+    return map;
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {

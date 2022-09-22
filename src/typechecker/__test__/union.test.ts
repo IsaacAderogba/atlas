@@ -3,7 +3,7 @@ import { TypeCheckErrors } from "../../errors/TypeCheckError";
 import { Types } from "../../primitives/AtlasType";
 import { createSubtyper } from "../isSubtype";
 
-describe("Interface annotations", () => {
+describe("Union annotations", () => {
   it("annotates simple unions without error", () => {
     const { tester } = setupTester();
 
