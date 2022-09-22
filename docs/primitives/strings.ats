@@ -1,0 +1,2 @@
+var double: String = "double quote string"
+var single: String = "single quote string"

@@ -1,0 +1,3 @@
+var negative: Number = -5
+var positive: Number = 5
+var float: Number = 5.00

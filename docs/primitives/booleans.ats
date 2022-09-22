@@ -1,0 +1,7 @@
+var bool: Boolean = true
+
+if (bool == true) {
+	print("true")
+} else {
+	print("false")
+}
