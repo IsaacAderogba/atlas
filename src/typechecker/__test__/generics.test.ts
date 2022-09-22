@@ -125,15 +125,4 @@ describe("Generic errors", () => {
       TypeCheckErrors.invalidSubtype(error)
     );
   });
-
-  it("warns that type was defined but never used", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      var foo: [T, K](T) -> T = f(t) {
-        return t
-      }
-    `);
-    expect(errors[0].sourceMessage).toEqual(TypeCheckErrors.unusedType());
-  });
 });

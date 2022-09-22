@@ -347,15 +347,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private endScope(): void {
-    const scope = this.scopes.pop();
-
-    if (scope && this.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.values()) {
-        if (state === VariableState.DEFINED && source) {
-          this.error(source, SemanticErrors.unusedVariable());
-        }
-      }
-    }
+    this.scopes.pop();
   }
 
   private declare(name: Token): void {

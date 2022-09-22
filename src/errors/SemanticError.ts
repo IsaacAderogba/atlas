@@ -6,7 +6,7 @@ export class SemanticError extends Error implements SourceError {
     readonly sourceMessage: SourceMessage,
     readonly sourceRange: SourceRange
   ) {
-    super(sourceMessage.title)
+    super(sourceMessage.title);
   }
 }
 
@@ -17,15 +17,6 @@ export class SemanticErrors {
     type = "error",
   }: RequiredKeys<SourceMessage, "title">): SourceMessage {
     return { title: `semantic ${type}: ` + title, body, type };
-  }
-
-  //
-  static unusedVariable(): SourceMessage {
-    return this.formatError({
-      title: "unused variable",
-      body: "variable was defined but never used",
-      type: "warning",
-    });
   }
 
   //

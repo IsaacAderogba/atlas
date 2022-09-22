@@ -132,14 +132,7 @@ export class TypeCheckerLookup {
   }
 
   endScope(): void {
-    const scope = this.scopes.pop();
-    if (scope && this.typechecker.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.typeScope.values()) {
-        if (state === VariableState.DEFINED && source) {
-          this.typechecker.subtyper.error(source, TypeCheckErrors.unusedType());
-        }
-      }
-    }
+    this.scopes.pop();
   }
 
   getScope(): TypeCheckerScope {

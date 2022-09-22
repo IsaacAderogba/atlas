@@ -1,21 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SemanticErrors } from "../../errors/SemanticError";
 
-describe("Analyzer warnings", () => {
-  it("warns with unused variable", () => {
-    const expressions = ["var a = 'hello'"];
-
-    expressions.forEach(expr => {
-      const { tester } = setupTester();
-      const { errors } = tester.analyzeWorkflow(expr);
-
-      expect(errors[0].sourceMessage).toMatchObject(
-        SemanticErrors.unusedVariable()
-      );
-    });
-  });
-});
-
 describe("Analyzer errors", () => {
   it("errors with prohibited break", () => {
     const expressions = ["break"];
