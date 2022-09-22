@@ -2,6 +2,7 @@ import { isAliasType } from "../primitives/AliasType";
 import { isAnyType } from "../primitives/AnyType";
 import { isBooleanType } from "../primitives/AtlasBoolean";
 import { isCallableType } from "../primitives/AtlasCallable";
+import { isListType } from "../primitives/AtlasList";
 import { isNullType } from "../primitives/AtlasNull";
 import { isNumberType } from "../primitives/AtlasNumber";
 import { isStringType } from "../primitives/AtlasString";
@@ -45,6 +46,10 @@ export const createSubtyper = (): ((
     if (isBooleanType(a) && isBooleanType(b)) return true;
     if (isNumberType(a) && isNumberType(b)) return true;
     if (isStringType(a) && isStringType(b)) return true;
+
+    if (isListType(a) && isListType(b)) {
+      return isSubtype(a.itemType, b.itemType);
+    }
 
     if (isInterfaceType(a) && isInterfaceType(b)) {
       const fields = [...b.fields.entries()].every(([name, type]) => {

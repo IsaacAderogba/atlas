@@ -53,5 +53,6 @@ export const Types = {
   Instance: new InstanceType(Class),
   Interface: new InterfaceType("Interface"),
   Intersection: new IntersectionType([]),
+  List: new ListType(Any),
   Union: new UnionType([]),
 } as const;

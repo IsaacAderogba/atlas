@@ -37,32 +37,30 @@ export class AtlasList extends AtlasObject {
 export class ListType extends ObjectType {
   readonly type = "List";
 
-  constructor(readonly types: AtlasType[] = []) {
-    const T = new GenericType("T");
-
+  constructor(readonly itemType: AtlasType) {
     super(
       {
-        add: new NativeFnType({ params: [T], returns: T }),
+        add: new NativeFnType({ params: [itemType], returns: itemType }),
         remove: new NativeFnType({
           params: [],
-          returns: new UnionType([T, new NullType()]),
+          returns: new UnionType([itemType, new NullType()]),
         }),
       },
-      [T]
+      [new GenericType("T")]
     );
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const types = this.types.map(type => type.bindGenerics(genericTypeMap));
-    return this.init(types);
+    const mappedItem = genericTypeMap.get(this.generics[0])!;
+    const itemType = mappedItem.bindGenerics(genericTypeMap);
+    return this.init(itemType);
   }
 
-  init = (types: AtlasType[] = []): ListType => {
-    return new ListType(types);
+  init = (itemType: AtlasType): ListType => {
+    return new ListType(itemType);
   };
 
-  toString = (): string =>
-    `[${this.types.map(type => type.toString()).join(", ")}]`;
+  toString = (): string => `[${this.itemType.toString()}]`;
 }
 
 export const isListType = (type: AtlasType): type is ListType =>

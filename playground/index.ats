@@ -1,6 +1,13 @@
-import Path from "path"
-import Foo from "foo"
-import Local from "./local"
+// import Path from "path"
+// import Foo from "foo"
+// import Local from "./local"
 
+interface Foo {
+  foo: String
+}
 
-Path.join(0, 0)
+var printFoo: (List[Foo]) -> Null = f(fooList) {
+  print(fooList)
+}
+
+printFoo([{"foo": ""}, {"foo": ""}])

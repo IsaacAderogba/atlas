@@ -12,7 +12,6 @@ export class AtlasRecord extends AtlasObject {
   }
 
   toString(): string {
-    console.log(this.fields);
     return "record";
   }
 }

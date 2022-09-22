@@ -38,7 +38,7 @@ import {
   VarStmt,
   WhileStmt,
 } from "../ast/Stmt";
-import { SourceRange } from "../errors/SourceError";
+import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
@@ -294,7 +294,11 @@ export class TypeChecker implements TypeVisitor {
 
       let type: AtlasType | undefined;
       if (typeExprs.length > 0) {
-        type = this.visitGenericCall(calleeType, expr);
+        type = this.visitGenericCall(
+          expr,
+          calleeType,
+          expr.typeExprs.map(expr => this.acceptTypeExpr(expr))
+        );
       } else {
         type = calleeType;
       }
@@ -376,8 +380,13 @@ export class TypeChecker implements TypeVisitor {
     }
   }
 
-  visitListExpr(_expr: ListExpr): AtlasType {
-    throw new Error("Method not implemented.");
+  visitListExpr(expr: ListExpr): AtlasType {
+    const types = expr.items.map(item => this.acceptExpr(item));
+    const actual = types.length ? Types.Union.init(types) : Types.Any;
+    const result = this.visitGenericCall(expr, Types.List.init(actual), [
+      actual,
+    ]);
+    return result;
   }
 
   visitLogicalExpr(expr: LogicalExpr): AtlasType {
@@ -476,6 +485,8 @@ export class TypeChecker implements TypeVisitor {
 
   visitGetTypeExpr({ object, name }: GetTypeExpr): AtlasType {
     const objectType = this.acceptTypeExpr(object);
+    if (isAnyType(objectType)) return objectType;
+
     const memberType = objectType.get(name);
     if (memberType) return memberType;
 
@@ -487,7 +498,12 @@ export class TypeChecker implements TypeVisitor {
 
   visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
     const type = this.acceptTypeExpr(typeExpr.callee);
-    return this.visitGenericCall(type, typeExpr);
+
+    return this.visitGenericCall(
+      typeExpr,
+      type,
+      typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr))
+    );
   }
 
   visitSubTypeExpr({ name }: SubTypeExpr): AtlasType {
@@ -518,16 +534,13 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGenericCall(
+    source: SourceRangeable,
     genericType: AtlasType,
-    typeExpr: GenericTypeExpr | CallExpr
+    actuals: AtlasType[]
   ): AtlasType {
-    if (isAnyType(genericType)) return genericType;
-
-    const actuals = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
-
     if (genericType.generics.length !== actuals.length) {
       return this.subtyper.error(
-        typeExpr,
+        source,
         TypeCheckErrors.mismatchedArity(
           genericType.generics.length,
           actuals.length
@@ -539,7 +552,7 @@ export class TypeChecker implements TypeVisitor {
       genericType.generics.map((generic, i) => {
         let actual = actuals[i];
         if (generic.constraint) {
-          actual = this.subtyper.check(typeExpr, actual, generic.constraint);
+          actual = this.subtyper.check(source, actual, generic.constraint);
         }
 
         return [generic, actual];
@@ -552,6 +565,7 @@ export class TypeChecker implements TypeVisitor {
   visitField({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name);
+      if (isAnyType(objectType)) return objectType;
 
       if (memberType) return memberType;
       return this.subtyper.error(
