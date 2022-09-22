@@ -6,6 +6,9 @@ import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { GenericType } from "./GenericType";
 import { UnionType } from "./UnionType";
+import { isAtlasNumber, NumberType } from "./AtlasNumber";
+import { NativeError } from "../errors/NativeError";
+import { RuntimeErrors } from "../errors/RuntimeError";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -22,6 +25,14 @@ export class AtlasList extends AtlasObject {
   add(item: AtlasValue): AtlasValue {
     this.items.push(item);
     return item;
+  }
+
+  at(index: AtlasValue): AtlasValue {
+    if (!isAtlasNumber(index)) {
+      throw new NativeError(RuntimeErrors.expectedNumber());
+    }
+
+    return this.items[index.value] ?? new AtlasNull();
   }
 
   remove(): AtlasValue {
@@ -41,6 +52,10 @@ export class ListType extends ObjectType {
     super(
       {
         add: new NativeFnType({ params: [itemType], returns: itemType }),
+        at: new NativeFnType({
+          params: [new NumberType()],
+          returns: new UnionType([itemType, new NullType()]),
+        }),
         remove: new NativeFnType({
           params: [],
           returns: new UnionType([itemType, new NullType()]),
