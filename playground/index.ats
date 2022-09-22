@@ -1,10 +1,6 @@
-// import foo from "foo"
-// import Path from "path"
+import Path from "path"
+import Foo from "foo"
+import Local from "./local"
 
-module Mod {
-  var foo = 3
-}
 
-module Bar {
-  var x = Mod.foo
-}
+Path.join(0, 0)

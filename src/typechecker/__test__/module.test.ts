@@ -17,7 +17,7 @@ describe("Module annotations", () => {
   });
 });
 
-describe("Module, errors", () => {
+describe("Module errors", () => {
   it("errors with undefined type if module attempts to use itself", () => {
     const { tester } = setupTester();
 
