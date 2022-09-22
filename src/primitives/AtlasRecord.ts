@@ -17,7 +17,7 @@ export class AtlasRecord extends AtlasObject {
       ...entries,
       ...toNativeFunctions({
         put: AtlasRecord.prototype.put,
-        // remove: AtlasRecord.prototype.remove,
+        remove: AtlasRecord.prototype.remove,
       }),
     });
   }
@@ -30,23 +30,25 @@ export class AtlasRecord extends AtlasObject {
     return value;
   }
 
-  // remove(name: AtlasValue): AtlasValue {
-  //   const field = this.fields.get(name.lexeme);
+  remove(key: AtlasValue): AtlasValue {
+    if (!isAtlasString(key)) {
+      throw new NativeError(RuntimeErrors.expectedString());
+    }
 
-  //   if (field) {
-  //     this.fields.delete(name.lexeme);
-  //     return field;
-  //   }
+    const field = this.fields.get(key.value);
+    if (field) {
+      this.fields.delete(key.value);
+      return field;
+    }
 
-  //   const method = this.methods.get(name.lexeme);
+    const method = this.methods.get(key.value);
+    if (method) {
+      this.methods.delete(key.value);
+      return method;
+    }
 
-  //   if (method) {
-  //     this.methods.delete(name.lexeme);
-  //     return method;
-  //   }
-
-  //   return new AtlasNull();
-  // }
+    return new AtlasNull();
+  }
 
   toString(): string {
     return "record";
