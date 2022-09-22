@@ -2,12 +2,6 @@
 // import Foo from "foo"
 // import Local from "./local"
 
-interface Foo {
-  foo: String
-}
+var list = ["", 0]
 
-var printFoo: (List[Foo]) -> Null = f(fooList) {
-  print(fooList)
-}
-
-printFoo([{"foo": ""}, {"foo": ""}])
+list.add(null)
