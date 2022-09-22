@@ -61,7 +61,8 @@ export const isInterfaceType = (
   value.type === "Interface" ||
   value.type === "Record" ||
   value.type === "Class" ||
-  value.type === "Instance";
+  value.type === "Instance" ||
+  value.type === "Module";
 
 export const toInterfaceString = (target: AtlasType): string => {
   const props: string[] = [];

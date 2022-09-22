@@ -11,18 +11,20 @@ import { AtlasType } from "../src/primitives/AtlasType";
 import { SourceError } from "../src/errors/SourceError";
 import { ConsoleReporter } from "../src/reporter/ConsoleReporter";
 import { AtlasValue } from "../src/primitives/AtlasValue";
+import { Reader } from "../src/parser/Reader";
+import { AtlasAPI } from "../src/AtlasAPI";
 
-class Tester {
-  private reporter = new ConsoleReporter();
-  public interpreter = new Interpreter();
-  public typechecker = new TypeChecker();
+class Tester implements AtlasAPI {
+  reporter = new ConsoleReporter();
+  reader = new Reader();
+  interpreter = new Interpreter(this);
+  typechecker = new TypeChecker(this);
 
-  interpretWorkflow(source: string): void {
+  interpretWorkflow(source: string): ReturnType<Interpreter["interpret"]> {
     const { tokens } = this.scan(source);
     const { statements } = this.parse(tokens);
     this.analyze(statements);
-    // this.typechecker.typeCheck(statements);
-    this.interpreter.interpret(statements);
+    return this.interpreter.interpret(statements);
   }
 
   evaluateWorkflow(source: string): AtlasValue {
@@ -33,7 +35,7 @@ class Tester {
   typeCheckWorkflow(source: string): ReturnType<TypeChecker["typeCheck"]> {
     const { statements } = this.parseWorkflow(source);
     const { errors } = this.analyze(statements);
-    if (this.reportErrors(source, errors)) throw new Error("Analysis error");
+    if (this.reportErrors(errors)) throw new Error("Analysis error");
     return this.typechecker.typeCheck(statements);
   }
 
@@ -47,6 +49,11 @@ class Tester {
     return this.typechecker.acceptExpr(expression);
   }
 
+  analyzeWorkflow(source: string): ReturnType<Analyzer["analyze"]> {
+    const { statements } = this.parseWorkflow(source);
+    return this.analyze(statements);
+  }
+
   parseWorkflow(source: string): ReturnType<Parser["parse"]> {
     const { tokens } = this.scan(source);
     return this.parse(tokens);
@@ -57,9 +64,13 @@ class Tester {
     return this.parseExpression(tokens);
   }
 
+  scanWorkflow(source: string): ReturnType<Scanner["scan"]> {
+    return this.scan(source);
+  }
+
   private scan(source: string): ReturnType<Scanner["scan"]> {
-    const scanner = new Scanner(source);
-    return scanner.scan();
+    const scanner = new Scanner();
+    return scanner.scan({ source, module: "test" });
   }
 
   private parse(tokens: Token[]): ReturnType<Parser["parse"]> {
@@ -73,17 +84,17 @@ class Tester {
   }
 
   private analyze(statements: Stmt[]): ReturnType<Analyzer["analyze"]> {
-    const analyzer = new Analyzer(this.interpreter, statements);
+    const analyzer = new Analyzer(this, statements);
     return analyzer.analyze();
   }
 
-  private reportErrors(source: string, errors: SourceError[]): boolean {
+  reportErrors(errors: SourceError[]): boolean {
     let hasError = false;
 
     errors.forEach(({ sourceMessage, sourceRange }) => {
       if (sourceMessage.type === "error") {
         hasError = true;
-        this.reporter.rangeError(source, sourceRange, sourceMessage);
+        this.reporter.rangeError(sourceRange, sourceMessage);
       }
     });
 

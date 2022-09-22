@@ -8,6 +8,7 @@ import {
   FunctionExpr,
   GenericTypeExpr,
   GetExpr,
+  GetTypeExpr,
   GroupingExpr,
   isFunctionExpr,
   ListExpr,
@@ -28,7 +29,9 @@ import {
   ClassStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   InterfaceStmt,
+  ModuleStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -39,13 +42,15 @@ import { SourceRange } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
-import { AtlasString } from "../primitives/AtlasString";
+import { AtlasString, isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
-import { CurrentFunction, TypeVisitor } from "./TypeUtils";
+import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
+import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
+import { AtlasAPI } from "../AtlasAPI";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -53,8 +58,10 @@ export class TypeChecker implements TypeVisitor {
   currentFunction?: CurrentFunction;
   currentClass = ClassType.NONE;
 
+  constructor(private readonly atlas: AtlasAPI) {}
+
   typeCheck(statements: Stmt[]): { errors: TypeCheckError[] } {
-    this.lookup.beginScope(this.lookup.globalScope);
+    this.lookup.beginScope(globalTypeScope());
     for (const statement of statements) {
       this.acceptStmt(statement);
     }
@@ -90,7 +97,7 @@ export class TypeChecker implements TypeVisitor {
     this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
     this.lookup.defineValue(name, classType);
-    this.lookup.defineType(name, classType, VariableState.SETTLED);
+    this.lookup.defineType(name, classType);
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
@@ -112,7 +119,7 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.getScope().valueScope.set("this", thisInstance);
     this.lookup.getScope().typeScope.set("this", {
       type: thisInstance,
-      state: VariableState.SETTLED,
+      state: VariableState.DEFINED,
     });
 
     // *only* type functions
@@ -135,8 +142,9 @@ export class TypeChecker implements TypeVisitor {
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
+      const { file, start } = name.sourceRange();
       this.subtyper.check(
-        new SourceRange(name.sourceRange().start, typeExpr.sourceRange().end),
+        new SourceRange(file, start, typeExpr.sourceRange().end),
         classType,
         this.acceptTypeExpr(typeExpr)
       );
@@ -168,12 +176,36 @@ export class TypeChecker implements TypeVisitor {
     const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, generics);
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
-      this.lookup.defineType(key, type, VariableState.SETTLED);
+      this.lookup.defineType(key, type);
       interfaceType.setProp(key.lexeme, type);
     });
     this.lookup.endScope();
 
-    this.lookup.defineType(stmt.name, interfaceType, VariableState.SETTLED);
+    this.lookup.defineType(stmt.name, interfaceType);
+  }
+
+  visitImportStmt({ modulePath, name }: ImportStmt): void {
+    if (!isAtlasString(modulePath.literal)) throw new Error("invariant");
+
+    this.atlas.reader.readFile(
+      modulePath.literal.value,
+      ({ statements, errors, file }) => {
+        const cachedModule = this.lookup.cachedModule(file.module);
+
+        if (cachedModule) {
+          this.lookup.defineModule(name, cachedModule);
+        } else {
+          if (this.atlas.reportErrors(errors)) process.exit(65);
+          const moduleEnv = this.visitModule(statements);
+          this.lookup.defineModule(name, moduleEnv);
+          this.lookup.setCachedModule(file.module, moduleEnv);
+        }
+      }
+    );
+  }
+
+  visitModuleStmt({ name, block }: ModuleStmt): void {
+    this.lookup.defineModule(name, this.visitModule(block.statements));
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -264,12 +296,6 @@ export class TypeChecker implements TypeVisitor {
       if (typeExprs.length > 0) {
         type = this.visitGenericCall(calleeType, expr);
       } else {
-        if (calleeType.generics.some(g => !g.constraint)) {
-          return this.subtyper.error(
-            callee,
-            TypeCheckErrors.requiredGenericArgs()
-          );
-        }
         type = calleeType;
       }
 
@@ -283,7 +309,7 @@ export class TypeChecker implements TypeVisitor {
 
       if (type.arity() !== args.length) {
         return this.subtyper.error(
-          new SourceRange(open, close),
+          new SourceRange(open.sourceRange().file, open, close),
           TypeCheckErrors.mismatchedArity(type.arity(), args.length)
         );
       }
@@ -448,29 +474,55 @@ export class TypeChecker implements TypeVisitor {
     }
   }
 
-  visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
-    const genericType = this.lookup.type(typeExpr.name);
-    return this.visitGenericCall(genericType, typeExpr);
+  visitGetTypeExpr({ object, name }: GetTypeExpr): AtlasType {
+    const objectType = this.acceptTypeExpr(object);
+    const memberType = objectType.get(name);
+    if (memberType) return memberType;
+
+    return this.subtyper.error(
+      name,
+      TypeCheckErrors.unknownProperty(name.lexeme)
+    );
   }
 
-  visitSubTypeExpr(typeExpr: SubTypeExpr): AtlasType {
-    const type = this.lookup.type(typeExpr.name);
+  visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
+    const type = this.acceptTypeExpr(typeExpr.callee);
+    return this.visitGenericCall(type, typeExpr);
+  }
 
-    if (type.generics.some(g => !g.constraint)) {
-      return this.subtyper.error(
-        typeExpr,
-        TypeCheckErrors.requiredGenericArgs()
-      );
-    }
-
-    return type;
+  visitSubTypeExpr({ name }: SubTypeExpr): AtlasType {
+    return this.lookup.type(name);
   }
 
   // utils
+  visitModule(statements: Stmt[]): TypeModuleEnv {
+    const scope = this.lookup.withModuleScope(() => {
+      const scope = new TypeCheckerScope();
+      this.lookup.beginScope(scope);
+      for (const statement of statements) this.acceptStmt(statement);
+      this.lookup.endScope();
+      return scope;
+    });
+
+    const values: { [key: string]: AtlasType } = {};
+    for (const [key, value] of scope.valueScope.entries()) {
+      values[key] = value;
+    }
+
+    const types: { [key: string]: AtlasType } = {};
+    for (const [key, { type }] of scope.typeScope.entries()) {
+      types[key] = type;
+    }
+
+    return { values, types };
+  }
+
   visitGenericCall(
     genericType: AtlasType,
     typeExpr: GenericTypeExpr | CallExpr
   ): AtlasType {
+    if (isAnyType(genericType)) return genericType;
+
     const actuals = typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr));
 
     if (genericType.generics.length !== actuals.length) {
@@ -500,6 +552,7 @@ export class TypeChecker implements TypeVisitor {
   visitField({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name);
+
       if (memberType) return memberType;
       return this.subtyper.error(
         name,

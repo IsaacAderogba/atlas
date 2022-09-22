@@ -5,12 +5,6 @@ import { atlasBoolean } from "../../primitives/AtlasBoolean";
 import { AtlasNull } from "../../primitives/AtlasNull";
 import { AtlasNumber } from "../../primitives/AtlasNumber";
 import { AtlasString } from "../../primitives/AtlasString";
-import { Scanner } from "../Scanner";
-
-const setupTests = (source: string): { scanner: Scanner } => {
-  const scanner = new Scanner(source);
-  return { scanner };
-};
 
 describe("Scanner tokens", () => {
   it("tokenizes single-character tokens", () => {
@@ -40,8 +34,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -56,8 +50,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
@@ -80,8 +74,8 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(1);
     });
@@ -89,16 +83,17 @@ describe("Scanner tokens", () => {
 
   it("tokenizes keywords and identifiers", () => {
     const charTypes: { char: string; type: TokenType }[] = [
-      { char: "&&", type: "AMPERSAND_AMPERSAND" },
       { char: "break", type: "BREAK" },
       { char: "continue", type: "CONTINUE" },
       { char: "class", type: "CLASS" },
       { char: "else", type: "ELSE" },
-      { char: "for", type: "FOR" },
       { char: "f", type: "FUNCTION" },
+      { char: "for", type: "FOR" },
+      { char: "from", type: "FROM" },
       { char: "if", type: "IF" },
       { char: "is", type: "IS" },
-      { char: "||", type: "PIPE_PIPE" },
+      { char: "import", type: "IMPORT" },
+      { char: "module", type: "MODULE" },
       { char: "return", type: "RETURN" },
       { char: "super", type: "SUPER" },
       { char: "this", type: "THIS" },
@@ -111,22 +106,31 @@ describe("Scanner tokens", () => {
     ];
 
     charTypes.forEach(({ char, type }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens.length).toEqual(2);
     });
   });
 
   it("tokenizes string", () => {
-    const charTypes: { char: string; type: TokenType; literal: AtlasString }[] = [
-      { char: '"string"', type: "STRING", literal: new AtlasString("string") },
-      { char: "'string'", type: "STRING", literal: new AtlasString("string") },
-    ];
+    const charTypes: { char: string; type: TokenType; literal: AtlasString }[] =
+      [
+        {
+          char: '"string"',
+          type: "STRING",
+          literal: new AtlasString("string"),
+        },
+        {
+          char: "'string'",
+          type: "STRING",
+          literal: new AtlasString("string"),
+        },
+      ];
 
     charTypes.forEach(({ char, type, literal }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -135,14 +139,15 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes number", () => {
-    const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] = [
-      { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
-      { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
-    ];
+    const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] =
+      [
+        { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
+        { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
+      ];
 
     charTypes.forEach(({ char, type, literal }) => {
-      const { scanner } = setupTests(char);
-      const { tokens } = scanner.scan();
+      const { tester } = setupTester();
+      const { tokens } = tester.scanWorkflow(char);
       expect(tokens[0].type).toEqual(type);
       expect(tokens[0].literal).toEqual(literal);
 
@@ -151,8 +156,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes true", () => {
-    const { scanner } = setupTests("true");
-    const { tokens } = scanner.scan();
+    const { tester } = setupTester();
+    const { tokens } = tester.scanWorkflow("true");
 
     expect(tokens[0].type).toEqual("TRUE");
     expect(tokens[0].literal).toEqual(atlasBoolean(true));
@@ -161,8 +166,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes false", () => {
-    const { scanner } = setupTests("false");
-    const { tokens } = scanner.scan();
+    const { tester } = setupTester();
+    const { tokens } = tester.scanWorkflow("false");
 
     expect(tokens[0].type).toEqual("FALSE");
     expect(tokens[0].literal).toEqual(atlasBoolean(false));
@@ -171,8 +176,8 @@ describe("Scanner tokens", () => {
   });
 
   it("tokenizes null", () => {
-    const { scanner } = setupTests("null");
-    const { tokens } = scanner.scan();
+    const { tester } = setupTester();
+    const { tokens } = tester.scanWorkflow("null");
 
     expect(tokens[0].type).toEqual("NULL");
     expect(tokens[0].literal).toEqual(new AtlasNull());
@@ -181,27 +186,34 @@ describe("Scanner tokens", () => {
   });
 });
 
-describe("Scanner errors", () => {
+describe("scan errors", () => {
   it("errors with unsupported character", () => {
-    const { scanner } = setupTests("£");
+    const { tester } = setupTester();
+    const { errors } = tester.scanWorkflow("£");
 
-    const { errors } = scanner.scan();
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unsupportedCharacter()
+    );
   });
 
   it("errors with unterminated string", () => {
-    const { scanner } = setupTests('"Hello');
+    const { tester } = setupTester();
+    const { errors } = tester.scanWorkflow('"Hello');
 
-    const { errors } = scanner.scan();
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unterminatedString()
+    );
   });
 
   it("cascades multiple errors", () => {
-    const { scanner } = setupTests('£"Hello');
+    const { tester } = setupTester();
+    const { errors } = tester.scanWorkflow('£"Hello');
 
-    const { errors } = scanner.scan();
-
-    expect(errors[0].sourceMessage).toMatchObject(SyntaxErrors.unsupportedCharacter());
-    expect(errors[1].sourceMessage).toMatchObject(SyntaxErrors.unterminatedString());
+    expect(errors[0].sourceMessage).toMatchObject(
+      SyntaxErrors.unsupportedCharacter()
+    );
+    expect(errors[1].sourceMessage).toMatchObject(
+      SyntaxErrors.unterminatedString()
+    );
   });
 });

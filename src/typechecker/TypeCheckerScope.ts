@@ -25,7 +25,7 @@ export const globalTypeScope = (): TypeCheckerScope =>
   new TypeCheckerScope({
     typeScope: Scope.fromGlobals(Types, (_, type) => ({
       type,
-      state: VariableState.SETTLED,
+      state: VariableState.DEFINED,
     })),
     valueScope: Scope.fromGlobals(typeGlobals, (_, type) => type),
   });

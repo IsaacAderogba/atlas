@@ -108,12 +108,4 @@ export class TypeCheckErrors {
       body: `property ${name} cannot be inferred`,
     });
   }
-
-  static unusedType(): SourceMessage {
-    return this.formatError({
-      title: "unused type",
-      body: "type was defined but never used",
-      type: "warning",
-    });
-  }
 }

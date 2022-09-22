@@ -24,6 +24,8 @@ import {
   ContinueStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
+  ModuleStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -34,30 +36,32 @@ import { Token } from "../ast/Token";
 import { SemanticError, SemanticErrors } from "../errors/SemanticError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { globals } from "../globals";
-import { Interpreter } from "../runtime/Interpreter";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
+import { AtlasAPI } from "../AtlasAPI";
+import { isAtlasString } from "../primitives/AtlasString";
 
 type AnalyzerScope = Scope<{ state: VariableState; source?: SourceRangeable }>;
 type CurrentFunction = { type: FunctionEnum; expr: FunctionExpr };
 
+const globalScope = (): AnalyzerScope =>
+  Scope.fromGlobals(globals, () => ({ state: VariableState.DEFINED }));
+
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
-  private readonly scopes: Stack<AnalyzerScope> = new Stack();
+  private scopes: Stack<AnalyzerScope> = new Stack();
   private currentFunction?: CurrentFunction;
   private currentClass = ClassType.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
 
   constructor(
-    private readonly interpreter: Interpreter,
+    private readonly atlas: AtlasAPI,
     private readonly statements: Stmt[]
   ) {}
 
   analyze(): { errors: SemanticError[] } {
-    this.beginScope(
-      Scope.fromGlobals(globals, () => ({ state: VariableState.SETTLED }))
-    );
+    this.beginScope(globalScope());
     for (const statement of this.statements) {
       this.analyzeStmt(statement);
     }
@@ -106,17 +110,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  private analyzeLocal(expr: Expr, name: Token, isSettled: boolean): void {
-    for (let i = this.scopes.size - 1; i >= 0; i--) {
-      const scope = this.scopes.get(i);
-      if (scope && scope.has(name.lexeme)) {
-        const entry = scope.get(name.lexeme);
-        if (isSettled && entry) entry.state = VariableState.SETTLED;
-        return this.interpreter.resolve(expr, this.scopes.size - 1 - i);
-      }
-    }
-  }
-
   analyzeBlock(statements: Stmt[]): void {
     for (const statement of statements) {
       this.analyzeStmt(statement);
@@ -136,7 +129,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(stmt.name);
 
     this.beginScope();
-    this.getScope().set("this", { state: VariableState.SETTLED });
+    this.getScope().set("this", { state: VariableState.DEFINED });
     for (const prop of stmt.properties) {
       const isInit = prop.name.lexeme === "init";
       const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
@@ -172,6 +165,35 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitInterfaceStmt(): void {
     // no op
+  }
+
+  visitImportStmt(stmt: ImportStmt): void {
+    if (!isAtlasString(stmt.modulePath.literal)) throw new Error("invariant");
+
+    this.atlas.reader.readFile(
+      stmt.modulePath.literal.value,
+      ({ statements, errors }) => {
+        if (this.atlas.reportErrors(errors)) process.exit(65);
+        this.visitModule(stmt.name, statements);
+      }
+    );
+  }
+
+  visitModuleStmt(stmt: ModuleStmt): void {
+    this.visitModule(stmt.name, stmt.block.statements);
+  }
+
+  visitModule(name: Token, statements: Stmt[]): void {
+    this.withModuleScope(() => {
+      const scope: AnalyzerScope = new Scope();
+      this.beginScope(scope);
+      this.analyzeBlock(statements);
+      this.endScope();
+      return scope;
+    });
+
+    this.declare(name);
+    this.define(name);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -213,7 +235,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): void {
     this.analyzeExpr(expr.value);
-    this.analyzeLocal(expr, expr.name, false);
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {
@@ -271,7 +292,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     if (this.currentClass === ClassType.NONE) {
       this.error(expr.keyword, SemanticErrors.prohibitedThis());
     }
-    this.analyzeLocal(expr, expr.keyword, true);
   }
 
   visitTernaryExpr(expr: TernaryExpr): void {
@@ -292,8 +312,18 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     ) {
       this.error(expr, SemanticErrors.prohibitedVariableInitializer());
     }
+  }
 
-    this.analyzeLocal(expr, expr.name, true);
+  private withModuleScope<T extends AnalyzerScope>(callback: () => T): T {
+    const enclosingScopes = this.scopes;
+    this.scopes = new Stack();
+
+    this.beginScope(globalScope());
+    const scope = callback();
+    this.endScope();
+
+    this.scopes = enclosingScopes;
+    return scope;
   }
 
   private beginScope(scope: AnalyzerScope = new Scope()): void {
@@ -301,15 +331,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private endScope(): void {
-    const scope = this.scopes.pop();
-
-    if (scope && this.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.values()) {
-        if (state === VariableState.DEFINED && source) {
-          this.error(source, SemanticErrors.unusedVariable());
-        }
-      }
-    }
+    this.scopes.pop();
   }
 
   private declare(name: Token): void {

@@ -2,8 +2,8 @@ import { Token } from "../ast/Token";
 import { TokenType } from "../ast/TokenType";
 import { isAlpha, isAlphaNumeric, isDigit } from "../utils/alphanumeric";
 import { AtlasValue } from "../primitives/AtlasValue";
-import { SourceMessage, SourceRange } from "../errors/SourceError";
-import { Keywords } from "./Keywords";
+import { SourceFile, SourceMessage, SourceRange } from "../errors/SourceError";
+import { Keywords } from "../ast/Keywords";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { AtlasString } from "../primitives/AtlasString";
 import { AtlasNumber } from "../primitives/AtlasNumber";
@@ -11,7 +11,7 @@ import { AtlasNull } from "../primitives/AtlasNull";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Scanner {
-  private readonly source: string;
+  private file!: SourceFile;
   private readonly tokens: Token[] = [];
   private start = 0;
   private current = 0;
@@ -20,12 +20,9 @@ export class Scanner {
 
   private errors: SyntaxError[] = [];
 
-  constructor(source: string) {
-    this.source = source;
-  }
-
-  scan(): { tokens: Token[]; errors: SyntaxError[] } {
+  scan(file: SourceFile): { tokens: Token[]; errors: SyntaxError[] } {
     try {
+      this.file = file;
       this.errors = [];
 
       while (!this.isAtEnd()) {
@@ -156,7 +153,7 @@ export class Scanner {
   private primitives(): void {
     while (isAlphaNumeric(this.peek())) this.advance();
 
-    const text = this.source.substring(this.start, this.current);
+    const text = this.file.source.substring(this.start, this.current);
     switch (text) {
       case "null":
         this.addToken("NULL", { literal: new AtlasNull() });
@@ -185,7 +182,7 @@ export class Scanner {
     this.advance();
 
     // Trim the surrounding quotes
-    const value = this.source.substring(this.start + 1, this.current - 1);
+    const value = this.file.source.substring(this.start + 1, this.current - 1);
     this.addToken("STRING", { literal: new AtlasString(value) });
   }
 
@@ -200,7 +197,9 @@ export class Scanner {
       while (isDigit(this.peek())) this.advance();
     }
 
-    const value = parseFloat(this.source.substring(this.start, this.current));
+    const value = parseFloat(
+      this.file.source.substring(this.start, this.current)
+    );
     this.addToken("NUMBER", { literal: new AtlasNumber(value) });
   }
 
@@ -212,17 +211,17 @@ export class Scanner {
   }
 
   private peekNext(): string {
-    if (this.current + 1 >= this.source.length) return "\0";
-    return this.source.charAt(this.current + 1);
+    if (this.current + 1 >= this.file.source.length) return "\0";
+    return this.file.source.charAt(this.current + 1);
   }
 
   private peek(): string {
     if (this.isAtEnd()) return "\0";
-    return this.source.charAt(this.current);
+    return this.file.source.charAt(this.current);
   }
 
   private advance(): string {
-    const char = this.source.charAt(this.current);
+    const char = this.file.source.charAt(this.current);
     this.current += 1;
 
     if (char === "\n") {
@@ -237,21 +236,24 @@ export class Scanner {
     type: TokenType,
     {
       literal,
-      text = this.source.substring(this.start, this.current),
+      text = this.file.source.substring(this.start, this.current),
     }: Partial<{ literal: AtlasValue; text: string }> = {}
   ): void {
     const column = 1 + this.start - this.lineStart;
-    this.tokens.push(new Token(type, text, literal, this.line, column));
+    this.tokens.push(
+      new Token(this.file, type, text, literal, this.line, column)
+    );
   }
 
   private isAtEnd(): boolean {
-    return this.current >= this.source.length;
+    return this.current >= this.file.source.length;
   }
 
   private error(message: SourceMessage): void {
     const line = this.line;
     const column = this.current - this.lineStart;
     const sourceRange = new SourceRange(
+      this.file,
       { line, column },
       { line, column: column + 1 }
     );

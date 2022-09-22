@@ -20,9 +20,9 @@ export class BlockStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.open.sourceRange();
+    const { file, start } = this.open.sourceRange();
     const { end } = this.open.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -54,9 +54,9 @@ export class ClassStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -110,13 +110,31 @@ export class IfStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
 
     if (this.elseBranch) {
-      return new SourceRange(start, this.elseBranch.sourceRange().end);
+      return new SourceRange(file, start, this.elseBranch.sourceRange().end);
     } else {
-      return new SourceRange(start, this.thenBranch.sourceRange().end);
+      return new SourceRange(file, start, this.thenBranch.sourceRange().end);
     }
+  }
+}
+
+export class ImportStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly modulePath: Token
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitImportStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { file, start } = this.keyword.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -127,7 +145,7 @@ export class InterfaceStmt implements BaseStmt {
     readonly parameters: Parameter[],
     readonly open: Token,
     readonly entries: TypeProperty[],
-    readonly close: Token,
+    readonly close: Token
   ) {}
 
   accept<T>(visitor: StmtVisitor<T>): T {
@@ -135,9 +153,27 @@ export class InterfaceStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.close.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
+  }
+}
+
+export class ModuleStmt implements BaseStmt {
+  constructor(
+    readonly keyword: Token,
+    readonly name: Token,
+    readonly block: BlockStmt
+  ) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitModuleStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { file, start } = this.keyword.sourceRange();
+    const { end } = this.name.sourceRange();
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -149,9 +185,9 @@ export class ReturnStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.value.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -168,9 +204,9 @@ export class TypeStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.type.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -182,9 +218,9 @@ export class VarStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.property.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -200,9 +236,9 @@ export class WhileStmt implements BaseStmt {
   }
 
   sourceRange(): SourceRange {
-    const { start } = this.keyword.sourceRange();
+    const { file, start } = this.keyword.sourceRange();
     const { end } = this.body.sourceRange();
-    return new SourceRange(start, end);
+    return new SourceRange(file, start, end);
   }
 }
 
@@ -213,7 +249,9 @@ export type Stmt =
   | ContinueStmt
   | ErrorStmt
   | IfStmt
+  | ImportStmt
   | InterfaceStmt
+  | ModuleStmt
   | ReturnStmt
   | TypeStmt
   | VarStmt
@@ -228,7 +266,9 @@ export interface StmtVisitor<T> {
   visitErrorStmt?(stmt: ErrorStmt): T;
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitIfStmt(stmt: IfStmt): T;
+  visitImportStmt(stmt: ImportStmt): T;
   visitInterfaceStmt(stmt: InterfaceStmt): T;
+  visitModuleStmt(stmt: ModuleStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
   visitTypeStmt(stmt: TypeStmt): T;
   visitVarStmt(stmt: VarStmt): T;

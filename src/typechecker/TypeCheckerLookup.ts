@@ -3,16 +3,25 @@ import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import type { TypeChecker } from "./TypeChecker";
 import { TypeCheckErrors } from "../errors/TypeCheckError";
 import { Token } from "../ast/Token";
-import { AtlasType } from "../primitives/AtlasType";
-import { ClassType, VariableState } from "../utils/Enums";
+import { AtlasType, Types } from "../primitives/AtlasType";
+import { VariableState } from "../utils/Enums";
 import { Parameter } from "../ast/Node";
 import { GenericType } from "../primitives/GenericType";
+import { TypeModuleEnv } from "./TypeUtils";
 
 export class TypeCheckerLookup {
-  private readonly scopes: Stack<TypeCheckerScope> = new Stack();
-  readonly globalScope = globalTypeScope();
+  private scopes: Stack<TypeCheckerScope> = new Stack();
+  private cachedModules: { [path: string]: TypeModuleEnv } = {};
 
   constructor(public typechecker: TypeChecker) {}
+
+  cachedModule(path: string): TypeModuleEnv | undefined {
+    return this.cachedModules[path];
+  }
+
+  setCachedModule(path: string, value: TypeModuleEnv): void {
+    this.cachedModules[path] = value;
+  }
 
   value(name: Token): AtlasType {
     const type = this.scopedValue(name.lexeme);
@@ -27,15 +36,9 @@ export class TypeCheckerLookup {
     for (const scope of this.scopes) {
       const entry = scope.typeScope.get(name.lexeme);
       if (entry) {
-        entry.state = VariableState.SETTLED;
+        entry.state = VariableState.DEFINED;
         return entry.type;
       }
-    }
-
-    const entry = this.globalScope.typeScope.get(name.lexeme);
-    if (entry) {
-      entry.state = VariableState.SETTLED;
-      return entry.type;
     }
 
     return this.typechecker.subtyper.error(
@@ -50,17 +53,15 @@ export class TypeCheckerLookup {
       if (type) return type;
     }
 
-    const type = this.globalScope.valueScope.get(name);
-    if (type) return type;
-
     return undefined;
   }
 
-  defineType(
-    name: Token,
-    type: AtlasType,
-    state = VariableState.DEFINED
-  ): AtlasType {
+  defineModule(name: Token, { values, types }: TypeModuleEnv): void {
+    this.defineValue(name, Types.Module.init(name.lexeme, values));
+    this.defineType(name, Types.Module.init(name.lexeme, types));
+  }
+
+  defineType(name: Token, type: AtlasType): AtlasType {
     const scope = this.getScope();
 
     if (scope.typeScope.has(name.lexeme)) {
@@ -69,7 +70,11 @@ export class TypeCheckerLookup {
         TypeCheckErrors.prohibitedTypeRedeclaration()
       );
     } else {
-      scope.typeScope.set(name.lexeme, { type, source: name, state });
+      scope.typeScope.set(name.lexeme, {
+        type,
+        source: name,
+        state: VariableState.DEFINED,
+      });
       return type;
     }
   }
@@ -96,19 +101,24 @@ export class TypeCheckerLookup {
     });
   }
 
+  withModuleScope<T extends TypeCheckerScope>(callback: () => T): T {
+    const enclosingScopes = this.scopes;
+    this.scopes = new Stack();
+
+    this.beginScope(globalTypeScope());
+    const scope = callback();
+    this.endScope();
+
+    this.scopes = enclosingScopes;
+    return scope;
+  }
+
   beginScope(newScope = new TypeCheckerScope()): void {
     this.scopes.push(newScope);
   }
 
   endScope(): void {
-    const scope = this.scopes.pop();
-    if (scope && this.typechecker.currentClass === ClassType.NONE) {
-      for (const { state, source } of scope.typeScope.values()) {
-        if (state === VariableState.DEFINED && source) {
-          this.typechecker.subtyper.error(source, TypeCheckErrors.unusedType());
-        }
-      }
-    }
+    this.scopes.pop();
   }
 
   getScope(): TypeCheckerScope {

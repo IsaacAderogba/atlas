@@ -1,0 +1,5 @@
+
+
+var join: (String, String) -> String = f(a, b) {
+  return a # b
+}

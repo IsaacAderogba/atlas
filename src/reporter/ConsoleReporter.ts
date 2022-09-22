@@ -8,15 +8,14 @@ export class ConsoleReporter implements Reporter {
   }
 
   rangeError(
-    source: string,
     range: SourceRange,
     { title, body, type }: SourceMessage
   ): void {
     const indent = 6;
     const errorChalk = type === "error" ? chalk.red : chalk.yellow;
 
-    const { start } = range;
-    const sourceLine = source.split("\n")[start.line - 1].replace(/\t/g, " ");
+    const { start, file } = range;
+    const sourceLine = file.source.split("\n")[start.line - 1].replace(/\t/g, " ");
 
     const base = Array(indent + start.column - 1)
       .fill(" ")
@@ -25,7 +24,7 @@ export class ConsoleReporter implements Reporter {
     const underline = base + Array(range.length()).fill("^").join("");
     const newline = base + Array(range.length()).fill(" ").join("");
 
-    const lineColumn = errorChalk(`${start.line}:${start.column} | `);
+    const lineColumn = errorChalk(`${file.module}:${start.line}:${start.column} | `);
     const startLine = `${start.line.toString().padEnd(indent)}`;
 
     const messages = body.split("\n").join(`\n${newline} `)

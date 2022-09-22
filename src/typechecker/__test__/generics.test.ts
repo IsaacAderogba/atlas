@@ -96,19 +96,6 @@ describe("Generics annotations", () => {
 });
 
 describe("Generic errors", () => {
-  it("errors with required args for type generic statements", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      type Foo[T] = T
-
-      var foo: Foo = ""
-    `);
-    expect(errors[0].sourceMessage).toEqual(
-      TypeCheckErrors.requiredGenericArgs()
-    );
-  });
-
   it("errors with required args for call expressions", () => {
     const { tester } = setupTester();
 
@@ -137,16 +124,5 @@ describe("Generic errors", () => {
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(error)
     );
-  });
-
-  it("warns that type was defined but never used", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      var foo: [T, K](T) -> T = f(t) {
-        return t
-      }
-    `);
-    expect(errors[0].sourceMessage).toEqual(TypeCheckErrors.unusedType());
   });
 });

@@ -1,21 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { SyntaxErrors } from "../../errors/SyntaxError";
-import { Parser } from "../Parser";
-import { Scanner } from "../Scanner";
-
-const setupTests = (source: string): { parser: Parser } => {
-  const scanner = new Scanner(source);
-  const { tokens } = scanner.scan();
-  const parser = new Parser(tokens);
-
-  return { parser };
-};
 
 describe("Parser statements", () => {
   it("parses class declaration statements", () => {
-    const { parser } = setupTests("class Foo {}");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("class Foo {}");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       close: { lexeme: "}", type: "RIGHT_BRACE" },
       properties: [],
@@ -26,9 +16,9 @@ describe("Parser statements", () => {
   });
 
   it("parses variable declaration statements", () => {
-    const { parser } = setupTests("var x = 4");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("var x = 4");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "var", type: "VAR" },
       property: {
@@ -41,9 +31,9 @@ describe("Parser statements", () => {
   });
 
   it("parses return statements", () => {
-    const { parser } = setupTests("return 4");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("return 4");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "return", type: "RETURN" },
       value: {
@@ -53,27 +43,27 @@ describe("Parser statements", () => {
   });
 
   it("parses break statements", () => {
-    const { parser } = setupTests("break");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("break");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "break", type: "BREAK" },
     });
   });
 
   it("parses continue statements", () => {
-    const { parser } = setupTests("continue;");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("continue");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "continue", type: "CONTINUE" },
     });
   });
 
   it("parses while condition statements", () => {
-    const { parser } = setupTests("while (4 + 4) 4");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("while (4 + 4) 4");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "while", type: "WHILE" },
       body: {
@@ -94,9 +84,9 @@ describe("Parser statements", () => {
   });
 
   it("parses if statements", () => {
-    const { parser } = setupTests("if (4 + 4) 4");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("if (4 + 4) 4");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       keyword: { lexeme: "if", type: "IF" },
       condition: {
@@ -118,9 +108,9 @@ describe("Parser statements", () => {
   });
 
   it("parses block statements", () => {
-    const { parser } = setupTests("{ var x = 4 }");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("{ var x = 4 }");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       open: { lexeme: "{", type: "LEFT_BRACE" },
       statements: [
@@ -134,9 +124,9 @@ describe("Parser statements", () => {
   });
 
   it("parses expression statements", () => {
-    const { parser } = setupTests("4");
+    const { tester } = setupTester();
+    const { statements } = tester.parseWorkflow("4");
 
-    const { statements } = parser.parse();
     expect(statements[0]).toMatchObject({
       expression: {
         token: { lexeme: "4", type: "NUMBER" },
@@ -147,9 +137,9 @@ describe("Parser statements", () => {
 
 describe("Parser expressions", () => {
   it("parses assignment expressions", () => {
-    const { parser } = setupTests("hid = 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("hid = 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       name: { lexeme: "hid", type: "IDENTIFIER" },
       value: {
@@ -159,9 +149,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses get expressions", () => {
-    const { parser } = setupTests("foo.y");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("foo.y");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       name: { lexeme: "y", type: "IDENTIFIER" },
       object: {
@@ -171,9 +161,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses set expressions", () => {
-    const { parser } = setupTests('foo.y = "hi"');
+    const { tester } = setupTester();
+    const expression = tester.testExpress('foo.y = "hi"');
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       name: { lexeme: "y", type: "IDENTIFIER" },
       object: {
@@ -186,9 +176,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses ternary expressions", () => {
-    const { parser } = setupTests("true ? 4 : 3");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("true ? 4 : 3");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       expression: {
         token: { lexeme: "true", type: "TRUE" },
@@ -203,9 +193,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses or expressions", () => {
-    const { parser } = setupTests("true || false");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("true || false");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "true", type: "TRUE" },
@@ -218,9 +208,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses and expressions", () => {
-    const { parser } = setupTests("true && false");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("true && false");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "true", type: "TRUE" },
@@ -233,9 +223,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses equality expressions", () => {
-    const { parser } = setupTests("4 == 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("4 == 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "4", type: "NUMBER" },
@@ -248,9 +238,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses comparison expressions", () => {
-    const { parser } = setupTests("4 > 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("4 > 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "4", type: "NUMBER" },
@@ -263,9 +253,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses term expressions", () => {
-    const { parser } = setupTests("4 - 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("4 - 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "4", type: "NUMBER" },
@@ -278,9 +268,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses factor expressions", () => {
-    const { parser } = setupTests("4 / 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("4 / 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       left: {
         token: { lexeme: "4", type: "NUMBER" },
@@ -293,9 +283,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses unary expressions", () => {
-    const { parser } = setupTests("!true");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("!true");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       operator: { lexeme: "!", type: "BANG" },
       right: {
@@ -305,9 +295,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses call expressions", () => {
-    const { parser } = setupTests("sayHi()");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("sayHi()");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       args: [],
       callee: {
@@ -318,9 +308,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses grouping expressions", () => {
-    const { parser } = setupTests("(4 + 4)");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("(4 + 4)");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       open: { lexeme: "(", type: "LEFT_PAREN" },
       expression: {
@@ -337,9 +327,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses parameter expressions", () => {
-    const { parser } = setupTests("sayHi(param)");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("sayHi(param)");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       args: [
         {
@@ -350,27 +340,27 @@ describe("Parser expressions", () => {
   });
 
   it("parses this expressions", () => {
-    const { parser } = setupTests("this");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("this");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       keyword: { lexeme: "this", type: "THIS" },
     });
   });
 
   it("parses primary expressions", () => {
-    const { parser } = setupTests("'passes'");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("'passes'");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       token: { lexeme: "'passes'", type: "STRING" },
     });
   });
 
   it("parses function expressions", () => {
-    const { parser } = setupTests("f() {}");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("f() {}");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       keyword: { lexeme: "f", type: "FUNCTION" },
       body: { statements: [] },
@@ -379,9 +369,9 @@ describe("Parser expressions", () => {
   });
 
   it("parses error expressions", () => {
-    const { parser } = setupTests("+ 4");
+    const { tester } = setupTester();
+    const expression = tester.testExpress("+ 4");
 
-    const expression = parser.expression();
     expect(expression).toMatchObject({
       error: {
         sourceMessage: {},
@@ -393,9 +383,9 @@ describe("Parser expressions", () => {
 
 describe("Parser errors", () => {
   it("errors with expected colon", () => {
-    const { parser } = setupTests("4 == 4 ? 3");
+    const { tester } = setupTester();
+    const { errors } = tester.parseWorkflow("4 == 4 ? 3");
 
-    const { errors } = parser.parse();
     expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedColon());
   });
 
@@ -403,9 +393,9 @@ describe("Parser errors", () => {
     const expressions = ["if", "while", "f"];
 
     expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(expr);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedLeftParen());
     });
   });
@@ -414,9 +404,9 @@ describe("Parser errors", () => {
     const expressions = ["( 4 + 4", "if (4 == 4", "while (4 == 4", "f (param"];
 
     expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(expr);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedRightParen()
       );
@@ -440,9 +430,9 @@ describe("Parser errors", () => {
     ];
 
     expressions.forEach(expr => {
-      const { parser } = setupTests(expr);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(expr);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedLeftOperand()
       );
@@ -452,9 +442,9 @@ describe("Parser errors", () => {
   it("errors with expected parameter", () => {
     const tests = ["f ("];
     tests.forEach(test => {
-      const { parser } = setupTests(test);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(test);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedParameter());
     });
   });
@@ -462,9 +452,9 @@ describe("Parser errors", () => {
   it("errors with expected identifier", () => {
     const tests = ["var", "class", "foo."];
     tests.forEach(test => {
-      const { parser } = setupTests(test);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(test);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedIdentifier()
       );
@@ -472,9 +462,9 @@ describe("Parser errors", () => {
   });
 
   it("errors with expected assignment", () => {
-    const { parser } = setupTests("var x");
+    const { tester } = setupTester();
+    const { errors } = tester.parseWorkflow("var x");
 
-    const { errors } = parser.parse();
     expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedAssignment());
   });
 
@@ -482,9 +472,9 @@ describe("Parser errors", () => {
     const tests = ["f()", "class Foo "];
 
     tests.forEach(test => {
-      const { parser } = setupTests(test);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(test);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedLeftBrace());
     });
   });
@@ -493,9 +483,9 @@ describe("Parser errors", () => {
     const tests = ["{ var x = 5 ", "class Foo {"];
 
     tests.forEach(test => {
-      const { parser } = setupTests(test);
+      const { tester } = setupTester();
+      const { errors } = tester.parseWorkflow(test);
 
-      const { errors } = parser.parse();
       expect(errors[0].sourceMessage).toEqual(
         SyntaxErrors.expectedRightBrace()
       );
@@ -503,18 +493,18 @@ describe("Parser errors", () => {
   });
 
   it("errors with invalid assignment target", () => {
-    const { parser } = setupTests("4 = 4");
+    const { tester } = setupTester();
+    const { errors } = tester.parseWorkflow("4 = 4");
 
-    const { errors } = parser.parse();
     expect(errors[0].sourceMessage).toEqual(
       SyntaxErrors.invalidAssignmentTarget()
     );
   });
 
   it("errors with invalid semicolon", () => {
-    const { parser } = setupTests("4;");
+    const { tester } = setupTester();
+    const { errors } = tester.parseWorkflow("4;");
 
-    const { errors } = parser.parse();
     expect(errors[0].sourceMessage).toEqual(SyntaxErrors.invalidSemiColon());
   });
 });
@@ -601,12 +591,14 @@ describe("Type statements", () => {
     const { statements } = tester.parseWorkflow("type Foo = String[Bar]");
     expect(statements[0]).toMatchObject({
       type: {
+        callee: {
+          name: { lexeme: "String", type: "IDENTIFIER" },
+        },
         typeExprs: [
           {
             name: { lexeme: "Bar", type: "IDENTIFIER" },
           },
         ],
-        name: { lexeme: "String", type: "IDENTIFIER" },
       },
     });
   });

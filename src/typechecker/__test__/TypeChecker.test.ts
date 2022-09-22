@@ -459,11 +459,4 @@ describe("Typechecker errors", () => {
       TypeCheckErrors.prohibitedTypeRedeclaration()
     );
   });
-
-  it("warns with unused type", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow("type Foo = Number");
-    expect(errors[0].sourceMessage).toEqual(TypeCheckErrors.unusedType());
-  });
 });

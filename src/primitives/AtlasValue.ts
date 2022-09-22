@@ -10,10 +10,12 @@ import { AtlasNumber } from "./AtlasNumber";
 import { AtlasRecord } from "./AtlasRecord";
 import { AtlasString } from "./AtlasString";
 import { AtlasNativeFn, toNativeFunctions } from "./AtlasNativeFn";
+import { AtlasModule } from "./AtlasModule";
 
 export type AtlasValue =
   | AtlasBoolean
   | AtlasNull
+  | AtlasModule
   | AtlasNumber
   | AtlasString
   | AtlasClass
@@ -43,6 +45,15 @@ export const Null = new AtlasClass(
 
 export const Number = new AtlasClass(
   "Number",
+  toNativeFunctions({
+    init: () => {
+      throw new NativeError(RuntimeErrors.prohibitedInitializer());
+    },
+  })
+);
+
+export const Module = new AtlasClass(
+  "Module",
   toNativeFunctions({
     init: () => {
       throw new NativeError(RuntimeErrors.prohibitedInitializer());
@@ -119,6 +130,7 @@ export const Values = {
   Function,
   Instance,
   List,
+  Module,
   NativeFn,
   Null,
   Number,

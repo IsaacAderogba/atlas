@@ -21,6 +21,7 @@ import {
   SubTypeExpr,
   CallableTypeExpr,
   GenericTypeExpr,
+  GetTypeExpr,
 } from "../ast/Expr";
 import {
   BlockStmt,
@@ -30,7 +31,9 @@ import {
   ErrorStmt,
   ExpressionStmt,
   IfStmt,
+  ImportStmt,
   InterfaceStmt,
+  ModuleStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -42,7 +45,7 @@ import { TokenType } from "../ast/TokenType";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { Property, Parameter, Entry, TypeProperty } from "../ast/Node";
-import { Keywords } from "./Keywords";
+import { Keywords } from "../ast/Keywords";
 
 export class Parser {
   private tokens: Token[];
@@ -71,6 +74,8 @@ export class Parser {
 
   private declaration(): Stmt {
     try {
+      if (this.match("MODULE")) return this.moduleDeclaration();
+      if (this.match("IMPORT")) return this.importDeclaration();
       if (this.match("CLASS")) return this.classDeclaration();
       if (this.match("TYPE")) return this.typeDeclaration();
       if (this.match("INTERFACE")) return this.interfaceDeclaration();
@@ -81,6 +86,22 @@ export class Parser {
       if (error instanceof SyntaxError) throw this.errorStatement(error);
       throw error;
     }
+  }
+
+  private moduleDeclaration(): ModuleStmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
+    const block = this.blockStatement();
+    return new ModuleStmt(keyword, name, block);
+  }
+
+  private importDeclaration(): ImportStmt {
+    const keyword = this.previous();
+    const name = this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier());
+    this.consume("FROM", SyntaxErrors.expectedFromKeyword());
+    const modulePath = this.consume("STRING", SyntaxErrors.expectedString());
+    return new ImportStmt(keyword, name, modulePath);
   }
 
   private classDeclaration(): ClassStmt {
@@ -478,13 +499,51 @@ export class Parser {
   }
 
   private typeExpr(): TypeExpr {
+    return this.orTypeExpr();
+  }
+
+  private orTypeExpr(): TypeExpr {
+    let typeExpr = this.andTypeExpr();
+
+    while (this.match("PIPE")) {
+      const or = this.previous();
+      const right = this.andTypeExpr();
+
+      typeExpr = new CompositeTypeExpr(typeExpr, or, right);
+    }
+
+    return typeExpr;
+  }
+
+  private andTypeExpr(): TypeExpr {
+    let typeExpr = this.genericTypeExpr();
+
+    while (this.match("AMPERSAND")) {
+      const and = this.previous();
+      const right = this.genericTypeExpr();
+
+      typeExpr = new CompositeTypeExpr(typeExpr, and, right);
+    }
+
+    return typeExpr;
+  }
+
+  private genericTypeExpr(): TypeExpr {
     let typeExpr = this.subTypeExpr();
 
-    while (this.match("PIPE") || this.match("AMPERSAND")) {
-      const operator = this.previous();
-      const right = this.subTypeExpr();
-
-      typeExpr = new CompositeTypeExpr(typeExpr, operator, right);
+    while (true) {
+      if (this.match("LEFT_BRACKET")) {
+        const typeExprs = this.typeExprs("RIGHT_BRACKET");
+        this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
+        typeExpr = new GenericTypeExpr(typeExpr, typeExprs);
+      } else if (this.match("DOT")) {
+        typeExpr = new GetTypeExpr(
+          typeExpr,
+          this.consume("IDENTIFIER", SyntaxErrors.expectedIdentifier())
+        );
+      } else {
+        break;
+      }
     }
 
     return typeExpr;
@@ -495,17 +554,7 @@ export class Parser {
       return this.callableTypeExpr();
     }
 
-    const name = this.name();
-
-    let typeExprs: TypeExpr[] = [];
-    if (this.match("LEFT_BRACKET")) {
-      typeExprs = this.typeExprs("RIGHT_BRACKET");
-      this.consume("RIGHT_BRACKET", SyntaxErrors.expectedRightBracket());
-    }
-
-    if (typeExprs.length > 0) return new GenericTypeExpr(name, typeExprs);
-
-    return new SubTypeExpr(name);
+    return new SubTypeExpr(this.name());
   }
 
   private callableTypeExpr(): TypeExpr {

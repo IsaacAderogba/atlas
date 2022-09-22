@@ -4,7 +4,7 @@ import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { AtlasValue } from "../primitives/AtlasValue";
 
 export class Environment {
-  private values = new Map<string, AtlasValue>();
+  values: { [key: string]: AtlasValue } = {};
   readonly enclosing?: Environment;
 
   constructor(enclosing?: Environment) {
@@ -19,30 +19,18 @@ export class Environment {
     return environment;
   }
 
-  get(token: Token): AtlasValue {
-    const value = this.values.get(token.lexeme);
+  get(name: string, token: Token): AtlasValue {
+    const value = this.values[name];
 
     if (value) return value;
-    if (this.enclosing) return this.enclosing.get(token);
+    if (this.enclosing) return this.enclosing.get(name, token);
 
-    throw this.error(token, RuntimeErrors.undefinedVariable(token.lexeme));
-  }
-
-  getAt(name: string, distance: number, token?: Token): AtlasValue {
-    const value = this.ancestor(distance).values.get(name);
-
-    if (value === undefined) {
-      const err = RuntimeErrors.unresolvedVariable(name, distance);
-      if (!token) throw new Error(`${err.title}: ${err.body}`);
-      throw this.error(token, err);
-    }
-
-    return value;
+    throw this.error(token, RuntimeErrors.undefinedVariable(name));
   }
 
   assign(token: Token, value: AtlasValue): void {
-    if (this.values.has(token.lexeme)) {
-      this.values.set(token.lexeme, value);
+    if (this.values[token.lexeme]) {
+      this.values[token.lexeme] = value;
     } else if (this.enclosing) {
       this.enclosing.assign(token, value);
     } else {
@@ -50,12 +38,8 @@ export class Environment {
     }
   }
 
-  assignAt(distance: number, name: Token, value: AtlasValue): void {
-    this.ancestor(distance).values.set(name.lexeme, value);
-  }
-
   define(name: string, value: AtlasValue): void {
-    this.values.set(name, value);
+    this.values[name] = value;
   }
 
   ancestor(distance: number): Environment {

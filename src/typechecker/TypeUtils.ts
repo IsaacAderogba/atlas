@@ -7,6 +7,11 @@ export type TypeVisitor = ExprVisitor<AtlasType> &
   TypeExprVisitor<AtlasType> &
   StmtVisitor<void>;
 
+export type TypeModuleEnv = {
+  values: { [key: string]: AtlasType };
+  types: { [key: string]: AtlasType };
+};
+
 export type CurrentFunction = {
   enumType: FunctionEnum;
   expr: FunctionExpr;

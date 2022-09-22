@@ -1,3 +1,4 @@
 import { Atlas } from "./Atlas";
 
-Atlas.main(process.argv.slice(2));
+const atlas = new Atlas();
+atlas.main(process.argv.slice(2));

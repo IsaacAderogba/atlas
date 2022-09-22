@@ -154,6 +154,13 @@ export class SyntaxErrors {
     });
   }
 
+  static expectedFromKeyword(): SourceMessage {
+    return this.formatError({
+      title: "expected from keyword",
+      body: "the from keyword was expected",
+    });
+  }
+
   static expectedLeftOperand(): SourceMessage {
     return this.formatError({
       title: "expected left operand",
