@@ -32,11 +32,11 @@ describe("Union annotations", () => {
         }
         
         type Vector = CartesianVector | PolarVector
-        
-        var vector: Vector = { 
-          "type": "cartesian", 
-          "angle": 0, 
-          "magnitude": 0 
+
+        class VectorImpl implements Vector {
+          type = "cartesian"
+          angle = 0
+          magnitude = 0
         }
     `);
 
@@ -100,13 +100,11 @@ describe("Union errors", () => {
         
         type Vector = CartesianVector | PolarVector
         
-        var vector: Vector = { 
-          "type": "cartesian"
-        }
+        var vector: Vector = ""
     `);
 
     const { error } = createSubtyper()(
-      Types.Record.init({ type: Types.String }),
+      Types.String,
       Types.Alias.init(
         "Vector",
         Types.Union.init([

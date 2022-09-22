@@ -67,12 +67,6 @@ describe("List errors", () => {
       Types.Union.init([Types.String, Types.Number])
     );
 
-    console.log(
-      "message",
-      errors[0].sourceMessage,
-      TypeCheckErrors.invalidSubtype(error)
-    );
-
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(error)
     );

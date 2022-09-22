@@ -1,14 +1,14 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
-import { isCallableType } from "./AtlasCallable";
-import { toNativeFunctions } from "./AtlasNativeFn";
-import { AtlasNull } from "./AtlasNull";
+import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
+import { AtlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
-import { isAtlasString } from "./AtlasString";
+import { isAtlasString, StringType } from "./AtlasString";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { bindInterfaceGenerics, toInterfaceString } from "./InterfaceType";
+import { GenericType } from "./GenericType";
+import { UnionType } from "./UnionType";
 
 export class AtlasRecord extends AtlasObject {
   readonly type = "Record";
@@ -53,42 +53,33 @@ export class AtlasRecord extends AtlasObject {
 export class RecordType extends ObjectType {
   readonly type = "Record";
 
-  constructor(readonly entries: { [key: string]: AtlasType } = {}) {
-    super();
-  }
-
-  get fields(): ObjectType["fields"] {
-    const map: ObjectType["fields"] = new Map();
-
-    Object.entries(this.entries).forEach(([key, value]) => {
-      if (!isCallableType(value)) map.set(key, value);
-    });
-
-    return map;
-  }
-
-  get methods(): ObjectType["methods"] {
-    const map: ObjectType["methods"] = new Map();
-
-    Object.entries(this.entries).forEach(([key, value]) => {
-      if (isCallableType(value)) map.set(key, value);
-    });
-
-    return map;
+  constructor(readonly itemType: AtlasType) {
+    super(
+      {
+        put: new NativeFnType({
+          params: [new StringType(), itemType],
+          returns: itemType,
+        }),
+        remove: new NativeFnType({
+          params: [],
+          returns: new UnionType([itemType, new NullType()]),
+        }),
+      },
+      [new GenericType("T")]
+    );
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
-    return this.init(entries);
+    const mappedItem = genericTypeMap.get(this.generics[0])!;
+    const itemType = mappedItem.bindGenerics(genericTypeMap);
+    return this.init(itemType);
   }
 
-  init = (entries: { [key: string]: AtlasType } = {}): RecordType => {
-    return new RecordType(entries);
+  init = (itemType: AtlasType): RecordType => {
+    return new RecordType(itemType);
   };
 
-  toString = (): string => {
-    return toInterfaceString(this);
-  };
+  toString = (): string => `{ String: ${this.itemType.toString()} }`;
 }
 
 export const isRecordType = (type: AtlasType): type is RecordType =>

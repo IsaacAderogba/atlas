@@ -45,7 +45,7 @@ export const Types = {
   Boolean: new BooleanType(),
   Number: new NumberType(),
   String: new StringType(),
-  Record: new RecordType({}),
+  Record: new RecordType(Any),
   Function: new FunctionType({ params: [], returns: Any }),
   Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),

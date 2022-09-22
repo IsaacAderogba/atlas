@@ -410,16 +410,15 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  visitRecordExpr(expr: RecordExpr, expected?: AtlasType): AtlasType {
-    const entries: { [key: string]: AtlasType } = {};
+  visitRecordExpr(expr: RecordExpr): AtlasType {
+    // const type = expected && isInterfaceType(expected) ? expected : undefined;
+    const types = expr.entries.map(({ value }) => this.acceptExpr(value));
+    const actual = types.length ? Types.Union.init(types) : Types.Any;
+    const result = this.visitGenericCall(expr, Types.Record.init(actual), [
+      actual,
+    ]);
 
-    const type = expected && isInterfaceType(expected) ? expected : undefined;
-    expr.entries.forEach(({ key, value }) => {
-      const token = key.clone({ lexeme: (key.literal as AtlasString).value });
-      entries[token.lexeme] = this.acceptExpr(value, type?.get(token));
-    });
-
-    return Types.Record.init(entries);
+    return result;
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {

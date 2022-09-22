@@ -5,6 +5,7 @@ import { isCallableType } from "../primitives/AtlasCallable";
 import { isListType } from "../primitives/AtlasList";
 import { isNullType } from "../primitives/AtlasNull";
 import { isNumberType } from "../primitives/AtlasNumber";
+import { isRecordType } from "../primitives/AtlasRecord";
 import { isStringType } from "../primitives/AtlasString";
 import { AtlasType } from "../primitives/AtlasType";
 import { isInterfaceType } from "../primitives/InterfaceType";
@@ -48,6 +49,10 @@ export const createSubtyper = (): ((
     if (isStringType(a) && isStringType(b)) return true;
 
     if (isListType(a) && isListType(b)) {
+      return isSubtype(a.itemType, b.itemType);
+    }
+
+    if (isRecordType(a) && isRecordType(b)) {
       return isSubtype(a.itemType, b.itemType);
     }
 

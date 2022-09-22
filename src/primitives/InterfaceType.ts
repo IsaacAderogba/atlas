@@ -59,7 +59,6 @@ export const isInterfaceType = (
   value: AtlasType
 ): value is AtlasType & InterfaceType =>
   value.type === "Interface" ||
-  value.type === "Record" ||
   value.type === "Class" ||
   value.type === "Instance" ||
   value.type === "Module";

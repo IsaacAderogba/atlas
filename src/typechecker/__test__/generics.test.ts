@@ -28,11 +28,13 @@ describe("Generics annotations", () => {
       }
       
       type FooBar[T] = Foo[Bar[T]]
-      
-      var fooBar: FooBar[Null] = {
-        "foo": {
-          "bar": null
-        }
+
+      class FooImpl {
+        bar = null
+      }
+
+      class FooBarImpl implements FooBar[Null] {
+        foo = FooImpl()
       }
     `);
 
@@ -79,16 +81,12 @@ describe("Generics annotations", () => {
   it("doesn't require generic arguments for type constraints", () => {
     const { tester } = setupTester();
 
-    const { errors } = tester.typeCheckWorkflow(`
-      interface Foo[T] {
-        foo: T
+    const { errors } = tester.typeCheckWorkflow(`      
+      var addFoo: [T is Number](T) -> Number = f(arg) {
+        return arg * arg
       }
       
-      var addFoo: [T is Number](Foo[T]) -> Number = f(arg) {
-        return arg.foo * arg.foo
-      }
-      
-      addFoo({ "foo": 6 })  
+      addFoo(6)  
     `);
 
     expect(errors.length).toEqual(0);
