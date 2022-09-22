@@ -4,6 +4,7 @@ import { BooleanType } from "./AtlasBoolean";
 import { ClassType } from "./AtlasClass";
 import { FunctionType } from "./AtlasFunction";
 import { InstanceType } from "./AtlasInstance";
+import { ListType } from "./AtlasList";
 import { ModuleType } from "./AtlasModule";
 import { NativeFnType } from "./AtlasNativeFn";
 import { NullType } from "./AtlasNull";
@@ -31,6 +32,7 @@ export type AtlasType =
   | InstanceType
   | InterfaceType
   | IntersectionType
+  | ListType
   | UnionType;
 
 const Any = new AnyType();

@@ -1,7 +1,9 @@
 import { AtlasNull } from "./AtlasNull";
-import { AtlasObject } from "./AtlasObject";
+import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { toNativeFunctions } from "./AtlasNativeFn";
+import { AtlasType } from "./AtlasType";
+import { GenericTypeMap } from "../typechecker/GenericUtils";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -29,3 +31,26 @@ export class AtlasList extends AtlasObject {
     return `[${this.items.join(", ")}]`;
   }
 }
+
+export class ListType extends ObjectType {
+  readonly type = "List";
+
+  constructor(readonly types: AtlasType[] = []) {
+    super();
+  }
+
+  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    const types = this.types.map(type => type.bindGenerics(genericTypeMap));
+    return this.init(types);
+  }
+
+  init = (types: AtlasType[] = []): ListType => {
+    return new ListType(types);
+  };
+
+  toString = (): string =>
+    `[${this.types.map(type => type.toString()).join(", ")}]`;
+}
+
+export const isListType = (type: AtlasType): type is ListType =>
+  type.type === "List";

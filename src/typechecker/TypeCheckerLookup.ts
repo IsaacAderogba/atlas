@@ -95,7 +95,7 @@ export class TypeCheckerLookup {
         ? this.typechecker.acceptTypeExpr(param.baseType)
         : undefined;
 
-      const type = new GenericType(param, constraint);
+      const type = new GenericType(param.name.lexeme, constraint);
       this.defineType(param.name, constraint || type);
       return type;
     });
