@@ -1,0 +1,2 @@
+// assign the count variable
+var count: Number = 0
