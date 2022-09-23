@@ -1,0 +1,9 @@
+interface Foo {
+  foo: String
+}
+
+interface Bar {
+  bar: String
+}
+
+type FooBar = Foo & Bar

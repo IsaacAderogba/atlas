@@ -49,7 +49,7 @@ export class AtlasList extends AtlasObject {
 export class ListType extends ObjectType {
   readonly type = "List";
 
-  constructor(readonly itemType: AtlasType) {
+  constructor(readonly itemType: AtlasType = new GenericType("T")) {
     super(
       {
         add: new NativeFnType({ params: [itemType], returns: itemType }),
@@ -62,7 +62,7 @@ export class ListType extends ObjectType {
           returns: new UnionType([itemType, new NullType()]),
         }),
       },
-      [new GenericType("T")]
+      [itemType]
     );
   }
 

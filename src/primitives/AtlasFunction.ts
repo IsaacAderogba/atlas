@@ -81,7 +81,7 @@ export class FunctionType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: FunctionTypeProps, generics: GenericType[] = []) {
+  constructor(props: FunctionTypeProps, generics: AtlasType[] = []) {
     super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
@@ -98,7 +98,7 @@ export class FunctionType extends ObjectType implements CallableType {
 
   init = (
     props: FunctionTypeProps,
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ): FunctionType => new FunctionType(props, generics);
 
   toString(): string {

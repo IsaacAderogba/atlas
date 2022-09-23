@@ -62,7 +62,7 @@ export class AtlasRecord extends AtlasObject {
 export class RecordType extends ObjectType {
   readonly type = "Record";
 
-  constructor(readonly itemType: AtlasType) {
+  constructor(readonly itemType: AtlasType = new GenericType("T")) {
     super(
       {
         add: new NativeFnType({
@@ -78,7 +78,7 @@ export class RecordType extends ObjectType {
           returns: new UnionType([itemType, new NullType()]),
         }),
       },
-      [new GenericType("T")]
+      [itemType]
     );
   }
 

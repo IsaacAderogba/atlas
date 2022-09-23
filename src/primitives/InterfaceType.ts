@@ -4,7 +4,6 @@ import {
 } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
-import { GenericType } from "./GenericType";
 
 export class InterfaceType extends ObjectType {
   readonly type = "Interface";
@@ -13,7 +12,7 @@ export class InterfaceType extends ObjectType {
   constructor(
     name: string,
     entries: { [key: string]: AtlasType } = {},
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ) {
     super(entries, generics);
     this.name = name;
@@ -27,7 +26,7 @@ export class InterfaceType extends ObjectType {
   init = (
     name: string,
     entries: { [key: string]: AtlasType } = {},
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ): InterfaceType => {
     return new InterfaceType(name, entries, generics);
   };

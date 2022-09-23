@@ -50,6 +50,7 @@ import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
+import { isGenericType } from "../primitives/GenericType";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -549,7 +550,7 @@ export class TypeChecker implements TypeVisitor {
     const genericTypeMap = new Map(
       genericType.generics.map((generic, i) => {
         let actual = actuals[i];
-        if (generic.constraint) {
+        if (isGenericType(generic) && generic.constraint) {
           actual = this.subtyper.check(source, actual, generic.constraint);
         }
 

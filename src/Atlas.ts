@@ -32,6 +32,8 @@ export class Atlas implements AtlasAPI {
         this.reporter.error(
           `${err.sourceMessage.title}, ${err.sourceMessage.body}`
         );
+      } else {
+        throw err;
       }
       process.exit(66);
     }

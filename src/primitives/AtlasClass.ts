@@ -54,7 +54,7 @@ export class ClassType extends ObjectType implements CallableType {
   constructor(
     public name: string,
     properties: ObjectTypeProps,
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ) {
     super({ ...properties }, generics);
   }
@@ -91,7 +91,7 @@ export class ClassType extends ObjectType implements CallableType {
   init = (
     name: string,
     properties: ObjectTypeProps = {},
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ): ClassType => new ClassType(name, properties, generics);
 
   toString(): string {

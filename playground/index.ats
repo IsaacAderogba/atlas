@@ -8,19 +8,17 @@
 // var record: Record[String] = { }
 // record.put("key", 0)
 
-class Animal {
-  name: String
 
-	init: (String) -> this = f(name) {
-		this.name = name
+class Map[T] {
+	record: Record[T] = { }
+
+	add: (String, T) -> T = f(key, value) {
+		return this.record.add(key, value)
 	}
 }
 
-var dog = Animal("dog")
+var stringMap = Map[String]()
+print(stringMap.add("key", "foo"))
 
-var getAnimalName: (Animal) -> String = f(animal) {
-	return animal.name
-}
-
-var dogName = getAnimalName(dog)
-
+var numberMap = Map[Number]()
+print(numberMap.add("key", 0))

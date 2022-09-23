@@ -66,11 +66,11 @@ export abstract class ObjectType {
 
   internalFields = new Map<string, AtlasType>();
   internalMethods = new Map<string, CallableType & AtlasType>();
-  generics: GenericType[];
+  generics: AtlasType[];
 
   constructor(
     properties: ObjectTypeProps = {},
-    generics: GenericType[] = []
+    generics: AtlasType[] = []
   ) {
     this.generics = generics;
     for (const [name, value] of Object.entries(properties)) {
