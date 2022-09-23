@@ -42,7 +42,7 @@ import { AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
 import { AtlasString, isAtlasString } from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
-import { AtlasNull } from "../primitives/AtlasNull";
+import { atlasNull, AtlasNull } from "../primitives/AtlasNull";
 import { AtlasClass } from "../primitives/AtlasClass";
 import { NativeError } from "../errors/NativeError";
 import { AtlasList } from "../primitives/AtlasList";
@@ -109,7 +109,9 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       const value =
         expr instanceof FunctionExpr
           ? new AtlasFunction(expr, this.environment, name.lexeme === "init")
-          : this.evaluate(expr);
+          : expr
+          ? this.evaluate(expr)
+          : atlasNull();
 
       props[name.lexeme] = value;
     }
@@ -130,9 +132,9 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
     this.evaluate(stmt.expression);
   }
 
-  visitVarStmt(stmt: VarStmt): void {
-    const value = this.evaluate(stmt.property.initializer);
-    this.environment.define(stmt.property.name.lexeme, value);
+  visitVarStmt({ property: { initializer, name } }: VarStmt): void {
+    const value = initializer ? this.evaluate(initializer) : atlasNull();
+    this.environment.define(name.lexeme, value);
   }
 
   visitWhileStmt(stmt: WhileStmt): void {

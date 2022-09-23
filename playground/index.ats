@@ -5,5 +5,17 @@
 // var list = ["", 0]
 // list.add(null)
 
-var record: Record[String] = { }
-record.put("key", 0)
+// var record: Record[String] = { }
+// record.put("key", 0)
+
+class Foo {
+	name: String
+
+	init: (String) -> this = f(name) {
+		this.name = name
+	}
+}
+
+var bob = Foo("bob")
+
+print(bob.name)

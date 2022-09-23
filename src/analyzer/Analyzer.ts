@@ -105,7 +105,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
       this.analyzeFunction(prop.initializer, { type, expr: prop.initializer });
     } else {
       this.declare(prop.name);
-      this.analyzeExpr(prop.initializer);
+      if (prop.initializer) this.analyzeExpr(prop.initializer);
       this.define(prop.name);
     }
   }

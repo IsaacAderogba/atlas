@@ -108,4 +108,11 @@ export class TypeCheckErrors {
       body: `property ${name} cannot be inferred`,
     });
   }
+
+  static requiredAnnotationOrInitializer(): SourceMessage {
+    return this.formatError({
+      title: "required annotation or initializer",
+      body: `variables require either an explicit annotation or equals "=" initializer`,
+    });
+  }
 }

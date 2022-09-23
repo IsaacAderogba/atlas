@@ -640,8 +640,8 @@ export class Parser {
   private property(consume: () => Token): Property {
     const name = consume();
     const type = this.match("COLON") ? this.typeExpr() : undefined;
-    this.consume("EQUAL", SyntaxErrors.expectedAssignment());
-    const initializer = this.expression();
+    const initializer = this.match("EQUAL") ? this.expression() : undefined;
+
 
     return new Property(name, type, initializer);
   }

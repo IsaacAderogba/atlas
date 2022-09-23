@@ -19,12 +19,12 @@ export class Property implements BaseNode {
   constructor(
     readonly name: Token,
     readonly type: TypeExpr | undefined,
-    readonly initializer: Expr
+    readonly initializer: Expr | undefined
   ) {}
 
   sourceRange(): SourceRange {
     const { file, start } = this.name.sourceRange();
-    const { end } = this.initializer.sourceRange();
+    const { end } = (this.initializer || this.name).sourceRange();
     return new SourceRange(file, start, end);
   }
 }

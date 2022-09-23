@@ -42,9 +42,8 @@ import { SourceRange, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError, TypeCheckErrors } from "../errors/TypeCheckError";
 import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
-import { AtlasString, isAtlasString } from "../primitives/AtlasString";
+import { isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
-import { isInterfaceType } from "../primitives/InterfaceType";
 import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
@@ -591,10 +590,20 @@ export class TypeChecker implements TypeVisitor {
       );
     } else {
       const expected = type ? this.acceptTypeExpr(type) : undefined;
-      let actual = this.acceptExpr(expr, expected);
-      if (expected) actual = this.subtyper.check(expr, actual, expected);
 
-      return this.lookup.defineValue(name, actual);
+      if (expr) {
+        let actual = this.acceptExpr(expr, expected);
+        if (expected) actual = this.subtyper.check(expr, actual, expected);
+
+        return this.lookup.defineValue(name, actual);
+      } else if (expected) {
+        return this.lookup.defineValue(name, expected);
+      } else {
+        return this.subtyper.error(
+          name,
+          TypeCheckErrors.requiredAnnotationOrInitializer()
+        );
+      }
     }
   }
 

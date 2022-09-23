@@ -461,13 +461,6 @@ describe("Parser errors", () => {
     });
   });
 
-  it("errors with expected assignment", () => {
-    const { tester } = setupTester();
-    const { errors } = tester.parseWorkflow("var x");
-
-    expect(errors[0].sourceMessage).toEqual(SyntaxErrors.expectedAssignment());
-  });
-
   it("errors with expected left brace", () => {
     const tests = ["f()", "class Foo "];
 
