@@ -1,0 +1,13 @@
+type GenericType[T] = T
+
+interface GenericInterface[T] {
+  value: T
+}
+
+var genericFunction: [T](T) -> T = f(value) {
+  return value
+}
+
+class GenericClass[T] {
+  value: T
+}

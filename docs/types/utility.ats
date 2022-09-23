@@ -1,0 +1,13 @@
+class Map[T] {
+	record: Record[T] = { }
+
+	add: (String, T) -> T = f(key, value) {
+		return this.record.add(key, value)
+	}
+}
+
+var stringMap = Map[String]()
+stringMap.add("key", "foo")
+
+var numberMap = Map[Number]()
+numberMap.add("key", 0)

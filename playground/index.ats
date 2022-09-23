@@ -8,24 +8,22 @@
 // var record: Record[String] = { }
 // record.put("key", 0)
 
+type GenericType[T] = T
+
 interface GenericInterface[T] {
   value: T
 }
 
-
-class GenericClass[K] implements GenericInterface[K] {
-  value: K
-
-	init: (K) -> GenericClass[K] = f(t) {
-
-	}
+var genericFunction: [T](T) -> T = f(value) {
+  return value
 }
 
-var generic = GenericClass[Number](0)
+class GenericClass[T] {
+  value: T
+}
 
 
 
-/*
 class Map[T] {
 	record: Record[T] = { }
 
@@ -35,8 +33,7 @@ class Map[T] {
 }
 
 var stringMap = Map[String]()
-print(stringMap.add("key", "foo"))
+stringMap.add("key", "foo")
 
 var numberMap = Map[Number]()
-print(numberMap.add("key", 0))
-*/
+numberMap.add("key", 0)
