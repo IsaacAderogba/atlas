@@ -1,0 +1,15 @@
+class Animal {
+  name: String
+
+	init: (String) -> this = f(name) {
+		this.name = name
+	}
+}
+
+var dog = Animal("dog")
+
+var getAnimalName: (Animal) -> String = f(animal) {
+	return animal.name
+}
+
+var dogName = getAnimalName(dog)

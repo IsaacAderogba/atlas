@@ -60,11 +60,13 @@ export const createSubtyper = (): ((
       const mergedA = new Map([...a.methods, ...a.fields]);
       const mergedB = new Map([...b.methods, ...b.fields]);
 
-      return [...mergedB.entries()].every(([name, type]) => {
+      const succeeded = [...mergedB.entries()].every(([name, type]) => {
         const compare = mergedA.get(name);
         if (compare) return isSubtype(compare, type);
         return false;
       });
+
+      if (succeeded) return true;
     }
 
     if (isCallableType(a) && isCallableType(b)) {

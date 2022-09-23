@@ -1,0 +1,12 @@
+interface Foo {
+  foo: String
+}
+
+interface Bar {
+  bar: String
+}
+
+class FooBar implements Foo & Bar {
+  foo = ""
+  bar = ""
+}

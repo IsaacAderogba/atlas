@@ -8,14 +8,19 @@
 // var record: Record[String] = { }
 // record.put("key", 0)
 
-class Foo {
-	name: String
+class Animal {
+  name: String
 
 	init: (String) -> this = f(name) {
 		this.name = name
 	}
 }
 
-var bob = Foo("bob")
+var dog = Animal("dog")
 
-print(bob.name)
+var getAnimalName: (Animal) -> String = f(animal) {
+	return animal.name
+}
+
+var dogName = getAnimalName(dog)
+
