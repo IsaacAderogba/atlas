@@ -1,0 +1,3 @@
+import Path from "path" // imports from stdlib
+
+var joined = Path.join("foo", "bar")

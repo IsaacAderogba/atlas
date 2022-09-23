@@ -75,7 +75,7 @@ export class Reader {
 
       for (const potentialPath of paths) {
         if (!fs.existsSync(potentialPath)) continue;
-        
+
         const source = fs.readFileSync(potentialPath, { encoding: "utf8" });
         return { source, module: potentialPath };
       }

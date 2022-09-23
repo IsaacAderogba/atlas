@@ -1,39 +1,4 @@
-// import Path from "path"
-// import Foo from "foo"
-// import Local from "./local"
+import Path from "path"
+import Foo from "foo"
+import Local from "./local"
 
-// var list = ["", 0]
-// list.add(null)
-
-// var record: Record[String] = { }
-// record.put("key", 0)
-
-type GenericType[T] = T
-
-interface GenericInterface[T] {
-  value: T
-}
-
-var genericFunction: [T](T) -> T = f(value) {
-  return value
-}
-
-class GenericClass[T] {
-  value: T
-}
-
-
-
-class Map[T] {
-	record: Record[T] = { }
-
-	add: (String, T) -> T = f(key, value) {
-		return this.record.add(key, value)
-	}
-}
-
-var stringMap = Map[String]()
-stringMap.add("key", "foo")
-
-var numberMap = Map[Number]()
-numberMap.add("key", 0)
