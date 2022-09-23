@@ -77,20 +77,6 @@ describe("Generics annotations", () => {
 
     expect(errors.length).toEqual(0);
   });
-
-  it("doesn't require generic arguments for type constraints", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`      
-      var addFoo: [T is Number](T) -> Number = f(arg) {
-        return arg * arg
-      }
-      
-      addFoo(6)  
-    `);
-
-    expect(errors.length).toEqual(0);
-  });
 });
 
 describe("Generic errors", () => {
@@ -121,6 +107,51 @@ describe("Generic errors", () => {
     const { error } = createSubtyper()(Types.Number, Types.String);
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.invalidSubtype(error)
+    );
+  });
+
+  it("errors with required generics when invoking a generic function", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow(`      
+      var addFoo: [T](T) -> Number = f(arg) {
+        return 0
+      }
+      
+      addFoo(6)  
+    `);
+
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.requiredGenericArgs()
+    );
+  });
+
+  it("errors with required generics when invoking a generic type", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow(`      
+      type Foo[T] = T
+      type Bar = Foo
+    `);
+
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.requiredGenericArgs()
+    );
+  });
+
+  it("always requires generic arguments for type constraints", () => {
+    const { tester } = setupTester();
+
+    const { errors } = tester.typeCheckWorkflow(`      
+      var addFoo: [T is Number](T) -> Number = f(arg) {
+        return arg * arg
+      }
+      
+      addFoo(6)  
+    `);
+
+    expect(errors[0].sourceMessage).toEqual(
+      TypeCheckErrors.requiredGenericArgs()
     );
   });
 });

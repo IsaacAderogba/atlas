@@ -40,7 +40,7 @@ export const bindInterfaceGenerics = (
   target: AtlasType,
   map: GenericTypeMap
 ): { entries: { [key: string]: AtlasType } } => {
-  if (!isInterfaceType(target)) throw new Error("Invariant");
+  if (!isInterfaceType(target)) throw new Error(`Invariant ${target.type}`);
 
   const entries: { [key: string]: AtlasType } = {};
   for (const [name, type] of target.fields) {

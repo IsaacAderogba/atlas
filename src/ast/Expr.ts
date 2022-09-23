@@ -396,6 +396,9 @@ export class SubTypeExpr implements BaseTypeExpr {
   }
 }
 
+export const isSubTypeExpr = (value: unknown): value is SubTypeExpr =>
+  value instanceof SubTypeExpr;
+
 export type TypeExpr =
   | CallableTypeExpr
   | CompositeTypeExpr

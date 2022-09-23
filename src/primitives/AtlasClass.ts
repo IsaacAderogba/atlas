@@ -9,9 +9,8 @@ import {
 import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { attachGenericString, GenericTypeMap } from "../typechecker/GenericUtils";
 import { bindInterfaceGenerics } from "./InterfaceType";
-import { GenericType } from "./GenericType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -95,7 +94,7 @@ export class ClassType extends ObjectType implements CallableType {
   ): ClassType => new ClassType(name, properties, generics);
 
   toString(): string {
-    return `${this.name}`;
+    return `${this.name}${attachGenericString(this.generics)}`;
   }
 }
 

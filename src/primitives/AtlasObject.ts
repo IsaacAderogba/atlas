@@ -2,7 +2,6 @@ import { Token } from "../ast/Token";
 import { RuntimeError } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
-import type { GenericType } from "./GenericType";
 import {
   AtlasCallable,
   CallableType,
@@ -94,11 +93,11 @@ export abstract class ObjectType {
     }
   }
 
-  get(name: Token): AtlasType | undefined {
-    const value = this.internalFields.get(name.lexeme);
+  get(name: string): AtlasType | undefined {
+    const value = this.internalFields.get(name);
     if (value) return value;
 
-    const method = this.internalMethods.get(name.lexeme);
+    const method = this.internalMethods.get(name);
     if (method) return method;
 
     return undefined;

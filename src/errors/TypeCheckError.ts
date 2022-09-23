@@ -85,7 +85,7 @@ export class TypeCheckErrors {
   static requiredGenericArgs(): SourceMessage {
     return this.formatError({
       title: "required generic arguments",
-      body: "generics that are defined without a type constraint require arguments",
+      body: "generics usage always requires arguments",
     });
   }
 

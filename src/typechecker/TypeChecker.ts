@@ -11,6 +11,7 @@ import {
   GetTypeExpr,
   GroupingExpr,
   isFunctionExpr,
+  isSubTypeExpr,
   ListExpr,
   LiteralExpr,
   LogicalExpr,
@@ -44,7 +45,7 @@ import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
 import { isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
-import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
+import { ClassType, FunctionEnum } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
@@ -117,10 +118,6 @@ export class TypeChecker implements TypeVisitor {
     // create this type now that fields have been bound
     const thisInstance = classType.returns;
     this.lookup.getScope().valueScope.set("this", thisInstance);
-    this.lookup.getScope().typeScope.set("this", {
-      type: thisInstance,
-      state: VariableState.DEFINED,
-    });
 
     // *only* type functions
     for (const { type, name } of methods) {
@@ -135,9 +132,16 @@ export class TypeChecker implements TypeVisitor {
 
     // with all functions typed, we can finally check them
     for (const prop of methods) {
-      const isInit = prop.name.lexeme === "init";
-      const method = isInit ? FunctionEnum.INIT : FunctionEnum.METHOD;
-      classType.setProp(prop.name.lexeme, this.visitProperty(prop, method));
+      const { lexeme } = prop.name;
+
+      classType.setProp(
+        lexeme,
+        this.visitProperty(
+          prop,
+          lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
+          classType.findMethod(lexeme)
+        )
+      );
     }
 
     // assert the type if an `implements` keyword was used
@@ -300,6 +304,12 @@ export class TypeChecker implements TypeVisitor {
           expr.typeExprs.map(expr => this.acceptTypeExpr(expr))
         );
       } else {
+        if (calleeType.generics.length > 0) {
+          return this.subtyper.error(
+            callee,
+            TypeCheckErrors.requiredGenericArgs()
+          );
+        }
         type = calleeType;
       }
 
@@ -486,7 +496,7 @@ export class TypeChecker implements TypeVisitor {
     const objectType = this.acceptTypeExpr(object);
     if (isAnyType(objectType)) return objectType;
 
-    const memberType = objectType.get(name);
+    const memberType = objectType.get(name.lexeme);
     if (memberType) return memberType;
 
     return this.subtyper.error(
@@ -495,18 +505,24 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  visitGenericTypeExpr(typeExpr: GenericTypeExpr): AtlasType {
-    const type = this.acceptTypeExpr(typeExpr.callee);
+  visitGenericTypeExpr(expr: GenericTypeExpr): AtlasType {
+    const type = isSubTypeExpr(expr.callee)
+      ? this.lookup.type(expr.callee.name)
+      : this.acceptTypeExpr(expr.callee);
 
     return this.visitGenericCall(
-      typeExpr,
+      expr,
       type,
-      typeExpr.typeExprs.map(expr => this.acceptTypeExpr(expr))
+      expr.typeExprs.map(expr => this.acceptTypeExpr(expr))
     );
   }
 
-  visitSubTypeExpr({ name }: SubTypeExpr): AtlasType {
-    return this.lookup.type(name);
+  visitSubTypeExpr(expr: SubTypeExpr): AtlasType {
+    const type = this.lookup.type(expr.name);
+    if (type.generics.length > 0) {
+      return this.subtyper.error(expr, TypeCheckErrors.requiredGenericArgs());
+    }
+    return type;
   }
 
   // utils
@@ -563,7 +579,7 @@ export class TypeChecker implements TypeVisitor {
 
   visitField({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
-      const memberType = objectType.get(name);
+      const memberType = objectType.get(name.lexeme);
       if (isAnyType(objectType)) return objectType;
 
       if (memberType) return memberType;
@@ -576,10 +592,11 @@ export class TypeChecker implements TypeVisitor {
 
   private visitProperty(
     { initializer: expr, name, type }: Property,
-    enumType: FunctionEnum = FunctionEnum.FUNCTION
+    enumType: FunctionEnum = FunctionEnum.FUNCTION,
+    expectedType?: AtlasType
   ): AtlasType {
     if (isFunctionExpr(expr) && type) {
-      const expected = this.acceptTypeExpr(type);
+      const expected = expectedType || this.acceptTypeExpr(type);
       this.lookup.declareValue(name, expected);
       const value = this.visitFunction({ expr, enumType, expected });
 

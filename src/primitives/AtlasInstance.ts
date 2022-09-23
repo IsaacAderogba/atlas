@@ -42,22 +42,22 @@ export class InstanceType extends ObjectType {
     return this.init(this.classType.bindGenerics(genericTypeMap));
   }
 
-  get(name: Token): AtlasType | undefined {
-    return this.classType.findProp(name.lexeme);
+  get(name: string): AtlasType | undefined {
+    return this.classType.findProp(name);
   }
 
   get fields(): ObjectType["fields"] {
-    return new Map([...this.internalFields, ...this.classType.fields])
+    return new Map([...this.internalFields, ...this.classType.fields]);
   }
 
   get methods(): ObjectType["methods"] {
-    return new Map([...this.internalMethods, ...this.classType.methods])
+    return new Map([...this.internalMethods, ...this.classType.methods]);
   }
 
   init = (classType: ClassType): InstanceType => new InstanceType(classType);
 
   toString(): string {
-    return `${this.classType.name}`;
+    return this.classType.toString();
   }
 }
 
