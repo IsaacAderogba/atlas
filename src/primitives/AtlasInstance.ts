@@ -26,6 +26,10 @@ export class AtlasInstance extends AtlasObject {
     return super.get(name);
   }
 
+  set(name: string, value: AtlasValue): void {
+    this.fields.set(name, value);
+  }
+
   toString(): string {
     return `${this.atlasClass.name} instance`;
   }

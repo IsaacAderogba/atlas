@@ -1,4 +1,10 @@
-import Path from "path"
-import Foo from "foo"
-import Local from "./local"
+class Foo {
+  func: () -> Null
 
+  init: () -> Foo = f() {
+    // this.func = f() {} <- func will not be initialized
+  }
+}
+
+var foo = Foo()
+foo.func()
