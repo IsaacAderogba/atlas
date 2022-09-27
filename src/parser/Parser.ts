@@ -295,7 +295,7 @@ export class Parser {
   private equality(): Expr {
     let expr = this.comparison();
 
-    while (this.match("BANG_EQUAL", "EQUAL_EQUAL")) {
+    while (this.match("COLON_EQUAL", "BANG_EQUAL", "EQUAL_EQUAL")) {
       const operator = this.previous();
       const right = this.comparison();
       expr = new BinaryExpr(expr, operator, right);
