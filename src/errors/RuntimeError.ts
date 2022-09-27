@@ -70,6 +70,13 @@ export class RuntimeErrors {
   }
 
   //
+  static expectedClass(): SourceMessage {
+    return this.formatError({
+      title: "expected class",
+      body: "a class was expected",
+    });
+  }
+
   static expectedString(): SourceMessage {
     return this.formatError({
       title: "expected string",

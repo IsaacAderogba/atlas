@@ -38,21 +38,25 @@ export type AtlasType =
 const Any = new AnyType();
 const Class = new ClassType("Class", {});
 
-export const Types = {
-  Any,
-  Alias: new AliasType("Alias", Any),
-  Null: new NullType(),
+export const ValueTypes = {
   Boolean: new BooleanType(),
-  Number: new NumberType(),
-  String: new StringType(),
-  Record: new RecordType(Any),
+  Class: Class,
   Function: new FunctionType({ params: [], returns: Any }),
+  Instance: new InstanceType(Class),
+  List: new ListType(Any),
   Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),
-  Class: Class,
-  Instance: new InstanceType(Class),
+  Null: new NullType(),
+  Number: new NumberType(),
+  Record: new RecordType(Any),
+  String: new StringType(),
+} as const;
+
+export const Types = {
+  ...ValueTypes,
+  Any,
+  Alias: new AliasType("Alias", Any),
   Interface: new InterfaceType("Interface"),
   Intersection: new IntersectionType([]),
-  List: new ListType(Any),
   Union: new UnionType([]),
 } as const;

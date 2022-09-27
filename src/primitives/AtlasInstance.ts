@@ -1,4 +1,3 @@
-import { Token } from "../ast/Token";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";

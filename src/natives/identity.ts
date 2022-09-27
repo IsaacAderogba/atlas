@@ -8,7 +8,8 @@ const instanceOf = new AtlasNativeFn(
   (value: AtlasValue, atlasClass: AtlasValue): AtlasBoolean => {
     if (atlasClass.type !== "Class") return atlasBoolean(false);
 
-    const currentClass = Values[value.type];
+    const currentClass =
+      value.type === "Instance" ? value.atlasClass : Values[value.type];
     if (currentClass === atlasClass) return atlasBoolean(true);
 
     return atlasBoolean(false);

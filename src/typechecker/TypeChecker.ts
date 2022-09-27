@@ -278,6 +278,7 @@ export class TypeChecker implements TypeVisitor {
             this.subtyper.check(expr.left, left, Types.Number);
             this.subtyper.check(expr.right, right, Types.Number);
             return Types.Boolean;
+          case "COLON_EQUAL":
           case "EQUAL_EQUAL":
           case "BANG_EQUAL":
             return Types.Boolean;
