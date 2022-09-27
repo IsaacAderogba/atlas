@@ -87,14 +87,14 @@ export class Scanner {
       case "#":
         this.addToken("HASH");
         break;
-      case ":":
-        this.addToken("COLON");
-        break;
       case "|":
         this.addToken(this.match("|") ? "PIPE_PIPE" : "PIPE");
         break;
       case "&":
         this.addToken(this.match("&") ? "AMPERSAND_AMPERSAND" : "AMPERSAND");
+        break;
+      case ":":
+        this.addToken(this.match("=") ? "COLON_EQUAL" : "COLON");
         break;
       case "!":
         this.addToken(this.match("=") ? "BANG_EQUAL" : "BANG");

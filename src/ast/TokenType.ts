@@ -13,7 +13,6 @@ export type TokenType =
   | "SEMICOLON"
   | "SLASH"
   | "STAR"
-  | "COLON"
   | "QUESTION"
   | "HASH"
   
@@ -22,6 +21,8 @@ export type TokenType =
   | "PIPE_PIPE"
   | "AMPERSAND"
   | "AMPERSAND_AMPERSAND"
+  | "COLON"
+  | "COLON_EQUAL"
   | "BANG"
   | "BANG_EQUAL"
   | "EQUAL"

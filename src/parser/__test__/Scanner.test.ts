@@ -43,6 +43,7 @@ describe("Scanner tokens", () => {
 
   it("tokenizes double-character tokens", () => {
     const charTypes: { char: string; type: TokenType }[] = [
+      { char: ":=", type: "COLON_EQUAL" },
       { char: "!=", type: "BANG_EQUAL" },
       { char: "==", type: "EQUAL_EQUAL" },
       { char: "<=", type: "LESS_EQUAL" },
