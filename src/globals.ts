@@ -2,7 +2,6 @@ import { AtlasNumber } from "./primitives/AtlasNumber";
 import { AtlasString } from "./primitives/AtlasString";
 import { AtlasNativeFn } from "./primitives/AtlasNativeFn";
 import { Values } from "./primitives/AtlasValue";
-import { identity, identityTypes } from "./natives/identity";
 import { AtlasType, Types } from "./primitives/AtlasType";
 
 export const clock = new AtlasNativeFn(
@@ -25,12 +24,10 @@ const printType = Types.NativeFn.init({
 export const globals = {
   clock,
   print,
-  ...identity,
   ...Values,
 };
 
 export const typeGlobals: { [key: string]: AtlasType } = {
   clock: clockType,
   print: printType,
-  ...identityTypes,
 };

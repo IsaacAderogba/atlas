@@ -18,7 +18,7 @@ import {
   VariableExpr,
 } from "../ast/Expr";
 import { AtlasNumber } from "../primitives/AtlasNumber";
-import { AtlasValue } from "../primitives/AtlasValue";
+import { AtlasValue, Values } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
@@ -290,6 +290,13 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
           this.getNumberValue(leftSource, left) <=
           this.getNumberValue(rightSource, right);
         return atlasBoolean(isLessEqual);
+      case "COLON_EQUAL":
+        if (left.type === "Class") return atlasBoolean(false);
+        if (right.type !== "Class") return atlasBoolean(false);
+        const currentClass =
+          left.type === "Instance" ? left.atlasClass : Values[left.type];
+
+        return atlasBoolean(currentClass === right);
       case "BANG_EQUAL":
         const areNotEqual = !areEqualValues(left, right);
         return atlasBoolean(areNotEqual);

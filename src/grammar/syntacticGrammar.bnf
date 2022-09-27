@@ -31,7 +31,7 @@ assignment     -> ( call "." )? IDENTIFIER "=" assignment
 ternary        -> logic_or ( "?" ternary ":" ternary )? ;
 logic_or       -> logic_and ( "||" logic_and )* ;
 logic_and      -> equality ( "&&" equality )* ;
-equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
+equality       -> comparison ( ( ":=" | "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" | "#" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;

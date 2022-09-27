@@ -1,10 +1,7 @@
 class Foo {
-  func: () -> Null
 
-  init: () -> Foo = f() {
-    // this.func = f() {} <- func will not be initialized
-  }
 }
 
-var foo = Foo()
-foo.func()
+var foo: () -> Null = f() {}
+
+print(print := Function || print := NativeFn)
