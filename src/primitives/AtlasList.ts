@@ -69,6 +69,8 @@ export class ListType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    if (this.generics.length === 0) return this;
+
     const mappedItem = genericTypeMap.get(this.generics[0])!;
     const itemType = mappedItem.bindGenerics(genericTypeMap);
     return this.init(itemType);
@@ -78,7 +80,7 @@ export class ListType extends ObjectType {
     return new ListType(itemType);
   };
 
-  toString = (): string => `[${this.itemType.toString()}]`;
+  toString = (): string => `List[${this.itemType.toString()}]`;
 }
 
 export const isListType = (type: AtlasType): type is ListType =>

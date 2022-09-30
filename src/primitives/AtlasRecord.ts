@@ -63,7 +63,7 @@ export class RecordType extends ObjectType {
   readonly type = "Record";
 
   constructor(readonly itemType: AtlasType = new GenericType("T")) {
-    const generics = isGenericType(itemType) ? [itemType] : []
+    const generics = isGenericType(itemType) ? [itemType] : [];
     super(
       {
         add: new NativeFnType({
@@ -84,6 +84,8 @@ export class RecordType extends ObjectType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+    if (this.generics.length === 0) return this;
+
     const mappedItem = genericTypeMap.get(this.generics[0])!;
     const itemType = mappedItem.bindGenerics(genericTypeMap);
     return this.init(itemType);
@@ -93,7 +95,7 @@ export class RecordType extends ObjectType {
     return new RecordType(itemType);
   };
 
-  toString = (): string => `{ String: ${this.itemType.toString()} }`;
+  toString = (): string => `{ String: Record[${this.itemType.toString()}] }`;
 }
 
 export const isRecordType = (type: AtlasType): type is RecordType =>

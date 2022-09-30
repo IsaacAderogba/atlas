@@ -1,4 +1,3 @@
-import { Token } from "../ast/Token";
 import { RuntimeError } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
@@ -37,7 +36,7 @@ export abstract class AtlasObject {
     const method = this.methods.get(name);
     if (method) return method.bind(this);
 
-    return undefined
+    return undefined;
   }
 
   set(name: string, value: AtlasValue): void {
@@ -67,10 +66,7 @@ export abstract class ObjectType {
   internalMethods = new Map<string, CallableType & AtlasType>();
   generics: AtlasType[];
 
-  constructor(
-    properties: ObjectTypeProps = {},
-    generics: AtlasType[] = []
-  ) {
+  constructor(properties: ObjectTypeProps = {}, generics: AtlasType[] = []) {
     this.generics = generics;
     for (const [name, value] of Object.entries(properties)) {
       this.setProp(name, value);
