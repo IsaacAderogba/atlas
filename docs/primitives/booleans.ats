@@ -5,3 +5,6 @@ if (bool == true) {
 } else {
 	print("false")
 }
+
+-- stdout --
+true

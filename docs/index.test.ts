@@ -9,15 +9,15 @@ class TestReporter implements Reporter {
   stderr = "";
 
   log(message: string): void {
-    this.stdout += message + "\n";
+    this.stdout += (this.stdout ? "\n" : "") + message;
   }
 
   rangeError(_range: SourceRange, { title }: SourceMessage): void {
-    this.stderr += title + "\n";
+    this.stderr += (this.stderr ? "\n" : "") + title;
   }
 
   error(message: string): void {
-    this.stderr += message + "\n";
+    this.stderr += (this.stderr ? "\n" : "") + message;
   }
 }
 
@@ -39,13 +39,31 @@ const testsDirPath = __dirname;
 for (const fileName of findFilesRecursively(testsDirPath, ".ats")) {
   test(fileName, () => {
     const filePath = `${testsDirPath}/${fileName}`;
-    const source = fs.readFileSync(filePath, { encoding: "utf8" });
+    const content = fs.readFileSync(filePath, { encoding: "utf8" });
+
+    const spec = {
+      source: "",
+      stdout: "",
+      stderr: "",
+    };
+    let target: keyof typeof spec = "source";
+
+    for (const line of content.split("\n")) {
+      if (line.startsWith("-- stdout --")) {
+        target = "stdout";
+      } else if (line.startsWith("-- stderr --")) {
+        target = "stderr";
+      } else {
+        spec[target] += (spec[target] ? "\n" : "") + line;
+      }
+    }
 
     const testReporter = new TestReporter();
     const atlas = new Atlas(testReporter);
 
-    atlas.runSource({ module: filePath, source });
+    atlas.runSource({ module: filePath, source: spec.source });
 
-    expect(testReporter.stderr).toBe("");
+    expect(testReporter.stderr).toBe(spec.stderr);
+    expect(testReporter.stdout).toBe(spec.stdout);
   });
 }

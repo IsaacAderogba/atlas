@@ -7,3 +7,7 @@ var incrementCount: () -> Number = f() {
 
 print(incrementCount()) // 1
 print(incrementCount()) // 2
+
+-- stdout --
+1
+2
