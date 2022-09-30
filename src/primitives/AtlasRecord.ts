@@ -7,7 +7,7 @@ import { AtlasObject, ObjectType } from "./AtlasObject";
 import { isAtlasString, StringType } from "./AtlasString";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { GenericType } from "./GenericType";
+import { GenericType, isGenericType } from "./GenericType";
 import { UnionType } from "./UnionType";
 
 export class AtlasRecord extends AtlasObject {
@@ -63,6 +63,7 @@ export class RecordType extends ObjectType {
   readonly type = "Record";
 
   constructor(readonly itemType: AtlasType = new GenericType("T")) {
+    const generics = isGenericType(itemType) ? [itemType] : []
     super(
       {
         add: new NativeFnType({
@@ -78,7 +79,7 @@ export class RecordType extends ObjectType {
           returns: new UnionType([itemType, new NullType()]),
         }),
       },
-      [itemType]
+      generics
     );
   }
 

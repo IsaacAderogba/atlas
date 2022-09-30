@@ -43,12 +43,12 @@ export const ValueTypes = {
   Class: Class,
   Function: new FunctionType({ params: [], returns: Any }),
   Instance: new InstanceType(Class),
-  List: new ListType(Any),
+  List: new ListType(new GenericType("T")),
   Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),
   Null: new NullType(),
   Number: new NumberType(),
-  Record: new RecordType(Any),
+  Record: new RecordType(new GenericType("T")),
   String: new StringType(),
 } as const;
 

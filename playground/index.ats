@@ -1,7 +1,13 @@
-class Foo {
+class Map[T] {
+	record: Record[T] = { }
 
+	add: (String, T) -> T = f(key, value) {
+		return this.record.add(key, value)
+	}
 }
 
-var foo: () -> Null = f() {}
+var stringMap = Map[String]()
+stringMap.add("key", "foo")
 
-print(print := Function || print := NativeFn)
+var numberMap = Map[Number]()
+numberMap.add("key", 0)

@@ -394,10 +394,7 @@ export class TypeChecker implements TypeVisitor {
   visitListExpr(expr: ListExpr): AtlasType {
     const types = expr.items.map(item => this.acceptExpr(item));
     const actual = types.length ? Types.Union.init(types) : Types.Any;
-    const result = this.visitGenericCall(expr, Types.List.init(actual), [
-      actual,
-    ]);
-    return result;
+    return Types.List.init(actual);
   }
 
   visitLogicalExpr(expr: LogicalExpr): AtlasType {
@@ -425,11 +422,7 @@ export class TypeChecker implements TypeVisitor {
     // const type = expected && isInterfaceType(expected) ? expected : undefined;
     const types = expr.entries.map(({ value }) => this.acceptExpr(value));
     const actual = types.length ? Types.Union.init(types) : Types.Any;
-    const result = this.visitGenericCall(expr, Types.Record.init(actual), [
-      actual,
-    ]);
-
-    return result;
+    return Types.Record.init(actual);
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {
