@@ -14,8 +14,6 @@ var numberMap = Map[Number]()
 numberMap.add("key", 0)
 */
 
-type Rec = Record[Record[String] | String]
 
-type Lis = List[List[String]]
 
-var list: Lis = [""]
+print("foo")

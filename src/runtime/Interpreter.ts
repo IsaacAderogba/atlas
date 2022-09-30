@@ -59,7 +59,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   private cachedModules: { [path: string]: Environment } = {};
   readonly scheduler = new Scheduler();
 
-  constructor(private readonly atlas: AtlasAPI) {}
+  constructor(public readonly atlas: AtlasAPI) {}
 
   interpret(statements: Stmt[]): { errors: RuntimeError[] } {
     try {

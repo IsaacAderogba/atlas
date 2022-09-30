@@ -1,7 +1,7 @@
 import { AtlasNumber } from "./primitives/AtlasNumber";
 import { AtlasString } from "./primitives/AtlasString";
 import { AtlasNativeFn } from "./primitives/AtlasNativeFn";
-import { Values } from "./primitives/AtlasValue";
+import { AtlasValue, Values } from "./primitives/AtlasValue";
 import { AtlasType, Types } from "./primitives/AtlasType";
 
 export const clock = new AtlasNativeFn(
@@ -10,11 +10,15 @@ export const clock = new AtlasNativeFn(
 
 const clockType = Types.NativeFn.init({ params: [], returns: Types.Number });
 
-export const print = new AtlasNativeFn(value => {
-  const str = value.toString();
-  console.log(str);
-  return new AtlasString(str);
-});
+export const print = new AtlasNativeFn(
+  value => new AtlasString(value.toString())
+);
+
+print.call = (interpreter, args): AtlasValue => {
+  const str = print.func(...args) as AtlasString;
+  interpreter.atlas.reporter.log(str.value);
+  return str;
+};
 
 const printType = Types.NativeFn.init({
   params: [Types.Any],

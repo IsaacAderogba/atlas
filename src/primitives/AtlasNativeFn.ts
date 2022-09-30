@@ -1,4 +1,8 @@
-import { AtlasCallable, bindCallableGenerics, CallableType } from "./AtlasCallable";
+import {
+  AtlasCallable,
+  bindCallableGenerics,
+  CallableType,
+} from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
@@ -8,22 +12,20 @@ import { GenericTypeMap } from "../typechecker/GenericUtils";
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
 
-  constructor(
-    private readonly jsFunction: (...args: AtlasValue[]) => AtlasValue
-  ) {
+  constructor(public readonly func: (...args: AtlasValue[]) => AtlasValue) {
     super();
   }
 
   arity(): number {
-    return this.jsFunction.length;
+    return this.func.length;
   }
 
   bind(instance: AtlasValue): AtlasNativeFn {
-    return new AtlasNativeFn(this.jsFunction.bind(instance));
+    return new AtlasNativeFn(this.func.bind(instance));
   }
 
   call(_: Interpreter, args: AtlasValue[]): AtlasValue {
-    return this.jsFunction(...args);
+    return this.func(...args);
   }
 
   toString(): string {
@@ -34,7 +36,7 @@ export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
 type ConvertedFunctions = { [key: string]: AtlasCallable & AtlasValue };
 
 export const toNativeFunctions = (funcs: {
-  [name: string]: AtlasNativeFn["jsFunction"];
+  [name: string]: AtlasNativeFn["func"];
 }): ConvertedFunctions => {
   const convertedFuncs: ConvertedFunctions = {};
 
@@ -70,10 +72,8 @@ export class NativeFnType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (
-    props: NativeFnTypeProps,
-    generics: AtlasType[] = []
-  ): NativeFnType => new NativeFnType(props, generics);
+  init = (props: NativeFnTypeProps, generics: AtlasType[] = []): NativeFnType =>
+    new NativeFnType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());
