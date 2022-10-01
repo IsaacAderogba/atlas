@@ -1,6 +1,6 @@
 import { SourceRangeable } from "../errors/SourceError";
-import { typeGlobals } from "../globals";
-import { AtlasType, Types, ValueTypes } from "../primitives/AtlasType";
+import { globalTypes } from "../globals";
+import { AtlasType, Types } from "../primitives/AtlasType";
 import { VariableState } from "../utils/Enums";
 import { Scope } from "../utils/Scope";
 
@@ -27,8 +27,5 @@ export const globalTypeScope = (): TypeCheckerScope =>
       type,
       state: VariableState.DEFINED,
     })),
-    valueScope: Scope.fromGlobals(
-      { ...typeGlobals, ...ValueTypes },
-      (_, type) => type
-    ),
+    valueScope: Scope.fromGlobals(globalTypes, (_, type) => type),
   });

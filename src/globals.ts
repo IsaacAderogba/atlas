@@ -1,22 +1,16 @@
-import { AtlasNumber } from "./primitives/AtlasNumber";
-import { AtlasNativeFn } from "./primitives/AtlasNativeFn";
 import { Values } from "./primitives/AtlasValue";
-import { AtlasType, Types } from "./primitives/AtlasType";
+import { AtlasType, ValueTypes } from "./primitives/AtlasType";
 import { printTypes, printValues } from "./natives/print";
-
-export const clock = new AtlasNativeFn(
-  () => new AtlasNumber(Date.now() / 1000)
-);
-
-const clockType = Types.NativeFn.init({ params: [], returns: Types.Number });
+import { clockTypes, clockValues } from "./natives/clock";
 
 export const globals = {
-  clock,
+  ...clockValues,
   ...printValues,
   ...Values,
 };
 
-export const typeGlobals: { [key: string]: AtlasType } = {
-  clock: clockType,
+export const globalTypes: { [key: string]: AtlasType } = {
+  ...clockTypes,
   ...printTypes,
+  ...ValueTypes,
 };
