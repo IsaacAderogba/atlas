@@ -48,20 +48,6 @@ export class SemanticErrors {
     });
   }
 
-  static prohibitedAsyncInit(): SourceMessage {
-    return this.formatError({
-      title: "prohibited async initializer",
-      body: "initializer function cannot be asynchrounous",
-    });
-  }
-
-  static prohibitedAsyncReturn(): SourceMessage {
-    return this.formatError({
-      title: "prohibited async return",
-      body: "async functions cannot return a value",
-    });
-  }
-
   static prohibitedBreak(): SourceMessage {
     return this.formatError({
       title: "prohibited break",

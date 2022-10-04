@@ -96,10 +96,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   private analyzeProperty(prop: Property, type: FunctionEnum): void {
     if (prop.initializer instanceof FunctionExpr) {
-      if (type === FunctionEnum.INIT && prop.initializer.async) {
-        this.error(prop.name, SemanticErrors.prohibitedAsyncInit());
-      }
-
       this.declare(prop.name);
       this.define(prop.name);
       this.analyzeFunction(prop.initializer, { type, expr: prop.initializer });
@@ -198,17 +194,12 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitReturnStmt(stmt: ReturnStmt): void {
     if (this.currentFunction) {
-      const { type, expr } = this.currentFunction;
+      const { type } = this.currentFunction;
 
       switch (type) {
         case FunctionEnum.INIT:
           this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
           break;
-        case FunctionEnum.FUNCTION:
-        case FunctionEnum.METHOD:
-          if (expr.async) {
-            this.error(stmt.keyword, SemanticErrors.prohibitedAsyncReturn());
-          }
       }
     } else {
       this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());

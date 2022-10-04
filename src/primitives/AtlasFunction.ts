@@ -35,35 +35,26 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
-    const execute = (): AtlasValue => {
-      const environment = new Environment(this.closure);
+    const environment = new Environment(this.closure);
 
-      for (const [i, param] of this.expression.params.entries()) {
-        environment.define(param.name.lexeme, args[i]);
-      }
-
-      try {
-        interpreter.interpretBlock(
-          this.expression.body.statements,
-          environment
-        );
-      } catch (err) {
-        if (err instanceof Return) return err.value;
-        throw err;
-      }
-
-      if (this.isInitializer) {
-        return this.closure.get("this", this.expression.keyword);
-      }
-      return new AtlasNull();
-    };
-
-    if (this.expression.async) {
-      interpreter.scheduler.queueTask(() => execute());
-      return new AtlasNull();
+    for (const [i, param] of this.expression.params.entries()) {
+      environment.define(param.name.lexeme, args[i]);
     }
 
-    return execute();
+    try {
+      interpreter.interpretBlock(this.expression.body.statements, environment);
+    } catch (err) {
+      if (err instanceof Return) return err.value;
+      throw err;
+    } finally {
+      interpreter.scheduler.run();
+    }
+
+    if (this.isInitializer) {
+      return this.closure.get("this", this.expression.keyword);
+    }
+
+    return new AtlasNull();
   }
 
   toString(): string {
@@ -98,10 +89,8 @@ export class FunctionType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (
-    props: FunctionTypeProps,
-    generics: AtlasType[] = []
-  ): FunctionType => new FunctionType(props, generics);
+  init = (props: FunctionTypeProps, generics: AtlasType[] = []): FunctionType =>
+    new FunctionType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());
