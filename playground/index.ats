@@ -1,19 +1,4 @@
-/*
-class Map[T] {
-	record: Record[T] = { }
+import Assert from "assert"
 
-	add: (String, T) -> T = f(key, value) {
-		return this.record.add(key, value)
-	}
-}
-
-var stringMap = Map[String]()
-stringMap.add("key", "foo")
-
-var numberMap = Map[Number]()
-numberMap.add("key", 0)
-*/
-
-
-
-print("foo")
+// user code
+print(Assert.expect(false).toBeTruthy())
