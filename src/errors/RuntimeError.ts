@@ -98,6 +98,13 @@ export class RuntimeErrors {
     });
   }
 
+  static expectedFunction(): SourceMessage {
+    return this.formatError({
+      title: "expected function",
+      body: "a function was expected",
+    });
+  }
+
   static expectedCallable(): SourceMessage {
     return this.formatError({
       title: "expected callable",
