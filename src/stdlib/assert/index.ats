@@ -1,0 +1,24 @@
+type Actual = Any
+type Expected = Any
+
+class Matcher {
+	actual: Actual
+
+	init: (Actual) -> Matcher = f(actual) {
+		this.actual = actual
+	}
+
+	toEqual: (Expected) -> Boolean = f(expected) {
+		return this.actual == expected
+	}
+
+	toBeTruthy: () -> Boolean = f() {
+		if (this.actual := Null) return false
+		if (this.actual := Boolean) return this.actual
+		return true
+	}
+}
+
+var expect: (Actual) -> Matcher = f(actual) {
+	return Matcher(actual)
+}
