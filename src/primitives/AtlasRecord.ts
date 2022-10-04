@@ -1,5 +1,6 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
+import { Interpreter } from "../runtime/Interpreter";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
 import { AtlasNull, NullType } from "./AtlasNull";
@@ -23,7 +24,7 @@ export class AtlasRecord extends AtlasObject {
     );
   }
 
-  at(key: AtlasValue): AtlasValue {
+  at(_: Interpreter, key: AtlasValue): AtlasValue {
     if (!isAtlasString(key)) {
       throw new NativeError(RuntimeErrors.expectedString());
     }
@@ -31,7 +32,7 @@ export class AtlasRecord extends AtlasObject {
     return this.entries[key.value] ?? new AtlasNull();
   }
 
-  add(key: AtlasValue, value: AtlasValue): AtlasValue {
+  add(_: Interpreter, key: AtlasValue, value: AtlasValue): AtlasValue {
     if (!isAtlasString(key)) {
       throw new NativeError(RuntimeErrors.expectedString());
     }
@@ -40,7 +41,7 @@ export class AtlasRecord extends AtlasObject {
     return value;
   }
 
-  remove(key: AtlasValue): AtlasValue {
+  remove(_: Interpreter, key: AtlasValue): AtlasValue {
     if (!isAtlasString(key)) {
       throw new NativeError(RuntimeErrors.expectedString());
     }

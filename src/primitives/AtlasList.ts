@@ -9,6 +9,7 @@ import { UnionType } from "./UnionType";
 import { isAtlasNumber, NumberType } from "./AtlasNumber";
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
+import { Interpreter } from "../runtime/Interpreter";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -23,12 +24,12 @@ export class AtlasList extends AtlasObject {
     );
   }
 
-  add(item: AtlasValue): AtlasValue {
+  add(_: Interpreter, item: AtlasValue): AtlasValue {
     this.items.push(item);
     return item;
   }
 
-  at(index: AtlasValue): AtlasValue {
+  at(_: Interpreter, index: AtlasValue): AtlasValue {
     if (!isAtlasNumber(index)) {
       throw new NativeError(RuntimeErrors.expectedNumber());
     }
