@@ -12,20 +12,26 @@ import { GenericTypeMap } from "../typechecker/GenericUtils";
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
 
-  constructor(public readonly func: (...args: AtlasValue[]) => AtlasValue) {
+  constructor(
+    public readonly func: (
+      interpreter: Interpreter,
+      ...args: AtlasValue[]
+    ) => AtlasValue
+  ) {
     super();
   }
 
   arity(): number {
-    return this.func.length;
+    if (this.func.length === 0) return 0;
+    return this.func.length - 1; // to ignore the implicit interpreter arg
   }
 
   bind(instance: AtlasValue): AtlasNativeFn {
     return new AtlasNativeFn(this.func.bind(instance));
   }
 
-  call(_: Interpreter, args: AtlasValue[]): AtlasValue {
-    return this.func(...args);
+  call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
+    return this.func(interpreter, ...args);
   }
 
   toString(): string {
