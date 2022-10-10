@@ -8,10 +8,9 @@ var FULFILLED = "fulfilled"
 var REJECTED = "rejected"
 var PENDING = "pending"
 
-/*
 class Promise[T] {
   valueCbs: List[CallbackResolver[T]] = []
-  errorsCbs: List[CallbackRejector] = []
+  errorCbs: List[CallbackRejector] = []
   state: String = PENDING
 
   value: T
@@ -23,24 +22,27 @@ class Promise[T] {
     })
   }
 
+  runCallbacks: () -> Null = f() {
+    if (this.state == FULFILLED) {
+      this.valueCbs = []
+    } else if (this.state == REJECTED) {
+      this.errorCbs = []
+    }
+  }
+
   onSuccess: CallbackResolver[T] = f(value) {
     if (this.state == PENDING) {
       this.value = value
       this.state = FULFILLED
+      this.runCallbacks()
     }
   }
 
   onFail: CallbackRejector = f(error) {
     if (this.state == PENDING) {
-      this.error = error
+      this.error = Exception.Error(error)
       this.state = REJECTED
+      this.runCallbacks()
     }
   }
-}
-*/
-
-var error: Exception.Error = Exception.Error("Foo")
-
-var rejector: CallbackRejector = f(err) {
-  error = err
 }
