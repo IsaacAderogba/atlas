@@ -1,7 +1,7 @@
 import Exception from "exception"
 
 type CallbackResolver[T] = (T) -> Null
-type CallbackRejector = (String) -> Null
+type CallbackRejector = (Exception.Error) -> Null
 type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
 
 var FULFILLED = "fulfilled"
@@ -24,8 +24,14 @@ class Promise[T] {
 
   runCallbacks: () -> Null = f() {
     if (this.state == FULFILLED) {
+      this.valueCbs.forEach(f(callback, i) {
+        callback(this.value)
+      })
       this.valueCbs = []
     } else if (this.state == REJECTED) {
+      this.errorCbs.forEach(f(callback, i) {
+        callback(this.error)
+      })
       this.errorCbs = []
     }
   }
@@ -40,7 +46,7 @@ class Promise[T] {
 
   onFail: CallbackRejector = f(error) {
     if (this.state == PENDING) {
-      this.error = Exception.Error(error)
+      this.error = error
       this.state = REJECTED
       this.runCallbacks()
     }
