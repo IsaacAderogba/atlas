@@ -633,7 +633,11 @@ export class TypeChecker implements TypeVisitor {
 
     const { expr, expected } = current;
 
-    const unwrapped = isAliasType(expected) ? expected.wrapped : expected
+    let unwrapped = expected;
+    while (isAliasType(unwrapped)) {
+      unwrapped = unwrapped.wrapped;
+    }
+
     const expectedParams = isCallableType(unwrapped) ? unwrapped.params : [];
     const params = expr.params.map(({ name }, i) => {
       this.lookup.defineValue(name, expectedParams[i] || Types.Any);
