@@ -34,6 +34,7 @@ import {
   ImportStmt,
   InterfaceStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -175,6 +176,7 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("PANIC")) return this.panicStatement();
     if (this.match("RETURN")) return this.returnStatement();
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
@@ -183,6 +185,12 @@ export class Parser {
     if (this.match("CONTINUE")) return new ContinueStmt(this.previous());
 
     return this.expressionStatement();
+  }
+
+  private panicStatement(): ReturnStmt {
+    const keyword = this.previous();
+    const value = this.expression();
+    return new PanicStmt(keyword, value);
   }
 
   private returnStatement(): ReturnStmt {

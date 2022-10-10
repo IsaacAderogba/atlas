@@ -17,6 +17,7 @@ statement      -> exprStmt
                 | whileStmt
                 | breakStmt
                 | continueStmt
+                | panicStmt
                 | block ;
 exprStmt       -> expression ;
 ifStmt         -> "if" "(" expression ")" statement ( "else" statement )? ;
@@ -24,6 +25,7 @@ returnStmt     -> "return" expression ;
 whileStmt      -> "while" "(" expression ( ";" expression )? ")" statement ;
 breakStmt      -> "break" ;
 continueStmt   -> "continue" ;
+panicStmt      -> "panic" expression ;
 block          -> "{" declaration* "}" ;
 expression     -> assignment ;
 assignment     -> ( call "." )? IDENTIFIER "=" assignment

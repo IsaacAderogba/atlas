@@ -118,4 +118,11 @@ export class RuntimeErrors {
       body: `property ${name} is undefined`,
     });
   }
+
+  static unrecoverablePanic(value: string): SourceMessage {
+    return this.formatError({
+      title: "unrecoverable panic",
+      body: `program panicked at "${value}"`,
+    });
+  }
 }

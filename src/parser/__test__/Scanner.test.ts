@@ -95,6 +95,7 @@ describe("Scanner tokens", () => {
       { char: "is", type: "IS" },
       { char: "import", type: "IMPORT" },
       { char: "module", type: "MODULE" },
+      { char: "panic", type: "PANIC" },
       { char: "return", type: "RETURN" },
       { char: "super", type: "SUPER" },
       { char: "this", type: "THIS" },

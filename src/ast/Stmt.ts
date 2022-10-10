@@ -177,6 +177,20 @@ export class ModuleStmt implements BaseStmt {
   }
 }
 
+export class PanicStmt {
+  constructor(readonly keyword: Token, readonly value: Expr) {}
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitPanicStmt(this);
+  }
+
+  sourceRange(): SourceRange {
+    const { file, start } = this.keyword.sourceRange();
+    const { end } = this.value.sourceRange();
+    return new SourceRange(file, start, end);
+  }
+}
+
 export class ReturnStmt implements BaseStmt {
   constructor(readonly keyword: Token, readonly value: Expr) {}
 
@@ -252,6 +266,7 @@ export type Stmt =
   | ImportStmt
   | InterfaceStmt
   | ModuleStmt
+  | PanicStmt
   | ReturnStmt
   | TypeStmt
   | VarStmt
@@ -269,6 +284,7 @@ export interface StmtVisitor<T> {
   visitImportStmt(stmt: ImportStmt): T;
   visitInterfaceStmt(stmt: InterfaceStmt): T;
   visitModuleStmt(stmt: ModuleStmt): T;
+  visitPanicStmt(stmt: PanicStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
   visitTypeStmt(stmt: TypeStmt): T;
   visitVarStmt(stmt: VarStmt): T;

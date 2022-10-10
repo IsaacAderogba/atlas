@@ -29,6 +29,7 @@ import {
   IfStmt,
   ImportStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -149,6 +150,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         throw err;
       }
     }
+  }
+
+  visitPanicStmt(stmt: PanicStmt): void {
+    const value = this.evaluate(stmt.value);
+    throw this.error(
+      stmt.value,
+      RuntimeErrors.unrecoverablePanic(value.toString())
+    );
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {

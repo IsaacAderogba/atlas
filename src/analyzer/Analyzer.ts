@@ -26,6 +26,7 @@ import {
   IfStmt,
   ImportStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -190,6 +191,10 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
     this.declare(name);
     this.define(name);
+  }
+
+  visitPanicStmt(stmt: PanicStmt): void {
+    this.analyzeExpr(stmt.value);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {

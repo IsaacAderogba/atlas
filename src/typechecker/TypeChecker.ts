@@ -33,6 +33,7 @@ import {
   ImportStmt,
   InterfaceStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -210,6 +211,10 @@ export class TypeChecker implements TypeVisitor {
 
   visitModuleStmt({ name, block }: ModuleStmt): void {
     this.lookup.defineModule(name, this.visitModule(block.statements));
+  }
+
+  visitPanicStmt(stmt: PanicStmt): void {
+    this.acceptExpr(stmt.value);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {

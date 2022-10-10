@@ -7,3 +7,6 @@ print(Assert.expect(false).toBeTruthy())
 var err = Exception.Error("err")
 
 print(err.message)
+
+
+panic err.message

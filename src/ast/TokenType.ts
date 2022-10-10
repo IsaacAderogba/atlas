@@ -53,6 +53,7 @@ export type TokenType =
   | "IMPORT"
   | "MODULE"
   | "NULL"
+  | "PANIC"
   | "RETURN"
   | "SUPER"
   | "THIS"
