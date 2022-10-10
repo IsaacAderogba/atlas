@@ -1,10 +1,46 @@
 import Exception from "exception"
 
 type CallbackResolver[T] = (T) -> Null
-type CallbackRejector = (Exception.Error) -> Null
-
+type CallbackRejector = (String) -> Null
 type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
 
-var call: Callback[String] = f(resolver, rejector) {
+var FULFILLED = "fulfilled"
+var REJECTED = "rejected"
+var PENDING = "pending"
 
+/*
+class Promise[T] {
+  valueCbs: List[CallbackResolver[T]] = []
+  errorsCbs: List[CallbackRejector] = []
+  state: String = PENDING
+
+  value: T
+  error: Exception.Error
+
+  init: (Callback[T]) -> Promise[T] = f(callback) {
+    scheduleTask(f() {
+      callback(this.onSuccess, this.onFail)
+    })
+  }
+
+  onSuccess: CallbackResolver[T] = f(value) {
+    if (this.state == PENDING) {
+      this.value = value
+      this.state = FULFILLED
+    }
+  }
+
+  onFail: CallbackRejector = f(error) {
+    if (this.state == PENDING) {
+      this.error = error
+      this.state = REJECTED
+    }
+  }
+}
+*/
+
+var error: Exception.Error = Exception.Error("Foo")
+
+var rejector: CallbackRejector = f(err) {
+  error = err
 }

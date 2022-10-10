@@ -53,6 +53,7 @@ import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 import { isGenericType } from "../primitives/GenericType";
+import { isAliasType } from "../primitives/AliasType";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -128,6 +129,7 @@ export class TypeChecker implements TypeVisitor {
             name,
             TypeCheckErrors.requiredFunctionAnnotation()
           );
+
       classType.setProp(name.lexeme, value);
     }
 
@@ -140,7 +142,7 @@ export class TypeChecker implements TypeVisitor {
         this.visitProperty(
           prop,
           lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
-          classType.findMethod(lexeme)
+          classType.findProp(lexeme)
         )
       );
     }
@@ -631,7 +633,8 @@ export class TypeChecker implements TypeVisitor {
 
     const { expr, expected } = current;
 
-    const expectedParams = isCallableType(expected) ? expected.params : [];
+    const unwrapped = isAliasType(expected) ? expected.wrapped : expected
+    const expectedParams = isCallableType(unwrapped) ? unwrapped.params : [];
     const params = expr.params.map(({ name }, i) => {
       this.lookup.defineValue(name, expectedParams[i] || Types.Any);
       return expectedParams[i] || Types.Any;

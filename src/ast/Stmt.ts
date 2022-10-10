@@ -76,7 +76,6 @@ export class ErrorStmt implements BaseStmt {
   constructor(readonly error: SyntaxError) {}
 
   accept<T>(): T {
-    console.log("error", this.error);
     throw new Error("ErrorStmt should not be executed.");
   }
 

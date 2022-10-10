@@ -21,7 +21,6 @@ export class TypeCheckErrors {
   }
 
   static invalidSubtype(body: string): SourceMessage {
-    console.log("error", body)
     return this.formatError({
       title: "invalid subtype",
       body: body,

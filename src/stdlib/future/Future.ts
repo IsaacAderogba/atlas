@@ -14,7 +14,7 @@ const FULFILLED = "fulfilled";
 const REJECTED = "rejected";
 const PENDING = "pending";
 
-export class Future<T> {
+export class Promise<T> {
   valueCbs: CallbackResolver<T>[] = [];
   errorCbs: CallbackRejector[] = [];
   state: string = PENDING;
@@ -52,48 +52,48 @@ export class Future<T> {
     this.runCallbacks();
   };
 
-  call = (): Future<T> => {
+  call = (): Promise<T> => {
     this.runCallbacks();
     scheduler.run();
     return this;
   };
 
-  then = (valueCb: CallbackResolver<T>): Future<T> => {
+  then = (valueCb: CallbackResolver<T>): Promise<T> => {
     this.valueCbs.push(value => valueCb(value));
     return this.call();
   };
 
-  catch = (errorCb: CallbackRejector): Future<T> => {
+  catch = (errorCb: CallbackRejector): Promise<T> => {
     this.errorCbs.push(value => errorCb(value));
     return this.call();
   };
 
-  abort = (message: string): Future<T> => {
+  abort = (message: string): Promise<T> => {
     this.errorCbs.push(() => {
       throw new Error(message);
     });
     return this.call();
   };
 
-  finally = (callback: () => void): Future<T> => {
+  finally = (callback: () => void): Promise<T> => {
     this.valueCbs.push(() => callback());
     this.errorCbs.push(() => callback());
     return this.call();
   };
 }
 
-export const all = <T>(futures: Future<T>[]): Future<T[]> => {
+export const all = <T>(promises: Promise<T>[]): Promise<T[]> => {
   const results: T[] = [];
-  let completedFutures = 0;
+  let completedPromises = 0;
 
-  return new Future<T[]>((resolve, reject) => {
-    for (let i = 0; i < futures.length; i++) {
-      const future = futures[i];
-      future
+  return new Promise<T[]>((resolve, reject) => {
+    for (let i = 0; i < promises.length; i++) {
+      const promise = promises[i];
+      promise
         .then(value => {
-          completedFutures++;
+          completedPromises++;
           results[i] = value;
-          if (completedFutures === futures.length) {
+          if (completedPromises === promises.length) {
             resolve(results);
           }
         })
@@ -102,18 +102,18 @@ export const all = <T>(futures: Future<T>[]): Future<T[]> => {
   });
 };
 
-export const race = <T>(futures: Future<T>[]): Future<T> => {
-  return new Future<T>((resolve, reject) => {
-    futures.forEach(future => {
-      future.then(resolve).catch(reject);
+export const race = <T>(promises: Promise<T>[]): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    promises.forEach(promise => {
+      promise.then(resolve).catch(reject);
     });
   });
 };
 
-const countDown = (count: number): Future<number> => {
-  return new Future(rootResolve => {
+const countDown = (count: number): Promise<number> => {
+  return new Promise(rootResolve => {
     const decrement = (count: number): void => {
-      new Future<number>(resolve => {
+      new Promise<number>(resolve => {
         if (count <= 0) return rootResolve(count);
         console.log(count);
         resolve(count - 1);
@@ -128,15 +128,15 @@ all([countDown(5), countDown(5)])
   .then(value => console.log("result", value))
   .catch(error => console.log("error", error));
 
-// const resolveFuture = new Future<number>(resolve => {
+// const resolvePromise = new Promise<number>(resolve => {
 //   return resolve(1);
 // });
 
-// const rejectFuture = new Future<number>((_, reject) => {
+// const rejectPromise = new Promise<number>((_, reject) => {
 //   return reject(new Error("err"));
 // });
 
-// resolveFuture
+// resolvePromise
 //   .then(value => {
 //     console.log("call", value);
 //     return value;

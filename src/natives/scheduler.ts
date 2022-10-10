@@ -15,7 +15,7 @@ export const scheduleTask = new AtlasNativeFn((interpreter, callback) => {
 });
 
 const scheduleTaskType = Types.NativeFn.init({
-  params: [Types.Function],
+  params: [Types.Function.init({ params: [], returns: Types.Null })],
   returns: Types.Null,
 });
 
