@@ -1,0 +1,7 @@
+class Error {
+  message: String
+
+  init: (String) -> Error = f(message) {
+    this.message = message
+  }
+}

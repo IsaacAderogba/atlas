@@ -1,4 +1,9 @@
 import Assert from "assert"
+import Exception from "exception"
 
 // user code
 print(Assert.expect(false).toBeTruthy())
+
+var err = Exception.Error("err")
+
+print(err.message)
