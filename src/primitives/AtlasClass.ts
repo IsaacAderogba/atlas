@@ -59,6 +59,8 @@ export class ClassType extends ObjectType implements CallableType {
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
+    if (this.generics.length === 0) return this;
+
     const { entries } = bindInterfaceGenerics(this, genericTypeMap);
     return this.init(this.name, entries, this.generics);
   }

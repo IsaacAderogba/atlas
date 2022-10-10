@@ -1,12 +1,10 @@
-import Assert from "assert"
 import Exception from "exception"
 
-// user code
-print(Assert.expect(false).toBeTruthy())
+type CallbackResolver[T] = (T) -> Null
+type CallbackRejector = (Exception.Error) -> Null
 
-var err = Exception.Error("err")
+type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
 
-print(err.message)
+var call: Callback[String] = f(resolver, rejector) {
 
-
-panic err.message
+}
