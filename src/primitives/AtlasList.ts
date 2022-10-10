@@ -1,4 +1,4 @@
-import { AtlasNull, NullType } from "./AtlasNull";
+import { atlasNull, AtlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
@@ -6,10 +6,11 @@ import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { GenericType, isGenericType } from "./GenericType";
 import { UnionType } from "./UnionType";
-import { isAtlasNumber, NumberType } from "./AtlasNumber";
+import { atlasNumber, isAtlasNumber, NumberType } from "./AtlasNumber";
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { Interpreter } from "../runtime/Interpreter";
+import { FunctionType, isAtlasFunction } from "./AtlasFunction";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -19,6 +20,7 @@ export class AtlasList extends AtlasObject {
       toNativeFunctions({
         add: AtlasList.prototype.add,
         at: AtlasList.prototype.at,
+        forEach: AtlasList.prototype.forEach,
         remove: AtlasList.prototype.remove,
       })
     );
@@ -35,6 +37,18 @@ export class AtlasList extends AtlasObject {
     }
 
     return this.items[index.value] ?? new AtlasNull();
+  }
+
+  forEach(interpreter: Interpreter, callback: AtlasValue): AtlasValue {
+    if (!isAtlasFunction(callback)) {
+      throw new NativeError(RuntimeErrors.expectedFunction());
+    }
+
+    this.items.forEach((item, i) => {
+      callback.call(interpreter, [item, atlasNumber(i)]);
+    });
+
+    return atlasNull();
   }
 
   remove(): AtlasValue {
@@ -59,6 +73,15 @@ export class ListType extends ObjectType {
         at: new NativeFnType({
           params: [new NumberType()],
           returns: new UnionType([itemType, new NullType()]),
+        }),
+        forEach: new NativeFnType({
+          params: [
+            new FunctionType({
+              params: [itemType, new NumberType()],
+              returns: new NullType(),
+            }),
+          ],
+          returns: new NullType(),
         }),
         remove: new NativeFnType({
           params: [],

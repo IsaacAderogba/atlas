@@ -14,6 +14,9 @@ export class AtlasNumber extends AtlasObject {
   }
 }
 
+export const atlasNumber = (value: number): AtlasNumber =>
+  new AtlasNumber(value);
+
 export const isAtlasNumber = (type?: AtlasValue): type is AtlasNumber =>
   type?.type === "Number";
 
