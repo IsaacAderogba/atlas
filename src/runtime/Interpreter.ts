@@ -68,7 +68,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(statement);
       }
 
-      this.scheduler.run();
       return { errors: [] };
     } catch (error) {
       if (error instanceof RuntimeError) return { errors: [error] };

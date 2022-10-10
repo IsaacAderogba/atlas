@@ -51,4 +51,19 @@ class Promise[T] {
       this.runCallbacks()
     }
   }
+
+  call: () -> Promise[T] = f() {
+    this.runCallbacks()
+    runScheduledTasks()
+    return this
+  }
 }
+
+var resolvedPromise = Promise[Number](f(resolve, reject) {
+  print(1)
+  resolve(1)
+})
+
+
+resolvedPromise.call()
+resolvedPromise.call()

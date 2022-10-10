@@ -46,8 +46,6 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
     } catch (err) {
       if (err instanceof Return) return err.value;
       throw err;
-    } finally {
-      interpreter.scheduler.run();
     }
 
     if (this.isInitializer) {
