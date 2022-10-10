@@ -10,14 +10,27 @@ export const scheduleTask = new AtlasNativeFn((interpreter, callback) => {
     throw new NativeError(RuntimeErrors.expectedFunction());
   }
 
-  interpreter.scheduler.queueTask(() => callback.call(interpreter, []))
+  interpreter.scheduler.queueTask(() => callback.call(interpreter, []));
   return atlasNull();
 });
 
 const scheduleTaskType = Types.NativeFn.init({
   params: [Types.Function],
-  returns: Types.Function,
+  returns: Types.Null,
 });
 
-export const schedulerValues = { scheduleTask };
-export const schedulerTypes = { scheduler: scheduleTaskType };
+export const runScheduledTasks = new AtlasNativeFn(interpreter => {
+  interpreter.scheduler.run();
+  return atlasNull();
+});
+
+const runScheduledTasksType = Types.NativeFn.init({
+  params: [],
+  returns: Types.Null,
+});
+
+export const schedulerValues = { scheduleTask, runScheduledTasks };
+export const schedulerTypes = {
+  scheduleTask: scheduleTaskType,
+  runScheduledTasks: runScheduledTasksType,
+};
