@@ -50,13 +50,9 @@ export const createSubtyper = (): ((
 
     if (isListType(a) && isListType(b)) {
       return isSubtype(a.itemType, b.itemType);
-    }
-
-    if (isRecordType(a) && isRecordType(b)) {
+    } else if (isRecordType(a) && isRecordType(b)) {
       return isSubtype(a.itemType, b.itemType);
-    }
-
-    if (isInterfaceType(a) && isInterfaceType(b)) {
+    } else if (isInterfaceType(a) && isInterfaceType(b)) {
       const mergedA = new Map([...a.methods, ...a.fields]);
       const mergedB = new Map([...b.methods, ...b.fields]);
 
@@ -67,15 +63,13 @@ export const createSubtyper = (): ((
       });
 
       if (succeeded) return true;
-    }
-
-    if (isCallableType(a) && isCallableType(b)) {
+    } else if (isCallableType(a) && isCallableType(b)) {
       const succeeded =
         a.arity() === b.arity() &&
         isSubtype(a.returns, b.returns) &&
         a.params.every((a, i) => isSubtype(b.params[i], a));
 
-      if (succeeded) return succeeded;
+      if (succeeded) return true;
     }
 
     error(a, b);

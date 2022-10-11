@@ -57,13 +57,16 @@ class Promise[T] {
     runScheduledTasks()
     return this
   }
+
+  then: (CallbackResolver[T]) -> Promise[T] = f(valueCb) {
+    this.valueCbs.add(valueCb)
+    return this.call()
+  }
 }
 
 var resolvedPromise = Promise[Number](f(resolve, reject) {
-  print(1)
   resolve(1)
 })
 
 
-resolvedPromise.call()
 resolvedPromise.call()

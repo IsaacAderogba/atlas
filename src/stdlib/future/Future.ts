@@ -59,12 +59,12 @@ export class Promise<T> {
   };
 
   then = (valueCb: CallbackResolver<T>): Promise<T> => {
-    this.valueCbs.push(value => valueCb(value));
+    this.valueCbs.push(valueCb);
     return this.call();
   };
 
   catch = (errorCb: CallbackRejector): Promise<T> => {
-    this.errorCbs.push(value => errorCb(value));
+    this.errorCbs.push(errorCb);
     return this.call();
   };
 

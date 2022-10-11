@@ -137,6 +137,7 @@ export class TypeChecker implements TypeVisitor {
     for (const prop of methods) {
       const { lexeme } = prop.name;
 
+      console.log("visit", lexeme);
       classType.setProp(
         lexeme,
         this.visitProperty(
