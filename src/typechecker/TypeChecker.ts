@@ -135,15 +135,18 @@ export class TypeChecker implements TypeVisitor {
 
     // with all functions typed, we can finally check them
     for (const prop of methods) {
-      const { lexeme } = prop.name;
+      const { name, type } = prop;
 
-      console.log("visit", lexeme);
+      const prev = classType.findProp(name.lexeme);
+      const expected =
+        !isAnyType(prev) && type ? this.acceptTypeExpr(type) : prev;
+
       classType.setProp(
-        lexeme,
+        name.lexeme,
         this.visitProperty(
           prop,
-          lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
-          classType.findProp(lexeme)
+          name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
+          expected
         )
       );
     }
@@ -660,6 +663,8 @@ export class TypeChecker implements TypeVisitor {
 
     this.lookup.endScope();
     this.currentFunction = enclosingFunction;
+    // @ts-ignore
+    // console.log({ actual: actual.returns, expected: unwrapped.returns });
     return this.subtyper.check(expr, actual, expected);
   }
 }

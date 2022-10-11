@@ -60,7 +60,8 @@ class Promise[T] {
 
   then: (CallbackResolver[T]) -> Promise[T] = f(valueCb) {
     this.valueCbs.add(valueCb)
-    return this.call()
+    this.call()
+    return this
   }
 }
 
@@ -69,4 +70,4 @@ var resolvedPromise = Promise[Number](f(resolve, reject) {
 })
 
 
-resolvedPromise.call()
+resolvedPromise.call().then(f(num) {})
