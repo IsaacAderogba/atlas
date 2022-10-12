@@ -12,12 +12,24 @@ export interface AtlasCallable {
 
 export const isCallable = (
   value: AtlasValue
-): value is AtlasCallable & AtlasValue => {
+): value is AtlasValue & AtlasCallable => {
   return (
     value.type === "Function" ||
     value.type === "NativeFn" ||
     value.type === "Class"
   );
+};
+
+export const maybeBindCallable = (
+  instance: AtlasObject,
+  value: AtlasValue | undefined
+): AtlasValue | undefined => {
+  if (value) {
+    if (isCallable(value)) return value.bind(instance as AtlasValue);
+    return value;
+  }
+
+  return undefined;
 };
 
 export const bindCallableGenerics = (

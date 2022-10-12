@@ -63,6 +63,12 @@ class Promise[T] {
     this.call()
     return this
   }
+
+  catch: (CallbackRejector) -> Promise[T] = f(errorCb) {
+    this.errorCbs.add(errorCb)
+    this.call()
+    return this
+  }
 }
 
 var resolvedPromise = Promise[Number](f(resolve, reject) {
@@ -70,4 +76,7 @@ var resolvedPromise = Promise[Number](f(resolve, reject) {
 })
 
 
-resolvedPromise.call().then(f(num) {})
+resolvedPromise
+  .call()
+  .then(f(num) {})
+  .catch(f(err) {})

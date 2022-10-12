@@ -114,7 +114,7 @@ export class TypeChecker implements TypeVisitor {
 
     // type check and define fields in scope
     for (const prop of fields) {
-      classType.setProp(prop.name.lexeme, this.visitProperty(prop));
+      classType.set(prop.name.lexeme, this.visitProperty(prop));
     }
 
     // create this type now that fields have been bound
@@ -130,18 +130,18 @@ export class TypeChecker implements TypeVisitor {
             TypeCheckErrors.requiredFunctionAnnotation()
           );
 
-      classType.setProp(name.lexeme, value);
+      classType.set(name.lexeme, value);
     }
 
     // with all functions typed, we can finally check them
     for (const prop of methods) {
       const { name, type } = prop;
 
-      const prev = classType.findProp(name.lexeme);
+      const prev = classType.findField(name.lexeme);
       const expected =
         !isAnyType(prev) && type ? this.acceptTypeExpr(type) : prev;
 
-      classType.setProp(
+      classType.set(
         name.lexeme,
         this.visitProperty(
           prop,
@@ -188,7 +188,7 @@ export class TypeChecker implements TypeVisitor {
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
       this.lookup.defineType(key, type);
-      interfaceType.setProp(key.lexeme, type);
+      interfaceType.set(key.lexeme, type);
     });
     this.lookup.endScope();
 

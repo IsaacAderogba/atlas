@@ -47,10 +47,6 @@ export const bindInterfaceGenerics = (
     entries[name] = type.bindGenerics(map);
   }
 
-  for (const [name, type] of target.methods) {
-    entries[name] = type.bindGenerics(map);
-  }
-
   return { entries };
 };
 
@@ -66,10 +62,6 @@ export const toInterfaceString = (target: AtlasType): string => {
   const props: string[] = [];
 
   for (const [name, type] of target.fields) {
-    props.push(`"${name}": ${type.toString()}`);
-  }
-
-  for (const [name, type] of target.methods) {
     props.push(`"${name}": ${type.toString()}`);
   }
 

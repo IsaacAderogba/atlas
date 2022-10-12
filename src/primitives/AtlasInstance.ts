@@ -3,6 +3,7 @@ import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { maybeBindCallable } from "./AtlasCallable";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
@@ -17,10 +18,10 @@ export class AtlasInstance extends AtlasObject {
 
   get(name: string): AtlasValue | undefined {
     const field = this.fields.get(name);
-    if (field) return field;
+    if (field) return maybeBindCallable(this, field);
 
-    const method = this.atlasClass.findMethod(name);
-    if (method) return method.bind(this);
+    const value = this.atlasClass.findField(name);
+    if (value) return maybeBindCallable(this, value);
 
     return super.get(name);
   }
@@ -46,15 +47,11 @@ export class InstanceType extends ObjectType {
   }
 
   get(name: string): AtlasType | undefined {
-    return this.classType.findProp(name);
+    return this.classType.findField(name);
   }
 
   get fields(): ObjectType["fields"] {
-    return new Map([...this.internalFields, ...this.classType.fields]);
-  }
-
-  get methods(): ObjectType["methods"] {
-    return new Map([...this.internalMethods, ...this.classType.methods]);
+    return this.classType.fields;
   }
 
   init = (classType: ClassType): InstanceType => new InstanceType(classType);

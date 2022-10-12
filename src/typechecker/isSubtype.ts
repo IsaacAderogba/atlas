@@ -53,11 +53,8 @@ export const createSubtyper = (): ((
     } else if (isRecordType(a) && isRecordType(b)) {
       return isSubtype(a.itemType, b.itemType);
     } else if (isInterfaceType(a) && isInterfaceType(b)) {
-      const mergedA = new Map([...a.methods, ...a.fields]);
-      const mergedB = new Map([...b.methods, ...b.fields]);
-
-      const succeeded = [...mergedB.entries()].every(([name, type]) => {
-        const compare = mergedA.get(name);
+      const succeeded = [...b.fields.entries()].every(([name, type]) => {
+        const compare = a.fields.get(name);
         if (compare) return isSubtype(compare, type);
         return false;
       });
