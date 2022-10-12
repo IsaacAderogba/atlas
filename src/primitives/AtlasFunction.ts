@@ -78,23 +78,23 @@ export class FunctionType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: FunctionTypeProps, generics: AtlasType[] = []) {
-    super({}, generics);
+  constructor(props: FunctionTypeProps) {
+    super({});
     this.params = props.params;
     this.returns = props.returns;
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
     const { params, returns } = bindCallableGenerics(this, genericTypeMap);
-    return this.init({ params, returns }, this.generics);
+    return this.init({ params, returns });
   }
 
   arity(): number {
     return this.params.length;
   }
 
-  init = (props: FunctionTypeProps, generics: AtlasType[] = []): FunctionType =>
-    new FunctionType(props, generics);
+  init = (props: FunctionTypeProps): FunctionType =>
+    new FunctionType(props);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

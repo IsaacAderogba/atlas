@@ -364,7 +364,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGetExpr(expr: GetExpr): AtlasType {
-    return this.visitField(expr);
+    return this.visitGetter(expr);
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasType {
@@ -437,7 +437,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {
-    const expected = this.visitField(expr);
+    const expected = this.visitGetter(expr);
     const actual = this.acceptExpr(expr.value, expected);
     return this.subtyper.check(expr.value, actual, expected);
   }
@@ -470,11 +470,10 @@ export class TypeChecker implements TypeVisitor {
 
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
     this.lookup.beginScope();
-    const generics = this.lookup.defineGenerics(typeExpr.params);
     const params = typeExpr.paramTypes.map(p => this.acceptTypeExpr(p));
     const returns = this.acceptTypeExpr(typeExpr.returnType);
     this.lookup.endScope();
-    return Types.Function.init({ params, returns }, generics);
+    return Types.Function.init({ params, returns });
   }
 
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): AtlasType {
@@ -582,12 +581,13 @@ export class TypeChecker implements TypeVisitor {
     return genericType.bindGenerics(genericTypeMap);
   }
 
-  visitField({ name, object }: GetExpr | SetExpr): AtlasType {
+  visitGetter({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name.lexeme);
       if (isAnyType(objectType)) return objectType;
 
       if (memberType) return memberType;
+      // console.log("getting off", objectType);
       return this.subtyper.error(
         name,
         TypeCheckErrors.unknownProperty(name.lexeme)

@@ -70,9 +70,11 @@ describe("Generics annotations", () => {
         foo: T
       }
       
-      var addFoo: [T is Number](Foo[T]) -> Number = f(arg) {
-        return arg.foo * arg.foo
-      }     
+      class Add[T is Number] {
+        func: (T) -> T = f(value) {
+          return value * value
+        }
+      }  
     `);
 
     expect(errors.length).toEqual(0);
@@ -84,11 +86,9 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`
-      var foo: [T, K](T, K) -> T = f(t, k) {
-        return t
-      }
+      class Foo[T, K] {}
       
-      foo[String]()
+      Foo[String]()
     `);
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.mismatchedArity(2, 1)
@@ -99,9 +99,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`
-      var foo: [K is Number](K) -> String = f(incorrect) {
-        return "correct" # incorrect
-      }
+      class Add[T is Number] {
+        func: (T) -> String = f(value) {
+          return "value" # value
+        }
+      }  
     `);
 
     const { error } = createSubtyper()(Types.Number, Types.String);
@@ -114,11 +116,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`      
-      var addFoo: [T](T) -> Number = f(arg) {
-        return 0
+      class AddFoo[T] {
+        init: (T) -> AddFoo[T] = f(value) {}
       }
       
-      addFoo(6)  
+      AddFoo(6)  
     `);
 
     expect(errors[0].sourceMessage).toEqual(
@@ -143,11 +145,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`      
-      var addFoo: [T is Number](T) -> Number = f(arg) {
-        return arg * arg
+      class AddFoo[T is Number] {
+        init: (T) -> AddFoo[T] = f(value) {}
       }
       
-      addFoo(6)  
+      AddFoo(6)
     `);
 
     expect(errors[0].sourceMessage).toEqual(
