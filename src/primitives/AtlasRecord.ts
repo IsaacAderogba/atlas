@@ -3,7 +3,7 @@ import { RuntimeErrors } from "../errors/RuntimeError";
 import { Interpreter } from "../runtime/Interpreter";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
-import { AtlasNull, NullType } from "./AtlasNull";
+import { atlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { isAtlasString, StringType } from "./AtlasString";
 import { AtlasType } from "./AtlasType";
@@ -29,7 +29,7 @@ export class AtlasRecord extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedString());
     }
 
-    return this.entries[key.value] ?? new AtlasNull();
+    return this.entries[key.value] ?? atlasNull;
   }
 
   add(_: Interpreter, key: AtlasValue, value: AtlasValue): AtlasValue {
@@ -52,7 +52,7 @@ export class AtlasRecord extends AtlasObject {
       return entry;
     }
 
-    return new AtlasNull();
+    return atlasNull;
   }
 
   toString(): string {

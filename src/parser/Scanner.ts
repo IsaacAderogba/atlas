@@ -7,7 +7,7 @@ import { Keywords } from "../ast/Keywords";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
 import { AtlasString } from "../primitives/AtlasString";
 import { AtlasNumber } from "../primitives/AtlasNumber";
-import { AtlasNull } from "../primitives/AtlasNull";
+import { atlasNull } from "../primitives/AtlasNull";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Scanner {
@@ -156,7 +156,7 @@ export class Scanner {
     const text = this.file.source.substring(this.start, this.current);
     switch (text) {
       case "null":
-        this.addToken("NULL", { literal: new AtlasNull() });
+        this.addToken("NULL", { literal: atlasNull });
         break;
       case "true":
         this.addToken("TRUE", { literal: atlasBoolean(true) });

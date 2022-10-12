@@ -4,7 +4,7 @@ import {
   bindCallableGenerics,
   CallableType,
 } from "./AtlasCallable";
-import { AtlasNull } from "./AtlasNull";
+import { atlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Environment } from "../runtime/Environment";
@@ -52,7 +52,7 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
       return this.closure.get("this", this.expression.keyword);
     }
 
-    return new AtlasNull();
+    return atlasNull;
   }
 
   toString(): string {

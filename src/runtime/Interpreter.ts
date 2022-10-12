@@ -102,7 +102,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
-    this.environment.define(stmt.name.lexeme, new AtlasNull());
+    this.environment.define(stmt.name.lexeme, atlasNull);
 
     const props: { [key: string]: AtlasValue } = {};
     for (const { name, initializer: expr } of stmt.properties) {
@@ -111,7 +111,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
           ? new AtlasFunction(expr, this.environment, name.lexeme === "init")
           : expr
           ? this.evaluate(expr)
-          : atlasNull();
+          : atlasNull;
 
       props[name.lexeme] = value;
     }
@@ -133,7 +133,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitVarStmt({ property: { initializer, name } }: VarStmt): void {
-    const value = initializer ? this.evaluate(initializer) : atlasNull();
+    const value = initializer ? this.evaluate(initializer) : atlasNull;
     this.environment.define(name.lexeme, value);
   }
 

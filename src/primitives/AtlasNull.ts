@@ -13,7 +13,7 @@ export class AtlasNull extends AtlasObject {
   }
 }
 
-export const atlasNull = (): AtlasNull => new AtlasNull();
+export const atlasNull = new AtlasNull();
 
 export class NullType extends ObjectType {
   readonly type = "Null";
@@ -27,3 +27,5 @@ export class NullType extends ObjectType {
 
 export const isNullType = (type: AtlasType): type is NullType =>
   type.type === "Null";
+
+export const nullType = new NullType();

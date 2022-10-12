@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
 import { atlasBoolean } from "../../primitives/AtlasBoolean";
-import { AtlasNull } from "../../primitives/AtlasNull";
+import { atlasNull } from "../../primitives/AtlasNull";
 import { AtlasNumber } from "../../primitives/AtlasNumber";
 import { AtlasString } from "../../primitives/AtlasString";
 
@@ -182,7 +182,7 @@ describe("Scanner tokens", () => {
     const { tokens } = tester.scanWorkflow("null");
 
     expect(tokens[0].type).toEqual("NULL");
-    expect(tokens[0].literal).toEqual(new AtlasNull());
+    expect(tokens[0].literal).toEqual(atlasNull);
 
     expect(tokens.length).toEqual(2);
   });

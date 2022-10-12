@@ -11,7 +11,7 @@ export const scheduleTask = new AtlasNativeFn((interpreter, callback) => {
   }
 
   interpreter.scheduler.queueTask(() => callback.call(interpreter, []));
-  return atlasNull();
+  return atlasNull;
 });
 
 const scheduleTaskType = Types.NativeFn.init({
@@ -21,7 +21,7 @@ const scheduleTaskType = Types.NativeFn.init({
 
 export const runScheduledTasks = new AtlasNativeFn(interpreter => {
   interpreter.scheduler.run();
-  return atlasNull();
+  return atlasNull;
 });
 
 const runScheduledTasksType = Types.NativeFn.init({

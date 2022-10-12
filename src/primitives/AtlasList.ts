@@ -1,4 +1,4 @@
-import { atlasNull, AtlasNull, NullType } from "./AtlasNull";
+import { atlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
@@ -36,7 +36,7 @@ export class AtlasList extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedNumber());
     }
 
-    return this.items[index.value] ?? new AtlasNull();
+    return this.items[index.value] ?? atlasNull
   }
 
   forEach(interpreter: Interpreter, callback: AtlasValue): AtlasValue {
@@ -48,12 +48,12 @@ export class AtlasList extends AtlasObject {
       callback.call(interpreter, [item, atlasNumber(i)]);
     });
 
-    return atlasNull();
+    return atlasNull;
   }
 
   remove(): AtlasValue {
     const value = this.items.pop();
-    return value || new AtlasNull();
+    return value || atlasNull
   }
 
   toString(): string {
