@@ -9,15 +9,14 @@ import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
 import { GenericTypeMap } from "../typechecker/GenericUtils";
 
+type NativeFunction = (
+  interpreter: Interpreter,
+  ...args: AtlasValue[]
+) => AtlasValue;
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
 
-  constructor(
-    public readonly func: (
-      interpreter: Interpreter,
-      ...args: AtlasValue[]
-    ) => AtlasValue
-  ) {
+  constructor(public readonly func: NativeFunction) {
     super();
   }
 
@@ -39,6 +38,9 @@ export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   }
 }
 
+export const atlasNativeFn = (func: NativeFunction): AtlasNativeFn =>
+  new AtlasNativeFn(func);
+
 type ConvertedFunctions = { [key: string]: AtlasCallable & AtlasValue };
 
 export const toNativeFunctions = (funcs: {
@@ -47,7 +49,7 @@ export const toNativeFunctions = (funcs: {
   const convertedFuncs: ConvertedFunctions = {};
 
   for (const [name, func] of Object.entries(funcs)) {
-    convertedFuncs[name] = new AtlasNativeFn(func);
+    convertedFuncs[name] = atlasNativeFn(func);
   }
 
   return convertedFuncs;

@@ -1,11 +1,11 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { isAtlasFunction } from "../primitives/AtlasFunction";
-import { AtlasNativeFn } from "../primitives/AtlasNativeFn";
+import { atlasNativeFn } from "../primitives/AtlasNativeFn";
 import { atlasNull } from "../primitives/AtlasNull";
 import { Types } from "../primitives/AtlasType";
 
-export const scheduleTask = new AtlasNativeFn((interpreter, callback) => {
+export const scheduleTask = atlasNativeFn((interpreter, callback) => {
   if (!isAtlasFunction(callback)) {
     throw new NativeError(RuntimeErrors.expectedFunction());
   }
@@ -19,7 +19,7 @@ const scheduleTaskType = Types.NativeFn.init({
   returns: Types.Null,
 });
 
-export const runScheduledTasks = new AtlasNativeFn(interpreter => {
+export const runScheduledTasks = atlasNativeFn(interpreter => {
   interpreter.scheduler.run();
   return atlasNull;
 });
