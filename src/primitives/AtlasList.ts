@@ -36,7 +36,7 @@ export class AtlasList extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedNumber());
     }
 
-    return this.items[index.value] ?? atlasNull
+    return this.items[index.value] ?? atlasNull;
   }
 
   forEach(interpreter: Interpreter, callback: AtlasValue): AtlasValue {
@@ -53,13 +53,16 @@ export class AtlasList extends AtlasObject {
 
   remove(): AtlasValue {
     const value = this.items.pop();
-    return value || atlasNull
+    return value || atlasNull;
   }
 
   toString(): string {
     return `[${this.items.join(", ")}]`;
   }
 }
+
+export const atlasList = (items: AtlasValue[] = []): AtlasList =>
+  new AtlasList(items);
 
 export class ListType extends ObjectType {
   readonly type = "List";

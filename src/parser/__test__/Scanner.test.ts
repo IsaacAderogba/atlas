@@ -3,8 +3,8 @@ import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
 import { atlasBoolean } from "../../primitives/AtlasBoolean";
 import { atlasNull } from "../../primitives/AtlasNull";
-import { AtlasNumber } from "../../primitives/AtlasNumber";
-import { AtlasString } from "../../primitives/AtlasString";
+import { atlasNumber, AtlasNumber } from "../../primitives/AtlasNumber";
+import { atlasString, AtlasString } from "../../primitives/AtlasString";
 
 describe("Scanner tokens", () => {
   it("tokenizes single-character tokens", () => {
@@ -121,12 +121,12 @@ describe("Scanner tokens", () => {
         {
           char: '"string"',
           type: "STRING",
-          literal: new AtlasString("string"),
+          literal: atlasString("string"),
         },
         {
           char: "'string'",
           type: "STRING",
-          literal: new AtlasString("string"),
+          literal: atlasString("string"),
         },
       ];
 
@@ -143,8 +143,8 @@ describe("Scanner tokens", () => {
   it("tokenizes number", () => {
     const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] =
       [
-        { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
-        { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
+        { char: "2", type: "NUMBER", literal: atlasNumber(2) },
+        { char: "2.2", type: "NUMBER", literal: atlasNumber(2.2) },
       ];
 
     charTypes.forEach(({ char, type, literal }) => {

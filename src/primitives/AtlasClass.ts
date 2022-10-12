@@ -1,4 +1,4 @@
-import { AtlasInstance, InstanceType } from "./AtlasInstance";
+import { atlasInstance, InstanceType } from "./AtlasInstance";
 import { AtlasValue } from "./AtlasValue";
 import {
   AtlasObject,
@@ -46,7 +46,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
       if (!isCallable(value)) fields.set(name, value);
     }
 
-    const instance = new AtlasInstance(this, fields);
+    const instance = atlasInstance(this, fields);
     const init = this.findField("init");
     if (init && isCallable(init)) init.bind(instance).call(interpreter, args);
     return instance;
@@ -60,6 +60,11 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
     return this.name;
   }
 }
+
+export const atlasClass = (
+  name: string,
+  properties: AtlasObjectProps = {}
+): AtlasClass => new AtlasClass(name, properties);
 
 export class ClassType extends ObjectType implements CallableType {
   readonly type = "Class";

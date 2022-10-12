@@ -19,6 +19,11 @@ export class AtlasModule extends AtlasObject {
   }
 }
 
+export const atlasModule = (
+  name: string,
+  entries: { [key: string]: AtlasValue } = {}
+): AtlasModule => new AtlasModule(name, entries);
+
 export class ModuleType extends ObjectType {
   readonly type = "Module";
 

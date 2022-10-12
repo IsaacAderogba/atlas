@@ -35,6 +35,11 @@ export class AtlasInstance extends AtlasObject {
   }
 }
 
+export const atlasInstance = (
+  atlasClass: AtlasClass,
+  fields: Map<string, AtlasValue>
+): AtlasInstance => new AtlasInstance(atlasClass, fields);
+
 export class InstanceType extends ObjectType {
   readonly type = "Instance";
 

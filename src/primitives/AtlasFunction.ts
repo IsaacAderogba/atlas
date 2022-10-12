@@ -63,6 +63,12 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
 export const isAtlasFunction = (type?: AtlasValue): type is AtlasFunction =>
   type?.type === "Function";
 
+export const atlasFunction = (
+  expression: FunctionExpr,
+  closure: Environment,
+  isInitializer: boolean
+): AtlasFunction => new AtlasFunction(expression, closure, isInitializer);
+
 interface FunctionTypeProps {
   params: AtlasType[];
   returns: AtlasType;

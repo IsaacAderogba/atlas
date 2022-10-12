@@ -60,6 +60,10 @@ export class AtlasRecord extends AtlasObject {
   }
 }
 
+export const atlasRecord = (
+  entries: { [key: string]: AtlasValue } = {}
+): AtlasRecord => new AtlasRecord(entries);
+
 export class RecordType extends ObjectType {
   readonly type = "Record";
 
