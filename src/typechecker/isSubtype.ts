@@ -56,6 +56,7 @@ export const createSubtyper = (): ((
       const succeeded = [...b.fields.entries()].every(([name, type]) => {
         const compare = a.fields.get(name);
         if (compare) return isSubtype(compare, type);
+        // console.log("can't compare", name, { a, b });
         return false;
       });
 

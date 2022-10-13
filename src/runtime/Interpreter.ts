@@ -191,7 +191,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         if (cachedModule) {
           this.defineModule(name, cachedModule);
         } else {
-          if (this.atlas.reportErrors(errors)) process.exit(65);
+          if (this.atlas.reportErrors(errors)) process.exit(0);
           const moduleEnv = this.visitModule(statements);
           this.defineModule(name, moduleEnv);
           this.cachedModules[file.module] = moduleEnv;

@@ -1,0 +1,83 @@
+import Exception from "exception"
+
+type CallbackResolver[T] = (T) -> Null
+type CallbackRejector = (Exception.Error) -> Null
+type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
+
+var FULFILLED = "fulfilled"
+var REJECTED = "rejected"
+var PENDING = "pending"
+
+class Promise[T] {
+  valueCbs: List[CallbackResolver[T]] = []
+  errorCbs: List[CallbackRejector] = []
+  state: String = PENDING
+
+  value: T
+  error: Exception.Error
+
+  init: (Callback[T]) -> Promise[T] = f(callback) {
+    // scheduleTask(f() {
+      // callback(this.onSuccess, this.onFail)
+    // })
+  }
+
+  runCallbacks: () -> Null = f() {
+    if (this.state == FULFILLED) {
+      this.valueCbs.forEach(f(callback, i) {
+        callback(this.value)
+      })
+      this.valueCbs = []
+    } else if (this.state == REJECTED) {
+      this.errorCbs.forEach(f(callback, i) {
+        callback(this.error)
+      })
+      this.errorCbs = []
+    }
+  }
+
+  onSuccess: CallbackResolver[T] = f(value) {
+    if (this.state == PENDING) {
+      this.value = value
+      this.state = FULFILLED
+      this.runCallbacks()
+    }
+  }
+
+  onFail: CallbackRejector = f(error) {
+    if (this.state == PENDING) {
+      this.error = error
+      this.state = REJECTED
+      this.runCallbacks()
+    }
+  }
+
+  call: () -> Promise[T] = f() {
+    this.runCallbacks()
+    runScheduledTasks()
+    return this
+  }
+
+  then: (CallbackResolver[T]) -> Promise[T] = f(valueCb) {
+    this.valueCbs.add(valueCb)
+    return this.call()
+  }
+
+  /*
+  catch: (CallbackRejector) -> Promise[T] = f(errorCb) {
+    this.errorCbs.add(errorCb)
+    return this.call()
+  }
+  */
+}
+
+var resolvedPromise = Promise[Number](f(resolve, reject) {
+  resolve(1)
+})
+
+/*
+resolvedPromise
+  .call()
+  .then(f(num) {})
+  .catch(f(err) {})
+*/

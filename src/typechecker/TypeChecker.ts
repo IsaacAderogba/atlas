@@ -46,20 +46,26 @@ import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
 import { isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
-import { ClassType, FunctionEnum } from "../utils/Enums";
+import { ClassEnum, FunctionEnum } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
-import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
+import {
+  CurrentClass,
+  CurrentFunction,
+  TypeModuleEnv,
+  TypeVisitor,
+} from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 import { isGenericType } from "../primitives/GenericType";
 import { isAliasType } from "../primitives/AliasType";
+import { isInstanceType } from "../primitives/AtlasInstance";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
   readonly subtyper = new TypeCheckerSubtyper(this);
   currentFunction?: CurrentFunction;
-  currentClass = ClassType.NONE;
+  currentClass?: CurrentClass;
 
   constructor(private readonly atlas: AtlasAPI) {}
 
@@ -96,9 +102,10 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitClassStmt({ name, properties, typeExpr, parameters }: ClassStmt): void {
-    const enclosingClass = this.currentClass;
-    this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
+
+    const enclosingClass = this.currentClass;
+    this.currentClass = { enumType: ClassEnum.CLASS, expected: classType };
     this.lookup.defineValue(name, classType);
     this.lookup.defineType(name, classType);
     this.lookup.beginScope();
@@ -117,12 +124,9 @@ export class TypeChecker implements TypeVisitor {
       classType.set(prop.name.lexeme, this.visitProperty(prop));
     }
 
-    // create this type now that fields have been bound
-    const thisInstance = classType.returns;
-    this.lookup.getScope().valueScope.set("this", thisInstance);
-
     // *only* type functions
     for (const { type, name } of methods) {
+      // @ts-ignore
       const value = type
         ? this.acceptTypeExpr(type)
         : this.subtyper.error(
@@ -133,6 +137,9 @@ export class TypeChecker implements TypeVisitor {
       classType.set(name.lexeme, value);
     }
 
+    // create "this" now that everything has been typed
+    this.lookup.getScope().valueScope.set("this", classType.returns);
+
     // with all functions typed, we can finally check them
     for (const prop of methods) {
       const { name, type } = prop;
@@ -141,6 +148,7 @@ export class TypeChecker implements TypeVisitor {
       const expected =
         !isAnyType(prev) && type ? this.acceptTypeExpr(type) : prev;
 
+      console.log("type function", name.lexeme);
       classType.set(
         name.lexeme,
         this.visitProperty(
@@ -150,6 +158,7 @@ export class TypeChecker implements TypeVisitor {
         )
       );
     }
+    console.log("end");
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
@@ -206,7 +215,7 @@ export class TypeChecker implements TypeVisitor {
         if (cachedModule) {
           this.lookup.defineModule(name, cachedModule);
         } else {
-          if (this.atlas.reportErrors(errors)) process.exit(65);
+          if (this.atlas.reportErrors(errors)) process.exit(0);
           const moduleEnv = this.visitModule(statements);
           this.lookup.defineModule(name, moduleEnv);
           this.lookup.setCachedModule(file.module, moduleEnv);
@@ -356,6 +365,7 @@ export class TypeChecker implements TypeVisitor {
       TypeCheckErrors.requiredFunctionAnnotation()
     )
   ): AtlasType {
+    console.log("visitFunctionExpr");
     return this.visitFunction({
       expr,
       enumType: FunctionEnum.FUNCTION,
@@ -557,6 +567,10 @@ export class TypeChecker implements TypeVisitor {
     genericType: AtlasType,
     actuals: AtlasType[]
   ): AtlasType {
+    /**
+     * Don't bind generics from the current class context
+     * Only matters during the initial typechecking phase when not all methods have been created
+     */
     if (genericType.generics.length !== actuals.length) {
       return this.subtyper.error(
         source,
@@ -578,6 +592,7 @@ export class TypeChecker implements TypeVisitor {
       })
     );
 
+    console.log("bound generics");
     return genericType.bindGenerics(genericTypeMap);
   }
 
@@ -603,6 +618,7 @@ export class TypeChecker implements TypeVisitor {
     if (isFunctionExpr(expr) && type) {
       const expected = expectedType || this.acceptTypeExpr(type);
       this.lookup.declareValue(name, expected);
+      console.log("visitProperty");
       const value = this.visitFunction({ expr, enumType, expected });
 
       return this.lookup.defineValue(name, value);
@@ -651,10 +667,16 @@ export class TypeChecker implements TypeVisitor {
     for (const statement of expr.body.statements) this.acceptStmt(statement);
 
     const returns =
-      this.currentClass === ClassType.CLASS &&
+      this.currentClass?.enumType === ClassEnum.CLASS &&
       this.currentFunction.enumType === FunctionEnum.INIT
         ? this.lookup.scopedValue("this")
         : this.currentFunction.returns;
+
+    // console.log("actual return", {
+    //   actual: isInstanceType(returns) ? returns.classType : returns,
+    //   // @ts-ignore
+    //   expected: unwrapped?.returns,
+    // });
 
     const actual = Types.Function.init({
       params,

@@ -1,7 +1,8 @@
 import { ExprVisitor, FunctionExpr, TypeExprVisitor } from "../ast/Expr";
 import { StmtVisitor } from "../ast/Stmt";
+import { ClassType } from "../primitives/AtlasClass";
 import { AtlasType } from "../primitives/AtlasType";
-import { FunctionEnum } from "../utils/Enums";
+import { ClassEnum, FunctionEnum } from "../utils/Enums";
 
 export type TypeVisitor = ExprVisitor<AtlasType> &
   TypeExprVisitor<AtlasType> &
@@ -17,4 +18,9 @@ export type CurrentFunction = {
   expr: FunctionExpr;
   expected: AtlasType;
   returns?: AtlasType;
+};
+
+export type CurrentClass = {
+  enumType: ClassEnum;
+  expected: ClassType;
 };
