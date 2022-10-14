@@ -75,9 +75,7 @@ var resolvedPromise = Promise[Number](f(resolve, reject) {
   resolve(1)
 })
 
-/*
 resolvedPromise
   .call()
   .then(f(num) {})
   .catch(f(err) {})
-*/

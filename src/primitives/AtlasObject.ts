@@ -3,7 +3,7 @@ import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { GenericTypeMap, GenericVisitedSet } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { maybeBindCallable } from "./AtlasCallable";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
@@ -40,7 +40,7 @@ export abstract class ObjectType {
   abstract toString(): string;
   abstract bindGenerics(
     genericTypeMap: GenericTypeMap,
-    visitedSet: GenericVisitedSet
+    visitedSet: GenericVisitedMap
   ): AtlasType;
 
   internalFields = new Map<string, AtlasType>();

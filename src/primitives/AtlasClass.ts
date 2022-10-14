@@ -17,8 +17,8 @@ import { AtlasType } from "./AtlasType";
 import {
   attachGenericString,
   GenericTypeMap,
+  GenericVisitedMap,
 } from "../typechecker/GenericUtils";
-import { bindInterfaceGenerics } from "./InterfaceType";
 
 export class AtlasClass extends AtlasObject implements AtlasCallable {
   readonly type = "Class";
@@ -77,12 +77,23 @@ export class ClassType extends ObjectType implements CallableType {
     super(properties, generics);
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): ClassType {
     if (this.generics.length === 0) return this;
+    const entry = visited.get(this);
+    if (entry && entry.map === genericTypeMap) {
+      return entry.type as ClassType;
+    }
 
-    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
-    console.log("bound class type");
-    return this.init(this.name, entries, this.generics);
+    const boundClass = new ClassType(this.name, {}, this.generics);
+    visited.set(this, { type: boundClass, map: genericTypeMap });
+    for (const [name, type] of this.fields) {
+      boundClass.set(name, type.bindGenerics(genericTypeMap, visited));
+    }
+
+    return boundClass;
   }
 
   arity(): number {

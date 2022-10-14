@@ -1,13 +1,9 @@
-import {
-  AtlasCallable,
-  bindCallableGenerics,
-  CallableType,
-} from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 
 type NativeFunction = (
   interpreter: Interpreter,
@@ -71,8 +67,14 @@ export class NativeFnType extends ObjectType implements CallableType {
     this.returns = props.returns;
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const params = this.params.map(param =>
+      param.bindGenerics(genericTypeMap, visited)
+    );
+    const returns = this.returns.bindGenerics(genericTypeMap, visited);
     return this.init({ params, returns });
   }
 
@@ -80,8 +82,7 @@ export class NativeFnType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (props: NativeFnTypeProps): NativeFnType =>
-    new NativeFnType(props);
+  init = (props: NativeFnTypeProps): NativeFnType => new NativeFnType(props);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

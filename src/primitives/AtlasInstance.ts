@@ -2,7 +2,7 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { maybeBindCallable } from "./AtlasCallable";
 
 export class AtlasInstance extends AtlasObject {
@@ -47,8 +47,11 @@ export class InstanceType extends ObjectType {
     super();
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this.init(this.classType.bindGenerics(genericTypeMap));
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    return this.init(this.classType.bindGenerics(genericTypeMap, visited));
   }
 
   get(name: string): AtlasType | undefined {

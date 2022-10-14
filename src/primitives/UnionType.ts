@@ -1,4 +1,4 @@
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 
@@ -9,8 +9,13 @@ export class UnionType extends ObjectType {
     super();
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const types = this.types.map(type => type.bindGenerics(genericTypeMap));
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const types = this.types.map(type =>
+      type.bindGenerics(genericTypeMap, visited)
+    );
     return this.init(types);
   }
 

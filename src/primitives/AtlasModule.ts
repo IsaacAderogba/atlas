@@ -1,8 +1,7 @@
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { bindInterfaceGenerics } from "./InterfaceType";
 
 export class AtlasModule extends AtlasObject {
   readonly type = "Module";
@@ -34,8 +33,14 @@ export class ModuleType extends ObjectType {
     super(entries);
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const entries: { [key: string]: AtlasType } = {};
+    for (const [name, type] of this.fields) {
+      entries[name] = type.bindGenerics(genericTypeMap, visited);
+    }
     return this.init(this.name, entries);
   }
 

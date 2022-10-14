@@ -1,7 +1,7 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { Interpreter } from "../runtime/Interpreter";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
 import { atlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -88,11 +88,14 @@ export class RecordType extends ObjectType {
     );
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
     if (this.generics.length === 0) return this;
 
     const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap);
+    const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
     return this.init(itemType);
   }
 

@@ -3,7 +3,7 @@ import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { GenericType, isGenericType } from "./GenericType";
 import { UnionType } from "./UnionType";
 import { atlasNumber, isAtlasNumber, NumberType } from "./AtlasNumber";
@@ -95,11 +95,14 @@ export class ListType extends ObjectType {
     );
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
     if (this.generics.length === 0) return this;
 
     const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap);
+    const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
     return this.init(itemType);
   }
 

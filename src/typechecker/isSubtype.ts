@@ -30,18 +30,24 @@ export const createSubtyper = (): ((
     );
   };
 
-  const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
+  const isSubtype = (
+    a: AtlasType,
+    b: AtlasType,
+    visited: Set<AtlasType>
+  ): boolean => {
     if (a === b) return true;
     if (isAnyType(a) || isAnyType(b)) return true;
 
-    if (isAliasType(a)) return isSubtype(a.wrapped, b);
-    if (isAliasType(b)) return isSubtype(a, b.wrapped);
+    if (isAliasType(a)) return isSubtype(a.wrapped, b, visited);
+    if (isAliasType(b)) return isSubtype(a, b.wrapped, visited);
 
-    if (isUnionType(a)) return a.types.every(a => isSubtype(a, b));
-    if (isUnionType(b)) return b.types.some(b => isSubtype(a, b));
+    if (isUnionType(a)) return a.types.every(a => isSubtype(a, b, visited));
+    if (isUnionType(b)) return b.types.some(b => isSubtype(a, b, visited));
 
-    if (isIntersectionType(a)) return a.types.some(a => isSubtype(a, b));
-    if (isIntersectionType(b)) return b.types.every(b => isSubtype(a, b));
+    if (isIntersectionType(a))
+      return a.types.some(a => isSubtype(a, b, visited));
+    if (isIntersectionType(b))
+      return b.types.every(b => isSubtype(a, b, visited));
 
     if (isNullType(a) && isNullType(b)) return true;
     if (isBooleanType(a) && isBooleanType(b)) return true;
@@ -49,14 +55,19 @@ export const createSubtyper = (): ((
     if (isStringType(a) && isStringType(b)) return true;
 
     if (isListType(a) && isListType(b)) {
-      return isSubtype(a.itemType, b.itemType);
+      return isSubtype(a.itemType, b.itemType, visited);
     } else if (isRecordType(a) && isRecordType(b)) {
-      return isSubtype(a.itemType, b.itemType);
+      return isSubtype(a.itemType, b.itemType, visited);
     } else if (isInterfaceType(a) && isInterfaceType(b)) {
       const succeeded = [...b.fields.entries()].every(([name, type]) => {
         const compare = a.fields.get(name);
-        if (compare) return isSubtype(compare, type);
-        // console.log("can't compare", name, { a, b });
+
+        if (compare) {
+          if (visited.has(compare)) return true;
+          visited.add(compare);
+          visited.add(type);
+          return isSubtype(compare, type, visited);
+        }
         return false;
       });
 
@@ -64,8 +75,8 @@ export const createSubtyper = (): ((
     } else if (isCallableType(a) && isCallableType(b)) {
       const succeeded =
         a.arity() === b.arity() &&
-        isSubtype(a.returns, b.returns) &&
-        a.params.every((a, i) => isSubtype(b.params[i], a));
+        isSubtype(a.returns, b.returns, visited) &&
+        a.params.every((a, i) => isSubtype(b.params[i], a, visited));
 
       if (succeeded) return true;
     }
@@ -78,7 +89,8 @@ export const createSubtyper = (): ((
     a: AtlasType,
     b: AtlasType
   ): { isSubtype: boolean; error: string } => {
-    const result = isSubtype(a, b);
+    console.log("compare", { a, b });
+    const result = isSubtype(a, b, new Set());
     let error = "";
 
     for (const message of errors) {

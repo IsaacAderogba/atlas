@@ -1,7 +1,6 @@
 import { FunctionExpr } from "../ast/Expr";
 import {
   AtlasCallable,
-  bindCallableGenerics,
   CallableType,
 } from "./AtlasCallable";
 import { atlasNull } from "./AtlasNull";
@@ -11,7 +10,7 @@ import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";
@@ -84,8 +83,14 @@ export class FunctionType extends ObjectType implements CallableType {
     this.returns = props.returns;
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const params = this.params.map(param =>
+      param.bindGenerics(genericTypeMap, visited)
+    );
+    const returns = this.returns.bindGenerics(genericTypeMap, visited);
     return this.init({ params, returns });
   }
 
@@ -93,8 +98,7 @@ export class FunctionType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (props: FunctionTypeProps): FunctionType =>
-    new FunctionType(props);
+  init = (props: FunctionTypeProps): FunctionType => new FunctionType(props);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

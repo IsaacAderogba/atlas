@@ -600,8 +600,7 @@ export class TypeChecker implements TypeVisitor {
       })
     );
 
-    console.log("bound generics", genericTypeMap);
-    return genericType.bindGenerics(genericTypeMap);
+    return genericType.bindGenerics(genericTypeMap, new Map());
   }
 
   visitGetter({ name, object }: GetExpr | SetExpr): AtlasType {

@@ -1,8 +1,13 @@
 
 
 class Fail[T] {
-  init: () -> Fail[T] = f() {
+  cat: () -> Fail[String] = f() {
+    return Fail[String]("1")
+  }
 
+  value: T
+  init: (T) -> Fail[T] = f(value) {
+    this.value = value
   }
 
   foo: () -> Fail[T] = f() {
@@ -14,4 +19,3 @@ class Fail[T] {
   }
 }
 
-var foo = Fail[Number]()
