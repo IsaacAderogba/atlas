@@ -46,7 +46,7 @@ import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
 import { isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
-import { ClassEnum, FunctionEnum } from "../utils/Enums";
+import { FunctionEnum } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import {
   CurrentClass,
@@ -59,7 +59,6 @@ import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 import { isGenericType } from "../primitives/GenericType";
 import { isAliasType } from "../primitives/AliasType";
-import { isInstanceType } from "../primitives/AtlasInstance";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -105,7 +104,7 @@ export class TypeChecker implements TypeVisitor {
     const classType = Types.Class.init(name.lexeme);
 
     const enclosingClass = this.currentClass;
-    this.currentClass = { enumType: ClassEnum.CLASS, expected: classType };
+    this.currentClass = { classType, status: "synthesizing" };
     this.lookup.defineValue(name, classType);
     this.lookup.defineType(name, classType);
     this.lookup.beginScope();
@@ -121,12 +120,12 @@ export class TypeChecker implements TypeVisitor {
 
     // type check and define fields in scope
     for (const prop of fields) {
-      classType.set(prop.name.lexeme, this.visitProperty(prop));
+      const type = this.visitProperty(prop);
+      classType.set(prop.name.lexeme, type);
     }
 
     // *only* type functions
     for (const { type, name } of methods) {
-      // @ts-ignore
       const value = type
         ? this.acceptTypeExpr(type)
         : this.subtyper.error(
@@ -141,14 +140,15 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.getScope().valueScope.set("this", classType.returns);
 
     // with all functions typed, we can finally check them
+    this.currentClass.status = "checking";
     for (const prop of methods) {
       const { name, type } = prop;
+      console.log("type function", name.lexeme);
 
       const prev = classType.findField(name.lexeme);
       const expected =
         !isAnyType(prev) && type ? this.acceptTypeExpr(type) : prev;
 
-      console.log("type function", name.lexeme);
       classType.set(
         name.lexeme,
         this.visitProperty(
@@ -571,6 +571,14 @@ export class TypeChecker implements TypeVisitor {
      * Don't bind generics from the current class context
      * Only matters during the initial typechecking phase when not all methods have been created
      */
+    if (this.currentClass) {
+      const { classType, status } = this.currentClass;
+      if (classType === genericType && status === "synthesizing") {
+        console.log("skipped");
+        return genericType;
+      }
+    }
+
     if (genericType.generics.length !== actuals.length) {
       return this.subtyper.error(
         source,
@@ -592,7 +600,7 @@ export class TypeChecker implements TypeVisitor {
       })
     );
 
-    console.log("bound generics");
+    console.log("bound generics", genericTypeMap);
     return genericType.bindGenerics(genericTypeMap);
   }
 
@@ -667,8 +675,7 @@ export class TypeChecker implements TypeVisitor {
     for (const statement of expr.body.statements) this.acceptStmt(statement);
 
     const returns =
-      this.currentClass?.enumType === ClassEnum.CLASS &&
-      this.currentFunction.enumType === FunctionEnum.INIT
+      this.currentClass && this.currentFunction.enumType === FunctionEnum.INIT
         ? this.lookup.scopedValue("this")
         : this.currentFunction.returns;
 

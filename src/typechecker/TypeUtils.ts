@@ -2,7 +2,7 @@ import { ExprVisitor, FunctionExpr, TypeExprVisitor } from "../ast/Expr";
 import { StmtVisitor } from "../ast/Stmt";
 import { ClassType } from "../primitives/AtlasClass";
 import { AtlasType } from "../primitives/AtlasType";
-import { ClassEnum, FunctionEnum } from "../utils/Enums";
+import { FunctionEnum } from "../utils/Enums";
 
 export type TypeVisitor = ExprVisitor<AtlasType> &
   TypeExprVisitor<AtlasType> &
@@ -21,6 +21,6 @@ export type CurrentFunction = {
 };
 
 export type CurrentClass = {
-  enumType: ClassEnum;
-  expected: ClassType;
+  classType: ClassType;
+  status: "synthesizing" | "checking";
 };

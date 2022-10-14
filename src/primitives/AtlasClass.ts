@@ -74,13 +74,14 @@ export class ClassType extends ObjectType implements CallableType {
     properties: ObjectTypeProps,
     generics: AtlasType[] = []
   ) {
-    super({ ...properties }, generics);
+    super(properties, generics);
   }
 
   bindGenerics(genericTypeMap: GenericTypeMap): ClassType {
     if (this.generics.length === 0) return this;
 
     const { entries } = bindInterfaceGenerics(this, genericTypeMap);
+    console.log("bound class type");
     return this.init(this.name, entries, this.generics);
   }
 
