@@ -117,7 +117,7 @@ describe("Generic errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`      
       class AddFoo[T] {
-        init: (T) -> AddFoo[T] = f(value) {}
+        init: (T) -> Any = f(value) {}
       }
       
       AddFoo(6)  
@@ -146,7 +146,7 @@ describe("Generic errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`      
       class AddFoo[T is Number] {
-        init: (T) -> AddFoo[T] = f(value) {}
+        init: (T) -> Any = f(value) {}
       }
       
       AddFoo(6)

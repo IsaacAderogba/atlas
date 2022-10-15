@@ -1,5 +1,29 @@
+interface JSON[T] {
+  data: JSON[T]
+}
+
+class Foo implements JSON[Number] {
+  data: JSON[Number]
+
+  init: () -> JSON[Number] = f() {}
+
+  setData: (JSON[Number]) -> Null = f(data) {
+    this.data = data
+  }
+}
+
+var foo = Foo()
+var innerFoo = Foo()
+var innerInnerFoo = Foo()
+
+innerFoo.setData(innerInnerFoo)
+foo.setData(innerFoo)
 
 
+print(foo.data.data.data)
+
+
+/*
 class Fail[T] {
   cat: () -> Fail[String] = f() {
     return Fail[String]("1")
@@ -19,3 +43,5 @@ class Fail[T] {
   }
 }
 
+var foo = Fail[Number](1)
+/*

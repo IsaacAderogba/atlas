@@ -1,4 +1,8 @@
-class Animal {
+interface Animal {
+	name: String
+}
+
+class Dog {
   name: String
 
 	init: (String) -> Animal = f(name) {
@@ -6,7 +10,7 @@ class Animal {
 	}
 }
 
-var dog = Animal("dog")
+var dog = Dog("Rufus")
 
 var getAnimalName: (Animal) -> String = f(animal) {
 	return animal.name

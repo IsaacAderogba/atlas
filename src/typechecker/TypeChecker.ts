@@ -49,7 +49,7 @@ import { Types, AtlasType } from "../primitives/AtlasType";
 import { FunctionEnum } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
 import {
-  CurrentClass,
+  CurrentInterface,
   CurrentFunction,
   TypeModuleEnv,
   TypeVisitor,
@@ -64,7 +64,7 @@ export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
   readonly subtyper = new TypeCheckerSubtyper(this);
   currentFunction?: CurrentFunction;
-  currentClass?: CurrentClass;
+  currentInterface?: CurrentInterface;
 
   constructor(private readonly atlas: AtlasAPI) {}
 
@@ -103,14 +103,14 @@ export class TypeChecker implements TypeVisitor {
   visitClassStmt({ name, properties, typeExpr, parameters }: ClassStmt): void {
     const classType = Types.Class.init(name.lexeme);
 
-    const enclosingClass = this.currentClass;
-    this.currentClass = { classType, status: "synthesizing" };
+    const enclosingClass = this.currentInterface;
+    this.currentInterface = { type: classType };
     this.lookup.defineValue(name, classType);
-    this.lookup.defineType(name, classType);
     this.lookup.beginScope();
 
     // prepare for type synthesis and checking
     classType.generics = this.lookup.defineGenerics(parameters);
+
     const fields: Property[] = [];
     const methods: Property[] = [];
     for (const prop of properties) {
@@ -140,7 +140,6 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.getScope().valueScope.set("this", classType.returns);
 
     // with all functions typed, we can finally check them
-    this.currentClass.status = "checking";
     for (const prop of methods) {
       const { name, type } = prop;
       console.log("type function", name.lexeme);
@@ -171,7 +170,7 @@ export class TypeChecker implements TypeVisitor {
     }
 
     this.lookup.endScope();
-    this.currentClass = enclosingClass;
+    this.currentInterface = enclosingClass;
   }
 
   visitContinueStmt(): void {
@@ -191,17 +190,23 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitInterfaceStmt(stmt: InterfaceStmt): void {
+    const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, []);
+    const enclosingClass = this.currentInterface;
+    this.currentInterface = { type: interfaceType };
+
+    this.lookup.defineType(stmt.name, interfaceType);
+
     this.lookup.beginScope();
-    const generics = this.lookup.defineGenerics(stmt.parameters);
-    const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, generics);
+
+    interfaceType.generics = this.lookup.defineGenerics(stmt.parameters);
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
       this.lookup.defineType(key, type);
       interfaceType.set(key.lexeme, type);
     });
-    this.lookup.endScope();
 
-    this.lookup.defineType(stmt.name, interfaceType);
+    this.lookup.endScope();
+    this.currentInterface = enclosingClass;
   }
 
   visitImportStmt({ modulePath, name }: ImportStmt): void {
@@ -571,9 +576,9 @@ export class TypeChecker implements TypeVisitor {
      * Don't bind generics from the current class context
      * Only matters during the initial typechecking phase when not all methods have been created
      */
-    if (this.currentClass) {
-      const { classType, status } = this.currentClass;
-      if (classType === genericType && status === "synthesizing") {
+    if (this.currentInterface) {
+      const { type } = this.currentInterface;
+      if (type === genericType && type.type === "Interface") {
         console.log("skipped");
         return genericType;
       }
@@ -609,7 +614,6 @@ export class TypeChecker implements TypeVisitor {
       if (isAnyType(objectType)) return objectType;
 
       if (memberType) return memberType;
-      // console.log("getting off", objectType);
       return this.subtyper.error(
         name,
         TypeCheckErrors.unknownProperty(name.lexeme)
@@ -674,7 +678,8 @@ export class TypeChecker implements TypeVisitor {
     for (const statement of expr.body.statements) this.acceptStmt(statement);
 
     const returns =
-      this.currentClass && this.currentFunction.enumType === FunctionEnum.INIT
+      this.currentInterface &&
+      this.currentFunction.enumType === FunctionEnum.INIT
         ? this.lookup.scopedValue("this")
         : this.currentFunction.returns;
 

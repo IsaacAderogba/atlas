@@ -82,18 +82,13 @@ export class ClassType extends ObjectType implements CallableType {
     visited: GenericVisitedMap
   ): ClassType {
     if (this.generics.length === 0) return this;
-    const entry = visited.get(this);
-    if (entry && entry.map === genericTypeMap) {
-      return entry.type as ClassType;
-    }
 
-    const boundClass = new ClassType(this.name, {}, this.generics);
-    visited.set(this, { type: boundClass, map: genericTypeMap });
+    const entries: { [key: string]: AtlasType } = {};
     for (const [name, type] of this.fields) {
-      boundClass.set(name, type.bindGenerics(genericTypeMap, visited));
+      entries[name] = type.bindGenerics(genericTypeMap, visited);
     }
-
-    return boundClass;
+    
+    return this.init(this.name, entries);
   }
 
   arity(): number {

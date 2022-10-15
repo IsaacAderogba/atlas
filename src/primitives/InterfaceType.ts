@@ -23,11 +23,20 @@ export class InterfaceType extends ObjectType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): AtlasType {
-    const entries: { [key: string]: AtlasType } = {};
-    for (const [name, type] of this.fields) {
-      entries[name] = type.bindGenerics(genericTypeMap, visited);
+    if (this.generics.length === 0) return this;
+    const entry = visited.get(this);
+    if (entry && entry.map === genericTypeMap) {
+      console.log("returned self ***")
+      return entry.type as InterfaceType;
     }
-    return this.init(this.name, entries);
+
+    const boundInterface = new InterfaceType(this.name, {}, this.generics);
+    visited.set(this, { type: boundInterface, map: genericTypeMap });
+    for (const [name, type] of this.fields) {
+      boundInterface.set(name, type.bindGenerics(genericTypeMap, visited));
+    }
+
+    return boundInterface;
   }
 
   init = (

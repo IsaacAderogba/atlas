@@ -20,7 +20,6 @@ export type CurrentFunction = {
   returns?: AtlasType;
 };
 
-export type CurrentClass = {
-  classType: ClassType;
-  status: "synthesizing" | "checking";
+export type CurrentInterface = {
+  type: AtlasType;
 };

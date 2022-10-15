@@ -33,7 +33,7 @@ export const createSubtyper = (): ((
   const isSubtype = (
     a: AtlasType,
     b: AtlasType,
-    visited: Set<AtlasType>
+    visited?: Set<AtlasType>
   ): boolean => {
     if (a === b) return true;
     if (isAnyType(a) || isAnyType(b)) return true;
@@ -63,11 +63,16 @@ export const createSubtyper = (): ((
         const compare = a.fields.get(name);
 
         if (compare) {
-          if (visited.has(compare)) return true;
-          visited.add(compare);
-          visited.add(type);
-          return isSubtype(compare, type, visited);
+          const visitSet = visited ?? new Set();
+          if (visitSet.has(compare)) {
+            console.log("compare", { compare, type });
+            return true;
+          }
+          visitSet.add(compare);
+          visitSet.add(type);
+          return isSubtype(compare, type, visitSet);
         }
+
         return false;
       });
 
@@ -89,8 +94,7 @@ export const createSubtyper = (): ((
     a: AtlasType,
     b: AtlasType
   ): { isSubtype: boolean; error: string } => {
-    console.log("compare", { a, b });
-    const result = isSubtype(a, b, new Set());
+    const result = isSubtype(a, b);
     let error = "";
 
     for (const message of errors) {
