@@ -5,7 +5,7 @@ interface JSON[T] {
 class Foo implements JSON[Number] {
   data: JSON[Number]
 
-  init: () -> JSON[Number] = f() {}
+  init: () -> Instance = f() {}
 
   setData: (JSON[Number]) -> Null = f(data) {
     this.data = data

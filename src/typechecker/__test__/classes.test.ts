@@ -11,7 +11,7 @@ describe("Class annotations", () => {
     class Foo {
       bar = "" // inferred
     
-      init: (String) -> Any = f(name) {
+      init: (String) -> Instance = f(name) {
         this.bar = name // explicit
         this.create(this.bar)
       }
