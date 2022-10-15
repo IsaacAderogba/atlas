@@ -9,9 +9,14 @@ var REJECTED = "rejected"
 var PENDING = "pending"
 
 interface PromiseType[T] {
+  value: T
+  error: Exception.ErrorType
+
   call: () -> PromiseType[T]
   then: (CallbackResolver[T]) -> PromiseType[T]
   catch: (CallbackRejector) -> PromiseType[T]
+  abort: (String) -> PromiseType[T]
+  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T]
 }
 
 class Promise[T] implements PromiseType[T] {
@@ -73,6 +78,19 @@ class Promise[T] implements PromiseType[T] {
     this.errorCbs.add(errorCb)
     return this.call()
   }
+
+  abort: (String) -> PromiseType[T] = f(message) {
+    this.errorCbs.add(f(err) {
+      panic message
+    })
+    return this.call()
+  }
+
+  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T] = f(callback) {
+    this.valueCbs.add(callback)
+    this.errorCbs.add(callback)
+    return this.call()
+  }
 }
 
 var resolvedPromise = Promise[Number](f(resolve, reject) {
@@ -84,4 +102,4 @@ resolvedPromise
   .then(f(num) {
     print(num + num)
   })
-  .catch(f(err) {})
+
