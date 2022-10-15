@@ -24,9 +24,9 @@ export class InterfaceType extends ObjectType {
     visited: GenericVisitedMap
   ): AtlasType {
     if (this.generics.length === 0) return this;
+    
     const entry = visited.get(this);
     if (entry && entry.map === genericTypeMap) {
-      console.log("returned self ***")
       return entry.type as InterfaceType;
     }
 

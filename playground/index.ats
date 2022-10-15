@@ -1,5 +1,6 @@
 interface JSON[T] {
   data: JSON[T]
+  setData: (JSON[T]) -> JSON[T]
 }
 
 class Foo implements JSON[Number] {
@@ -7,17 +8,14 @@ class Foo implements JSON[Number] {
 
   init: () -> Instance = f() {}
 
-  setData: (JSON[Number]) -> Null = f(data) {
+  setData: (JSON[Number]) -> JSON[Number] = f(data) {
     this.data = data
+    return this.data
   }
 }
 
 var foo = Foo()
-var innerFoo = Foo()
-var innerInnerFoo = Foo()
-
-innerFoo.setData(innerInnerFoo)
-foo.setData(innerFoo)
+foo.setData(Foo()).setData(Foo())
 
 
 print(foo.data.data.data)

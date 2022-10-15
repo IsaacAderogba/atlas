@@ -648,7 +648,6 @@ export class Parser {
     const type = this.match("COLON") ? this.typeExpr() : undefined;
     const initializer = this.match("EQUAL") ? this.expression() : undefined;
 
-
     return new Property(name, type, initializer);
   }
 

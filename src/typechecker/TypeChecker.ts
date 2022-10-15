@@ -102,62 +102,40 @@ export class TypeChecker implements TypeVisitor {
 
   visitClassStmt({ name, properties, typeExpr, parameters }: ClassStmt): void {
     const classType = Types.Class.init(name.lexeme);
-
     const enclosingClass = this.currentInterface;
     this.currentInterface = { type: classType };
     this.lookup.defineValue(name, classType);
-    this.lookup.beginScope();
 
-    // prepare for type synthesis and checking
+    this.lookup.beginScope();
     classType.generics = this.lookup.defineGenerics(parameters);
 
-    const fields: Property[] = [];
-    const methods: Property[] = [];
-    for (const prop of properties) {
-      const props = isFunctionExpr(prop.initializer) ? methods : fields;
-      props.push(prop);
-    }
+    // type-check fields, but only type methods
+    const fields = properties.filter(p => !isFunctionExpr(p.initializer));
+    fields.forEach(f => classType.set(f.name.lexeme, this.visitProperty(f)));
 
-    // type check and define fields in scope
-    for (const prop of fields) {
-      const type = this.visitProperty(prop);
-      classType.set(prop.name.lexeme, type);
-    }
-
-    // *only* type functions
-    for (const { type, name } of methods) {
+    const methods = properties.filter(p => isFunctionExpr(p.initializer));
+    methods.forEach(({ type, name }) => {
       const value = type
         ? this.acceptTypeExpr(type)
         : this.subtyper.error(
             name,
             TypeCheckErrors.requiredFunctionAnnotation()
           );
-
       classType.set(name.lexeme, value);
-    }
+    });
 
-    // create "this" now that everything has been typed
+    // with all functions typed, we can finally check their bodies and expose `this`
     this.lookup.getScope().valueScope.set("this", classType.returns);
-
-    // with all functions typed, we can finally check them
-    for (const prop of methods) {
-      const { name, type } = prop;
-      console.log("type function", name.lexeme);
-
-      const prev = classType.findField(name.lexeme);
-      const expected =
-        !isAnyType(prev) && type ? this.acceptTypeExpr(type) : prev;
-
+    methods.forEach(prop => {
       classType.set(
-        name.lexeme,
+        prop.name.lexeme,
         this.visitProperty(
           prop,
-          name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
-          expected
+          prop.name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
+          classType.findField(prop.name.lexeme)
         )
       );
-    }
-    console.log("end");
+    });
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
@@ -370,7 +348,6 @@ export class TypeChecker implements TypeVisitor {
       TypeCheckErrors.requiredFunctionAnnotation()
     )
   ): AtlasType {
-    console.log("visitFunctionExpr");
     return this.visitFunction({
       expr,
       enumType: FunctionEnum.FUNCTION,
@@ -572,14 +549,9 @@ export class TypeChecker implements TypeVisitor {
     genericType: AtlasType,
     actuals: AtlasType[]
   ): AtlasType {
-    /**
-     * Don't bind generics from the current class context
-     * Only matters during the initial typechecking phase when not all methods have been created
-     */
     if (this.currentInterface) {
       const { type } = this.currentInterface;
       if (type === genericType && type.type === "Interface") {
-        console.log("skipped");
         return genericType;
       }
     }
@@ -629,7 +601,6 @@ export class TypeChecker implements TypeVisitor {
     if (isFunctionExpr(expr) && type) {
       const expected = expectedType || this.acceptTypeExpr(type);
       this.lookup.declareValue(name, expected);
-      console.log("visitProperty");
       const value = this.visitFunction({ expr, enumType, expected });
 
       return this.lookup.defineValue(name, value);
@@ -683,12 +654,6 @@ export class TypeChecker implements TypeVisitor {
         ? this.lookup.scopedValue("this")
         : this.currentFunction.returns;
 
-    // console.log("actual return", {
-    //   actual: isInstanceType(returns) ? returns.classType : returns,
-    //   // @ts-ignore
-    //   expected: unwrapped?.returns,
-    // });
-
     const actual = Types.Function.init({
       params,
       returns: returns || Types.Null,
@@ -696,8 +661,6 @@ export class TypeChecker implements TypeVisitor {
 
     this.lookup.endScope();
     this.currentFunction = enclosingFunction;
-    // @ts-ignore
-    // console.log({ actual: actual.returns, expected: unwrapped.returns });
     return this.subtyper.check(expr, actual, expected);
   }
 }

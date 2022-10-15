@@ -65,7 +65,7 @@ export const createSubtyper = (): ((
         if (compare) {
           const visitSet = visited ?? new Set();
           if (visitSet.has(compare)) {
-            console.log("compare", { compare, type });
+            // console.log("compare", { compare, type });
             return true;
           }
           visitSet.add(compare);
