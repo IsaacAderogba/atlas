@@ -33,7 +33,7 @@ export const createSubtyper = (): ((
   const isSubtype = (
     a: AtlasType,
     b: AtlasType,
-    visited?: Set<AtlasType>
+    visited?: Map<AtlasType, string>
   ): boolean => {
     if (a === b) return true;
     if (isAnyType(a) || isAnyType(b)) return true;
@@ -63,13 +63,13 @@ export const createSubtyper = (): ((
         const compare = a.fields.get(name);
 
         if (compare) {
-          const visitSet = visited ?? new Set();
-          if (visitSet.has(compare)) {
+          const visitSet = visited ?? new Map<AtlasType, string>();
+          if (visitSet.get(compare) === name) {
             // console.log("compare", { compare, type });
             return true;
           }
-          visitSet.add(compare);
-          visitSet.add(type);
+          visitSet.set(compare, name);
+          visitSet.set(type, name);
           return isSubtype(compare, type, visitSet);
         }
 
