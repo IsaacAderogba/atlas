@@ -1,45 +1,87 @@
-interface JSON[T] {
-  data: JSON[T]
-  setData: (JSON[T]) -> JSON[T]
+import Exception from "exception"
+
+type CallbackResolver[T] = (T) -> Null
+type CallbackRejector = (Exception.ErrorType) -> Null
+type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
+
+var FULFILLED = "fulfilled"
+var REJECTED = "rejected"
+var PENDING = "pending"
+
+interface PromiseType[T] {
+  call: () -> PromiseType[T]
+  then: (CallbackResolver[T]) -> PromiseType[T]
+  catch: (CallbackRejector) -> PromiseType[T]
 }
 
-class Foo implements JSON[Number] {
-  data: JSON[Number]
-
-  init: () -> Instance = f() {}
-
-  setData: (JSON[Number]) -> JSON[Number] = f(data) {
-    this.data = data
-    return this.data
-  }
-}
-
-var foo = Foo()
-foo.setData(Foo()).setData(Foo())
-
-
-print(foo.data.data.data)
-
-
-/*
-class Fail[T] {
-  cat: () -> Fail[String] = f() {
-    return Fail[String]("1")
-  }
+class Promise[T] implements PromiseType[T] {
+  valueCbs: List[CallbackResolver[T]] = []
+  errorCbs: List[CallbackRejector] = []
+  state: String = PENDING
 
   value: T
-  init: (T) -> Fail[T] = f(value) {
-    this.value = value
+  error: Exception.ErrorType
+
+  init: (Callback[T]) -> PromiseType[T] = f(callback) {
+    scheduleTask(f() {
+     callback(this.onSuccess, this.onFail)
+    })
   }
 
-  foo: () -> Fail[T] = f() {
+  runCallbacks: () -> Null = f() {
+    if (this.state == FULFILLED) {
+      this.valueCbs.forEach(f(callback, i) {
+        callback(this.value)
+      })
+      this.valueCbs = []
+    } else if (this.state == REJECTED) {
+      this.errorCbs.forEach(f(callback, i) {
+        callback(this.error)
+      })
+      this.errorCbs = []
+    }
+  }
+
+  onSuccess: CallbackResolver[T] = f(value) {
+    if (this.state == PENDING) {
+      this.value = value
+      this.state = FULFILLED
+      this.runCallbacks()
+    }
+  }
+
+  onFail: CallbackRejector = f(error) {
+    if (this.state == PENDING) {
+      this.error = error
+      this.state = REJECTED
+      this.runCallbacks()
+    }
+  }
+
+  call: () -> PromiseType[T] = f() {
+    this.runCallbacks()
+    runScheduledTasks()
     return this
   }
 
-  bar: () -> Fail[T] = f() {
-    return this.foo()
+  then: (CallbackResolver[T]) -> PromiseType[T] = f(valueCb) {
+    this.valueCbs.add(valueCb)
+    return this.call()
+  }
+
+  catch: (CallbackRejector) -> PromiseType[T] = f(errorCb) {
+    this.errorCbs.add(errorCb)
+    return this.call()
   }
 }
 
-var foo = Fail[Number](1)
-/*
+var resolvedPromise = Promise[Number](f(resolve, reject) {
+  resolve(1)
+})
+
+resolvedPromise
+  .call()
+  .then(f(num) {
+    print(num + num)
+  })
+  .catch(f(err) {})
