@@ -61,8 +61,8 @@ export class NativeFnType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: NativeFnTypeProps) {
-    super({});
+  constructor(props: NativeFnTypeProps, generics: AtlasType[] = []) {
+    super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
   }
@@ -75,14 +75,15 @@ export class NativeFnType extends ObjectType implements CallableType {
       param.bindGenerics(genericTypeMap, visited)
     );
     const returns = this.returns.bindGenerics(genericTypeMap, visited);
-    return this.init({ params, returns });
+    return this.init({ params, returns }, this.generics);
   }
 
   arity(): number {
     return this.params.length;
   }
 
-  init = (props: NativeFnTypeProps): NativeFnType => new NativeFnType(props);
+  init = (props: NativeFnTypeProps, generics: AtlasType[] = []): NativeFnType =>
+    new NativeFnType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

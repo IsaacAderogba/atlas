@@ -462,10 +462,11 @@ export class TypeChecker implements TypeVisitor {
 
   visitCallableTypeExpr(typeExpr: CallableTypeExpr): AtlasType {
     this.lookup.beginScope();
+    const generics = this.lookup.defineGenerics(typeExpr.params);
     const params = typeExpr.paramTypes.map(p => this.acceptTypeExpr(p));
     const returns = this.acceptTypeExpr(typeExpr.returnType);
     this.lookup.endScope();
-    return Types.Function.init({ params, returns });
+    return Types.Function.init({ params, returns }, generics);
   }
 
   visitCompositeTypeExpr(typeExpr: CompositeTypeExpr): AtlasType {

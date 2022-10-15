@@ -565,6 +565,7 @@ export class Parser {
   }
 
   private callableTypeExpr(): TypeExpr {
+    const parameters = this.typeParameters();	
     const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const typeExprs = this.typeExprs("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
@@ -573,7 +574,7 @@ export class Parser {
     this.consume("GREATER", SyntaxErrors.expectedRightCaret());
     const returnType = this.typeExpr();
 
-    return new CallableTypeExpr(open, typeExprs, returnType);
+    return new CallableTypeExpr(parameters, open, typeExprs, returnType);
   }
 
   private expressions(type: TokenType): Expr[] {

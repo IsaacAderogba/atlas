@@ -1,8 +1,5 @@
 import { FunctionExpr } from "../ast/Expr";
-import {
-  AtlasCallable,
-  CallableType,
-} from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { atlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
@@ -77,8 +74,8 @@ export class FunctionType extends ObjectType implements CallableType {
   public params: AtlasType[];
   public returns: AtlasType;
 
-  constructor(props: FunctionTypeProps) {
-    super({});
+  constructor(props: FunctionTypeProps, generics: AtlasType[] = []) {
+    super({}, generics);
     this.params = props.params;
     this.returns = props.returns;
   }
@@ -91,14 +88,15 @@ export class FunctionType extends ObjectType implements CallableType {
       param.bindGenerics(genericTypeMap, visited)
     );
     const returns = this.returns.bindGenerics(genericTypeMap, visited);
-    return this.init({ params, returns });
+    return this.init({ params, returns }, this.generics);
   }
 
   arity(): number {
     return this.params.length;
   }
 
-  init = (props: FunctionTypeProps): FunctionType => new FunctionType(props);
+  init = (props: FunctionTypeProps, generics: AtlasType[] = []): FunctionType =>
+    new FunctionType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

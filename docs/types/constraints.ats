@@ -1,5 +1,3 @@
-class GenericClass[T is Number] {
-  func: (T) -> T = f(value) {
-    return value * value
-  }
+var genericFunction: [T is Number](T) -> T = f(value) {
+  return value * value
 }

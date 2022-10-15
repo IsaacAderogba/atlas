@@ -315,6 +315,7 @@ interface BaseTypeExpr extends SourceRangeable {
 
 export class CallableTypeExpr {
   constructor(
+    readonly params: Parameter[],
     readonly open: Token,
     readonly paramTypes: TypeExpr[],
     readonly returnType: TypeExpr

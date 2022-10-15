@@ -93,6 +93,7 @@ class Promise[T] implements PromiseType[T] {
   }
 }
 
+
 var resolvedPromise = Promise[Number](f(resolve, reject) {
   resolve(1)
 })

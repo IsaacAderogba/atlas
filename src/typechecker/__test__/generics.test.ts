@@ -70,11 +70,9 @@ describe("Generics annotations", () => {
         foo: T
       }
       
-      class Add[T is Number] {
-        func: (T) -> T = f(value) {
-          return value * value
-        }
-      }  
+      var addFoo: [T is Number](Foo[T]) -> Number = f(arg) {
+        return arg.foo * arg.foo
+      }
     `);
 
     expect(errors.length).toEqual(0);
@@ -86,9 +84,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`
-      class Foo[T, K] {}
-      
-      Foo[String]()
+      var foo: [T, K](T, K) -> T = f(t, k) {
+        return t	
+      }	
+              
+      foo[String]()
     `);
     expect(errors[0].sourceMessage).toEqual(
       TypeCheckErrors.mismatchedArity(2, 1)
@@ -99,11 +99,9 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`
-      class Add[T is Number] {
-        func: (T) -> String = f(value) {
-          return "value" # value
-        }
-      }  
+      var foo: [K is Number](K) -> String = f(incorrect) {
+        return "correct" # incorrect
+      }
     `);
 
     const { error } = createSubtyper()(Types.Number, Types.String);
@@ -116,11 +114,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`      
-      class AddFoo[T] {
-        init: (T) -> Instance = f(value) {}
+      var addFoo: [T](T) -> Number = f(arg) {
+        return 0
       }
-      
-      AddFoo(6)  
+              
+      addFoo(6) 
     `);
 
     expect(errors[0].sourceMessage).toEqual(
@@ -145,11 +143,11 @@ describe("Generic errors", () => {
     const { tester } = setupTester();
 
     const { errors } = tester.typeCheckWorkflow(`      
-      class AddFoo[T is Number] {
-        init: (T) -> Instance = f(value) {}
-      }
-      
-      AddFoo(6)
+      var addFoo: [T is Number](T) -> Number = f(arg) {
+        return arg * arg
+      }	   
+              
+      addFoo(6) 
     `);
 
     expect(errors[0].sourceMessage).toEqual(
