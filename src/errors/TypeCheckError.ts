@@ -116,6 +116,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static prohibitedInitializer(): SourceMessage {
+    return this.formatError({
+      title: "prohbited initializer",
+      body: `only methods can be initialized outside of a class' init method`,
+    });
+  }
+
   static requiredAnnotationOrInitializer(): SourceMessage {
     return this.formatError({
       title: "required annotation or initializer",

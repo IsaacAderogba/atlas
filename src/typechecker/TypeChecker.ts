@@ -121,16 +121,24 @@ export class TypeChecker implements TypeVisitor {
 
     // with all functions typed, we can finally check their bodies and expose `this`
     this.lookup.getScope().valueScope.set("this", classType.returns);
-    const methods = properties.filter(p => isFunctionExpr(p.initializer));
-    methods.forEach(prop => {
-      classType.set(
-        prop.name.lexeme,
-        this.visitProperty(
-          prop,
-          prop.name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
-          classType.findField(prop.name.lexeme)
-        )
-      );
+    properties.forEach(prop => {
+      const { name, initializer } = prop;
+
+      if (initializer && !isFunctionExpr(initializer)) {
+        classType.set(
+          name.lexeme,
+          this.subtyper.error(name, TypeCheckErrors.prohibitedInitializer())
+        );
+      } else {
+        classType.set(
+          name.lexeme,
+          this.visitProperty(
+            prop,
+            name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
+            classType.findField(name.lexeme)
+          )
+        );
+      }
     });
 
     // assert the type if an `implements` keyword was used

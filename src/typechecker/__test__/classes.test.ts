@@ -51,7 +51,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
 
         foo: () -> Null = f() {
           this.bar = ""
@@ -70,7 +70,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
 
         foo: (Number) -> Null = f(num) {
           this.bar = num

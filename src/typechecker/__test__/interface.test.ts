@@ -26,11 +26,11 @@ describe("Interface annotations", () => {
       }
       
       class FooClass implements Foo {
-        bar: String = ""
+        bar: String
       }
       
       class BarClass {
-        bar: String = ""
+        bar: String
       }
       
       var func: (Foo) -> Null = f(fooLike) {}
@@ -104,7 +104,7 @@ describe("Interface errors", () => {
       }
       
       class FooBar implements Foo {
-        foo: Number = 0
+        foo: Number
       }
     `);
 
@@ -127,11 +127,11 @@ describe("Interface errors", () => {
       }
       
       class FooClass implements Foo {
-        bar: String = ""
+        bar: String
       }
       
       class BarClass {
-        bar: Number = 0
+        bar: Number
       }
       
       var func: (Foo) -> Null = f(fooLike) {}
