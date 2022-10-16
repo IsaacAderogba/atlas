@@ -105,6 +105,31 @@ var race: [K](List[PromiseType[K]]) -> PromiseType[K] = f(promises) {
   })
 }
 
+var all: [K](List[PromiseType[K]]) -> PromiseType[List[K]] = f(promises) {
+  var results: List[Any] = []
+  var completions = 0
+  var length = 0
+
+  promises.forEach(f(promise, i) {
+    results.add(Null)
+    length = length + 1
+  })
+
+  return Promise[List[Any]](f(resolve, reject) {
+    promises.forEach(f(promise, i) {
+        promise
+          .then(f(value) {
+            completions = completions + 1
+            results.addAt(i, value)
+            if (completions == length) {
+              resolve(results)
+            }
+          })
+          .catch(reject)
+      })
+    })
+}
+
 var resolvedPromise = Promise[Number](f(resolve, reject) {
   resolve(1)
 })
@@ -113,7 +138,7 @@ var resolvedPromise2 = Promise[Number](f(resolve, reject) {
   resolve(2)
 })
 
-race[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
+all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
     print(result)
 })
 

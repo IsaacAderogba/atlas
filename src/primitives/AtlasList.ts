@@ -19,11 +19,27 @@ export class AtlasList extends AtlasObject {
     super(
       toNativeFunctions({
         add: AtlasList.prototype.add,
+        addAt: AtlasList.prototype.addAt,
         at: AtlasList.prototype.at,
         forEach: AtlasList.prototype.forEach,
         remove: AtlasList.prototype.remove,
       })
     );
+  }
+
+  addAt(_: Interpreter, index: AtlasValue, item: AtlasValue): AtlasValue {
+    if (!isAtlasNumber(index)) {
+      throw new NativeError(RuntimeErrors.expectedNumber());
+    }
+
+    if (!this.items[index.value]) {
+      throw new NativeError(
+        RuntimeErrors.undefinedVariable(`index ${index.toString()}`)
+      );
+    }
+
+    this.items[index.value] = item;
+    return item;
   }
 
   add(_: Interpreter, item: AtlasValue): AtlasValue {
@@ -73,6 +89,10 @@ export class ListType extends ObjectType {
     super(
       {
         add: new NativeFnType({ params: [itemType], returns: itemType }),
+        addAt: new NativeFnType({
+          params: [new NumberType(), itemType],
+          returns: itemType,
+        }),
         at: new NativeFnType({
           params: [new NumberType()],
           returns: new UnionType([itemType, new NullType()]),
