@@ -41,12 +41,7 @@ export class AtlasClass extends AtlasObject implements AtlasCallable {
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
-    const fields = new Map<string, AtlasValue>();
-    for (const [name, value] of this.fields) {
-      if (!isCallable(value)) fields.set(name, value);
-    }
-
-    const instance = atlasInstance(this, fields);
+    const instance = atlasInstance(this);
     const init = this.findField("init");
     if (init && isCallable(init)) init.bind(instance).call(interpreter, args);
     return instance;

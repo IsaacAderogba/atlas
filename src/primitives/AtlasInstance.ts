@@ -9,10 +9,7 @@ export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
   readonly type = "Instance";
 
-  constructor(
-    readonly atlasClass: AtlasClass,
-    readonly fields: Map<string, AtlasValue>
-  ) {
+  constructor(readonly atlasClass: AtlasClass) {
     super({});
   }
 
@@ -35,10 +32,8 @@ export class AtlasInstance extends AtlasObject {
   }
 }
 
-export const atlasInstance = (
-  atlasClass: AtlasClass,
-  fields: Map<string, AtlasValue>
-): AtlasInstance => new AtlasInstance(atlasClass, fields);
+export const atlasInstance = (atlasClass: AtlasClass): AtlasInstance =>
+  new AtlasInstance(atlasClass);
 
 export class InstanceType extends ObjectType {
   readonly type = "Instance";

@@ -1,5 +1,8 @@
 class Map[T] {
-	record: Record[T] = { }
+	record: Record[T]
+	init: () -> Instance = f() {
+		this.record = {}
+	}
 
 	add: (String, T) -> T = f(key, value) {
 		return this.record.add(key, value)

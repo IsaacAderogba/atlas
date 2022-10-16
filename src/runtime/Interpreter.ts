@@ -113,8 +113,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       const value =
         expr instanceof FunctionExpr
           ? atlasFunction(expr, this.environment, name.lexeme === "init")
-          : expr
-          ? this.evaluate(expr)
           : atlasNull;
 
       props[name.lexeme] = value;
