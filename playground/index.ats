@@ -142,3 +142,22 @@ all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
     print(result)
 })
 
+var countDown: (Number) -> PromiseType[Number] = f(count) {
+  return Promise[Number](f(rootResolve, reject) {
+    var decrement: (Number) -> Null = f(count) {
+      var promise = Promise[Number](f(resolve, reject) {
+        if (count <= 0) return rootResolve(count)
+        print(count)
+        resolve(count - 1)
+      })
+
+      promise.then(decrement)
+    }
+
+    decrement(count)
+  })
+}
+
+all[Number]([countDown(5), countDown(5)]).then(f(value) {
+  print(value)
+})

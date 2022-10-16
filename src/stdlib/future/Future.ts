@@ -111,23 +111,23 @@ export const race = <T>(promises: Promise<T>[]): Promise<T> => {
   });
 };
 
-// const countDown = (count: number): Promise<number> => {
-//   return new Promise(rootResolve => {
-//     const decrement = (count: number): void => {
-//       new Promise<number>(resolve => {
-//         if (count <= 0) return rootResolve(count);
-//         console.log(count);
-//         resolve(count - 1);
-//       }).then(decrement);
-//     };
+const countDown = (count: number): Promise<number> => {
+  return new Promise(rootResolve => {
+    const decrement = (count: number): void => {
+      new Promise<number>(resolve => {
+        if (count <= 0) return rootResolve(count);
+        console.log(count);
+        resolve(count - 1);
+      }).then(decrement);
+    };
 
-//     decrement(count);
-//   });
-// };
+    decrement(count);
+  });
+};
 
-// all([countDown(5), countDown(5)])
-//   .then(value => console.log("result", value))
-//   .catch(error => console.log("error", error));
+all([countDown(5), countDown(5)])
+  .then(value => console.log("result", value))
+  .catch(error => console.log("error", error));
 
 const resolvePromise = new Promise<number>(resolve => {
   return resolve(1);
