@@ -9,7 +9,7 @@ describe("Class annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar = ""
+        bar: String
       }
 
       Foo().bar = "hi"

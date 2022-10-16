@@ -109,23 +109,19 @@ export class TypeChecker implements TypeVisitor {
     this.lookup.beginScope();
     classType.generics = this.lookup.defineGenerics(parameters);
 
-    // type-check fields, but only type methods
-    const fields = properties.filter(p => !isFunctionExpr(p.initializer));
-    fields.forEach(f => classType.set(f.name.lexeme, this.visitProperty(f)));
-
-    const methods = properties.filter(p => isFunctionExpr(p.initializer));
-    methods.forEach(({ type, name }) => {
-      const value = type
-        ? this.acceptTypeExpr(type)
-        : this.subtyper.error(
-            name,
-            TypeCheckErrors.requiredFunctionAnnotation()
-          );
-      classType.set(name.lexeme, value);
+    // type-check fields and methods
+    properties.forEach(({ type, name }) => {
+      classType.set(
+        name.lexeme,
+        type
+          ? this.acceptTypeExpr(type)
+          : this.subtyper.error(name, TypeCheckErrors.requiredAnnotation())
+      );
     });
 
     // with all functions typed, we can finally check their bodies and expose `this`
     this.lookup.getScope().valueScope.set("this", classType.returns);
+    const methods = properties.filter(p => isFunctionExpr(p.initializer));
     methods.forEach(prop => {
       classType.set(
         prop.name.lexeme,

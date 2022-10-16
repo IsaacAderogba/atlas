@@ -9,7 +9,7 @@ describe("Class annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
     class Foo {
-      bar = "" // inferred
+      bar: String
     
       init: (String) -> Instance = f(name) {
         this.bar = name // explicit
@@ -32,7 +32,11 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = ""
+        bar: Number
+
+        init: () -> Instance = f() {
+          this.bar = ""
+        }
       }
     `);
 

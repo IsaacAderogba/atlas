@@ -50,31 +50,9 @@ describe("Interface annotations", () => {
       }
       
       class FooClass implements Foo {
-        bar: (Number) -> Null = f(num) {}
-      
-        foo = ""
-      }
-    `);
-
-    expect(errors.length).toEqual(0);
-  });
-
-  it("infers class annotation assignments without error", () => {
-    const { tester } = setupTester();
-
-    const { errors } = tester.typeCheckWorkflow(`
-      interface Foo {
-        bar: () -> Null
+        bar: (Number) -> Null
         foo: String
       }
-      
-      class FooClass {
-        bar: () -> Null = f() {}
-      
-        foo = ""
-      }
-      
-      var foo: Foo = FooClass()
     `);
 
     expect(errors.length).toEqual(0);

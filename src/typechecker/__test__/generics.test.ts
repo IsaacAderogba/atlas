@@ -29,12 +29,20 @@ describe("Generics annotations", () => {
       
       type FooBar[T] = Foo[Bar[T]]
 
+      interface FooImplType {
+        bar: Null
+      }
+
       class FooImpl {
-        bar = null
+        bar: Null
       }
 
       class FooBarImpl implements FooBar[Null] {
-        foo = FooImpl()
+        foo: FooImplType
+
+        init: () -> Instance = f() {
+          this.foo = FooImpl()
+        }
       }
     `);
 
@@ -54,8 +62,8 @@ describe("Generics annotations", () => {
       }
       
       class FooBar implements Foo[Number] & Bar[String] {
-        foo = 0
-        bar = ""
+        foo: Number
+        bar: String
       }    
     `);
 

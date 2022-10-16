@@ -34,9 +34,9 @@ describe("Union annotations", () => {
         type Vector = CartesianVector | PolarVector
 
         class VectorImpl implements Vector {
-          type = "cartesian"
-          angle = 0
-          magnitude = 0
+          type: String
+          angle: Number
+          magnitude: Number
         }
     `);
 

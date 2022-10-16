@@ -81,6 +81,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static requiredAnnotation(): SourceMessage {
+    return this.formatError({
+      title: "required annotation",
+      body: "type annotation is required",
+    });
+  }
+
   static requiredGenericArgs(): SourceMessage {
     return this.formatError({
       title: "required generic arguments",
