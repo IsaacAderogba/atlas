@@ -27,6 +27,7 @@ export class Promise<T> {
   }
 
   runCallbacks = (): void => {
+    console.log("run")
     if (this.state === FULFILLED) {
       this.valueCbs.forEach(callback => callback(this.value));
       this.valueCbs = [];
@@ -110,27 +111,39 @@ export const race = <T>(promises: Promise<T>[]): Promise<T> => {
   });
 };
 
-const countDown = (count: number): Promise<number> => {
-  return new Promise(rootResolve => {
-    const decrement = (count: number): void => {
-      new Promise<number>(resolve => {
-        if (count <= 0) return rootResolve(count);
-        console.log(count);
-        resolve(count - 1);
-      }).then(decrement);
-    };
+// const countDown = (count: number): Promise<number> => {
+//   return new Promise(rootResolve => {
+//     const decrement = (count: number): void => {
+//       new Promise<number>(resolve => {
+//         if (count <= 0) return rootResolve(count);
+//         console.log(count);
+//         resolve(count - 1);
+//       }).then(decrement);
+//     };
 
-    decrement(count);
-  });
-};
+//     decrement(count);
+//   });
+// };
 
-all([countDown(5), countDown(5)])
-  .then(value => console.log("result", value))
-  .catch(error => console.log("error", error));
+// all([countDown(5), countDown(5)])
+//   .then(value => console.log("result", value))
+//   .catch(error => console.log("error", error));
 
-// const resolvePromise = new Promise<number>(resolve => {
-//   return resolve(1);
-// });
+const resolvePromise = new Promise<number>(resolve => {
+  return resolve(1);
+});
+
+const resolvePromise2 = new Promise<number>(resolve => {
+  return resolve(2);
+});
+
+resolvePromise.then(result => {
+  console.log(result);
+})
+
+// race([resolvePromise, resolvePromise2]).then(result => {
+//   console.log(result);
+// })
 
 // const rejectPromise = new Promise<number>((_, reject) => {
 //   return reject(new Error("err"));

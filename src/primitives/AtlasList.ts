@@ -99,11 +99,17 @@ export class ListType extends ObjectType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): AtlasType {
-    if (this.generics.length === 0) return this;
-
-    const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
-    return this.init(itemType);
+    if (this.generics.length) {
+      const mappedItem = genericTypeMap.get(this.generics[0])!;
+      const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
+      const list = this.init(itemType);
+      return list;
+    } else if (this.itemType.generics.length) {
+      const itemType = this.itemType.bindGenerics(genericTypeMap, visited);
+      const list = this.init(itemType);
+      return list;
+    }
+    return this;
   }
 
   init = (itemType: AtlasType): ListType => {

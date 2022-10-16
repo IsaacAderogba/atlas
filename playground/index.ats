@@ -20,14 +20,18 @@ interface PromiseType[T] {
 }
 
 class Promise[T] implements PromiseType[T] {
-  valueCbs: List[CallbackResolver[T]] = []
-  errorCbs: List[CallbackRejector] = []
-  state: String = PENDING
+  valueCbs: List[CallbackResolver[T]]
+  errorCbs: List[CallbackRejector]
+  state: String
 
   value: T
   error: Exception.ErrorType
 
   init: (Callback[T]) -> PromiseType[T] = f(callback) {
+    this.valueCbs = []
+    this.errorCbs = []
+    this.state = PENDING
+
     scheduleTask(f() {
      callback(this.onSuccess, this.onFail)
     })
@@ -93,14 +97,23 @@ class Promise[T] implements PromiseType[T] {
   }
 }
 
+var race: [K](List[PromiseType[K]]) -> PromiseType[K] = f(promises) {
+  return Promise[Any](f(resolve, reject) {
+    promises.forEach(f(promise, i) {
+      promise.then(resolve).catch(reject)
+    })
+  })
+}
 
 var resolvedPromise = Promise[Number](f(resolve, reject) {
   resolve(1)
 })
 
-resolvedPromise
-  .call()
-  .then(f(num) {
-    print(num + num)
-  })
+var resolvedPromise2 = Promise[Number](f(resolve, reject) {
+  resolve(2)
+})
+
+race[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
+    print(result)
+})
 

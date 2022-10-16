@@ -1,25 +1,36 @@
 import Exception from "exception"
 
 type CallbackResolver[T] = (T) -> Null
-type CallbackRejector = (Exception.Error) -> Null
+type CallbackRejector = (Exception.ErrorType) -> Null
 type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
 
 var FULFILLED = "fulfilled"
 var REJECTED = "rejected"
 var PENDING = "pending"
 
-class Promise[T] {
+interface PromiseType[T] {
+  value: T
+  error: Exception.ErrorType
+
+  call: () -> PromiseType[T]
+  then: (CallbackResolver[T]) -> PromiseType[T]
+  catch: (CallbackRejector) -> PromiseType[T]
+  abort: (String) -> PromiseType[T]
+  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T]
+}
+
+class Promise[T] implements PromiseType[T] {
   valueCbs: List[CallbackResolver[T]] = []
   errorCbs: List[CallbackRejector] = []
   state: String = PENDING
 
   value: T
-  error: Exception.Error
+  error: Exception.ErrorType
 
-  init: (Callback[T]) -> Promise[T] = f(callback) {
-    // scheduleTask(f() {
-      // callback(this.onSuccess, this.onFail)
-    // })
+  init: (Callback[T]) -> PromiseType[T] = f(callback) {
+    scheduleTask(f() {
+     callback(this.onSuccess, this.onFail)
+    })
   }
 
   runCallbacks: () -> Null = f() {
@@ -52,30 +63,55 @@ class Promise[T] {
     }
   }
 
-  call: () -> Promise[T] = f() {
+  call: () -> PromiseType[T] = f() {
     this.runCallbacks()
     runScheduledTasks()
     return this
   }
 
-  then: (CallbackResolver[T]) -> Promise[T] = f(valueCb) {
+  then: (CallbackResolver[T]) -> PromiseType[T] = f(valueCb) {
     this.valueCbs.add(valueCb)
     return this.call()
   }
 
-  /*
-  catch: (CallbackRejector) -> Promise[T] = f(errorCb) {
+  catch: (CallbackRejector) -> PromiseType[T] = f(errorCb) {
     this.errorCbs.add(errorCb)
     return this.call()
   }
-  */
+
+  abort: (String) -> PromiseType[T] = f(message) {
+    this.errorCbs.add(f(err) {
+      panic message
+    })
+    return this.call()
+  }
+
+  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T] = f(callback) {
+    this.valueCbs.add(callback)
+    this.errorCbs.add(callback)
+    return this.call()
+  }
+}
+
+
+var race: [K](List[PromiseType[K]]) -> PromiseType[K] = f(promises) {
+  var foo: Any
+  return foo
+  // return Promise[Any](f(resolve, reject) {
+    // promises.forEach(f(promise, i) {
+      // promise.then(resolve).catch(reject)
+    // })
+  // })
 }
 
 var resolvedPromise = Promise[Number](f(resolve, reject) {
   resolve(1)
 })
 
-resolvedPromise
-  .call()
-  .then(f(num) {})
-  .catch(f(err) {})
+var resolvedPromise2 = Promise[Number](f(resolve, reject) {
+  resolve(2)
+})
+
+var promises: List[PromiseType[Number]] = [resolvedPromise, resolvedPromise2]
+race[Number](promises)
+

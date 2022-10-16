@@ -81,8 +81,6 @@ export class ClassType extends ObjectType implements CallableType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): ClassType {
-    if (this.generics.length === 0) return this;
-
     const entries: { [key: string]: AtlasType } = {};
     for (const [name, type] of this.fields) {
       entries[name] = type.bindGenerics(genericTypeMap, visited);

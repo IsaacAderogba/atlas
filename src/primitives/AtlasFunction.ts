@@ -84,9 +84,9 @@ export class FunctionType extends ObjectType implements CallableType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): AtlasType {
-    const params = this.params.map(param =>
-      param.bindGenerics(genericTypeMap, visited)
-    );
+    const params = this.params.map(param => {
+      return param.bindGenerics(genericTypeMap, visited);
+    });
     const returns = this.returns.bindGenerics(genericTypeMap, visited);
     return this.init({ params, returns }, this.generics);
   }

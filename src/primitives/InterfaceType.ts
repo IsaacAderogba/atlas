@@ -5,6 +5,7 @@ import {
 } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
+import { isGenericType } from "./GenericType";
 
 export class InterfaceType extends ObjectType {
   readonly type = "Interface";
@@ -23,17 +24,17 @@ export class InterfaceType extends ObjectType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): AtlasType {
-    if (this.generics.length === 0) return this;
-    
     const entry = visited.get(this);
     if (entry && entry.map === genericTypeMap) {
       return entry.type as InterfaceType;
     }
 
-    const boundInterface = new InterfaceType(this.name, {}, this.generics);
+    const boundInterface = new InterfaceType(this.name, {}, []);
     visited.set(this, { type: boundInterface, map: genericTypeMap });
     for (const [name, type] of this.fields) {
-      boundInterface.set(name, type.bindGenerics(genericTypeMap, visited));
+      const value = type.bindGenerics(genericTypeMap, visited);
+      boundInterface.set(name, value);
+      if (isGenericType(value)) boundInterface.generics.push(value);
     }
 
     return boundInterface;

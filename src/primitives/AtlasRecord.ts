@@ -92,11 +92,15 @@ export class RecordType extends ObjectType {
     genericTypeMap: GenericTypeMap,
     visited: GenericVisitedMap
   ): AtlasType {
-    if (this.generics.length === 0) return this;
-
-    const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
-    return this.init(itemType);
+    if (this.generics.length) {
+      const mappedItem = genericTypeMap.get(this.generics[0])!;
+      const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
+      return this.init(itemType);
+    } else if (this.itemType.generics.length) {
+      const itemType = this.itemType.bindGenerics(genericTypeMap, visited);
+      return this.init(itemType);
+    }
+    return this;
   }
 
   init = (itemType: AtlasType): RecordType => {
