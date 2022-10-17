@@ -2,15 +2,15 @@ interface Animal {
 	name: String
 }
 
-class Dog {
+class Dog implements Animal {
   name: String
 
-	init: (String) -> Animal = f(name) {
+	init: (String) -> Instance = f(name) {
 		this.name = name
 	}
 }
 
-var dog = Dog("Rufus")
+var dog: Animal = Dog("Rufus")
 
 var getAnimalName: (Animal) -> String = f(animal) {
 	return animal.name
