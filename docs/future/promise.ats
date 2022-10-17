@@ -2,7 +2,7 @@ import Exception from "exception"
 import Future from "future"
 
 var promise = Future.Promise[Number](f(resolve, reject) {
-  if (false) {
+  if (true) {
     resolve(1000)
   } else {
     reject(Exception.Error("error"))
@@ -20,6 +20,6 @@ promise
     print(result) // 1000 or Error instance
   })
 
-promise
-	.call()
-	.abort("Crashed")
+-- stdout --
+1000
+1000
