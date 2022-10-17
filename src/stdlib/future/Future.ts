@@ -1,5 +1,5 @@
+// reference file for debugging promise behaviour
 import { Scheduler } from "../../runtime/Scheduler";
-
 const scheduler = new Scheduler();
 
 type CallbackResolver<T> = (value: T) => void;
@@ -27,7 +27,7 @@ export class Promise<T> {
   }
 
   runCallbacks = (): void => {
-    console.log("run")
+    console.log("run");
     if (this.state === FULFILLED) {
       this.valueCbs.forEach(callback => callback(this.value));
       this.valueCbs = [];
@@ -139,7 +139,7 @@ const resolvePromise2 = new Promise<number>(resolve => {
 
 resolvePromise.then(result => {
   console.log(result);
-})
+});
 
 // race([resolvePromise, resolvePromise2]).then(result => {
 //   console.log(result);

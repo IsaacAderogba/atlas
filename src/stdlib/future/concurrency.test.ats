@@ -1,0 +1,34 @@
+import Future from "future"
+
+var countDown: (Number) -> Future.PromiseType[Number] = f(count) {
+  return Future.Promise[Number](f(rootResolve, reject) {
+    var decrement: (Number) -> Null = f(count) {
+      var promise = Future.Promise[Number](f(resolve, reject) {
+        if (count <= 0) return rootResolve(count)
+        print(count)
+        resolve(count - 1)
+      })
+
+      promise.then(decrement)
+    }
+
+    decrement(count)
+  })
+}
+
+Future.all[Number]([countDown(5), countDown(5)]).then(f(value) {
+  print(value)
+})
+
+-- stdout --
+5
+5
+4
+4
+3
+3
+2
+2
+1
+1
+[0, 0]
