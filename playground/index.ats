@@ -1,151 +1,21 @@
-import Exception from "exception"
+import Future from "future"
 
-type CallbackResolver[T] = (T) -> Null
-type CallbackRejector = (Exception.ErrorType) -> Null
-type Callback[T] = (CallbackResolver[T], CallbackRejector) -> Null
-
-var FULFILLED = "fulfilled"
-var REJECTED = "rejected"
-var PENDING = "pending"
-
-interface PromiseType[T] {
-  value: T
-  error: Exception.ErrorType
-
-  call: () -> PromiseType[T]
-  then: (CallbackResolver[T]) -> PromiseType[T]
-  catch: (CallbackRejector) -> PromiseType[T]
-  abort: (String) -> PromiseType[T]
-  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T]
-}
-
-class Promise[T] implements PromiseType[T] {
-  valueCbs: List[CallbackResolver[T]]
-  errorCbs: List[CallbackRejector]
-  state: String
-
-  value: T
-  error: Exception.ErrorType
-
-  init: (Callback[T]) -> PromiseType[T] = f(callback) {
-    this.valueCbs = []
-    this.errorCbs = []
-    this.state = PENDING
-
-    scheduleTask(f() {
-     callback(this.onSuccess, this.onFail)
-    })
-  }
-
-  runCallbacks: () -> Null = f() {
-    if (this.state == FULFILLED) {
-      this.valueCbs.forEach(f(callback, i) {
-        callback(this.value)
-      })
-      this.valueCbs = []
-    } else if (this.state == REJECTED) {
-      this.errorCbs.forEach(f(callback, i) {
-        callback(this.error)
-      })
-      this.errorCbs = []
-    }
-  }
-
-  onSuccess: CallbackResolver[T] = f(value) {
-    if (this.state == PENDING) {
-      this.value = value
-      this.state = FULFILLED
-      this.runCallbacks()
-    }
-  }
-
-  onFail: CallbackRejector = f(error) {
-    if (this.state == PENDING) {
-      this.error = error
-      this.state = REJECTED
-      this.runCallbacks()
-    }
-  }
-
-  call: () -> PromiseType[T] = f() {
-    this.runCallbacks()
-    runScheduledTasks()
-    return this
-  }
-
-  then: (CallbackResolver[T]) -> PromiseType[T] = f(valueCb) {
-    this.valueCbs.add(valueCb)
-    return this.call()
-  }
-
-  catch: (CallbackRejector) -> PromiseType[T] = f(errorCb) {
-    this.errorCbs.add(errorCb)
-    return this.call()
-  }
-
-  abort: (String) -> PromiseType[T] = f(message) {
-    this.errorCbs.add(f(err) {
-      panic message
-    })
-    return this.call()
-  }
-
-  finally: ((T | Exception.ErrorType) -> Null) -> PromiseType[T] = f(callback) {
-    this.valueCbs.add(callback)
-    this.errorCbs.add(callback)
-    return this.call()
-  }
-}
-
-var race: [K](List[PromiseType[K]]) -> PromiseType[K] = f(promises) {
-  return Promise[Any](f(resolve, reject) {
-    promises.forEach(f(promise, i) {
-      promise.then(resolve).catch(reject)
-    })
-  })
-}
-
-var all: [K](List[PromiseType[K]]) -> PromiseType[List[K]] = f(promises) {
-  var results: List[Any] = []
-  var completions = 0
-  var length = 0
-
-  promises.forEach(f(promise, i) {
-    results.add(Null)
-    length = length + 1
-  })
-
-  return Promise[List[Any]](f(resolve, reject) {
-    promises.forEach(f(promise, i) {
-        promise
-          .then(f(value) {
-            completions = completions + 1
-            results.addAt(i, value)
-            if (completions == length) {
-              resolve(results)
-            }
-          })
-          .catch(reject)
-      })
-    })
-}
-
-var resolvedPromise = Promise[Number](f(resolve, reject) {
+var resolvedPromise = Future.Promise[Number](f(resolve, reject) {
   resolve(1)
 })
 
-var resolvedPromise2 = Promise[Number](f(resolve, reject) {
+var resolvedPromise2 = Future.Promise[Number](f(resolve, reject) {
   resolve(2)
 })
 
-all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
+Future.all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
     print(result)
 })
 
-var countDown: (Number) -> PromiseType[Number] = f(count) {
-  return Promise[Number](f(rootResolve, reject) {
+var countDown: (Number) -> Future.PromiseType[Number] = f(count) {
+  return Future.Promise[Number](f(rootResolve, reject) {
     var decrement: (Number) -> Null = f(count) {
-      var promise = Promise[Number](f(resolve, reject) {
+      var promise = Future.Promise[Number](f(resolve, reject) {
         if (count <= 0) return rootResolve(count)
         print(count)
         resolve(count - 1)
@@ -158,6 +28,6 @@ var countDown: (Number) -> PromiseType[Number] = f(count) {
   })
 }
 
-all[Number]([countDown(5), countDown(5)]).then(f(value) {
+Future.all[Number]([countDown(5), countDown(5)]).then(f(value) {
   print(value)
 })
