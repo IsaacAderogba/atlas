@@ -1,15 +1,16 @@
-import { AtlasNull, NullType } from "./AtlasNull";
+import { atlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasValue } from "./AtlasValue";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { GenericType, isGenericType } from "./GenericType";
 import { UnionType } from "./UnionType";
-import { isAtlasNumber, NumberType } from "./AtlasNumber";
+import { atlasNumber, isAtlasNumber, NumberType } from "./AtlasNumber";
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { Interpreter } from "../runtime/Interpreter";
+import { FunctionType, isAtlasFunction } from "./AtlasFunction";
 
 export class AtlasList extends AtlasObject {
   readonly type = "List";
@@ -18,10 +19,27 @@ export class AtlasList extends AtlasObject {
     super(
       toNativeFunctions({
         add: AtlasList.prototype.add,
+        addAt: AtlasList.prototype.addAt,
         at: AtlasList.prototype.at,
+        forEach: AtlasList.prototype.forEach,
         remove: AtlasList.prototype.remove,
       })
     );
+  }
+
+  addAt(_: Interpreter, index: AtlasValue, item: AtlasValue): AtlasValue {
+    if (!isAtlasNumber(index)) {
+      throw new NativeError(RuntimeErrors.expectedNumber());
+    }
+
+    if (!this.items[index.value]) {
+      throw new NativeError(
+        RuntimeErrors.undefinedVariable(`index ${index.toString()}`)
+      );
+    }
+
+    this.items[index.value] = item;
+    return item;
   }
 
   add(_: Interpreter, item: AtlasValue): AtlasValue {
@@ -34,18 +52,33 @@ export class AtlasList extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedNumber());
     }
 
-    return this.items[index.value] ?? new AtlasNull();
+    return this.items[index.value] ?? atlasNull;
+  }
+
+  forEach(interpreter: Interpreter, callback: AtlasValue): AtlasValue {
+    if (!isAtlasFunction(callback)) {
+      throw new NativeError(RuntimeErrors.expectedFunction());
+    }
+
+    this.items.forEach((item, i) => {
+      callback.call(interpreter, [item, atlasNumber(i)]);
+    });
+
+    return atlasNull;
   }
 
   remove(): AtlasValue {
     const value = this.items.pop();
-    return value || new AtlasNull();
+    return value || atlasNull;
   }
 
   toString(): string {
     return `[${this.items.join(", ")}]`;
   }
 }
+
+export const atlasList = (items: AtlasValue[] = []): AtlasList =>
+  new AtlasList(items);
 
 export class ListType extends ObjectType {
   readonly type = "List";
@@ -56,9 +89,22 @@ export class ListType extends ObjectType {
     super(
       {
         add: new NativeFnType({ params: [itemType], returns: itemType }),
+        addAt: new NativeFnType({
+          params: [new NumberType(), itemType],
+          returns: itemType,
+        }),
         at: new NativeFnType({
           params: [new NumberType()],
           returns: new UnionType([itemType, new NullType()]),
+        }),
+        forEach: new NativeFnType({
+          params: [
+            new FunctionType({
+              params: [itemType, new NumberType()],
+              returns: new NullType(),
+            }),
+          ],
+          returns: new NullType(),
         }),
         remove: new NativeFnType({
           params: [],
@@ -69,12 +115,21 @@ export class ListType extends ObjectType {
     );
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    if (this.generics.length === 0) return this;
-
-    const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap);
-    return this.init(itemType);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    if (this.generics.length) {
+      const mappedItem = genericTypeMap.get(this.generics[0])!;
+      const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
+      const list = this.init(itemType);
+      return list;
+    } else if (this.itemType.generics.length) {
+      const itemType = this.itemType.bindGenerics(genericTypeMap, visited);
+      const list = this.init(itemType);
+      return list;
+    }
+    return this;
   }
 
   init = (itemType: AtlasType): ListType => {

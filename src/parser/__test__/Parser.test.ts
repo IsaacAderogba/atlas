@@ -568,7 +568,6 @@ describe("Type statements", () => {
     );
     expect(statements[0]).toMatchObject({
       type: {
-        params: [],
         paramTypes: [{ name: { lexeme: "Number", type: "IDENTIFIER" } }],
         open: { lexeme: "(", type: "LEFT_PAREN" },
         returnType: {

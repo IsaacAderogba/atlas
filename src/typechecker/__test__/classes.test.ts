@@ -9,9 +9,9 @@ describe("Class annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
     class Foo {
-      bar = "" // inferred
+      bar: String
     
-      init: (String) -> Foo = f(name) {
+      init: (String) -> Instance = f(name) {
         this.bar = name // explicit
         this.create(this.bar)
       }
@@ -32,7 +32,11 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = ""
+        bar: Number
+
+        init: () -> Instance = f() {
+          this.bar = ""
+        }
       }
     `);
 
@@ -47,7 +51,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
 
         foo: () -> Null = f() {
           this.bar = ""
@@ -66,7 +70,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
 
         foo: (Number) -> Null = f(num) {
           this.bar = num

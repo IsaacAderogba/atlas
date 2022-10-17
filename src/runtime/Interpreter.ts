@@ -17,7 +17,7 @@ import {
   UnaryExpr,
   VariableExpr,
 } from "../ast/Expr";
-import { AtlasNumber } from "../primitives/AtlasNumber";
+import { atlasNumber } from "../primitives/AtlasNumber";
 import { AtlasValue, Values } from "../primitives/AtlasValue";
 import { RuntimeError, RuntimeErrors } from "../errors/RuntimeError";
 import { areEqualValues } from "./operands";
@@ -29,6 +29,7 @@ import {
   IfStmt,
   ImportStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -38,18 +39,22 @@ import {
 import { Environment } from "./Environment";
 import { AtlasCallable, isCallable } from "../primitives/AtlasCallable";
 import { globals } from "../globals";
-import { AtlasFunction } from "../primitives/AtlasFunction";
+import { atlasFunction, AtlasFunction } from "../primitives/AtlasFunction";
 import { Break, Continue, Return } from "./Throws";
-import { AtlasString, isAtlasString } from "../primitives/AtlasString";
+import {
+  atlasString,
+  AtlasString,
+  isAtlasString,
+} from "../primitives/AtlasString";
 import { Token } from "../ast/Token";
-import { atlasNull, AtlasNull } from "../primitives/AtlasNull";
-import { AtlasClass } from "../primitives/AtlasClass";
+import { atlasNull } from "../primitives/AtlasNull";
+import { atlasClass } from "../primitives/AtlasClass";
 import { NativeError } from "../errors/NativeError";
-import { AtlasList } from "../primitives/AtlasList";
-import { AtlasRecord } from "../primitives/AtlasRecord";
+import { atlasList } from "../primitives/AtlasList";
+import { atlasRecord } from "../primitives/AtlasRecord";
 import { Scheduler } from "./Scheduler";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
-import { AtlasModule } from "../primitives/AtlasModule";
+import { atlasModule } from "../primitives/AtlasModule";
 import { AtlasAPI } from "../AtlasAPI";
 
 const globalEnv = (): Environment => Environment.fromGlobals(globals);
@@ -67,7 +72,6 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         this.execute(statement);
       }
 
-      this.scheduler.run();
       return { errors: [] };
     } catch (error) {
       if (error instanceof RuntimeError) return { errors: [error] };
@@ -102,22 +106,20 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
-    this.environment.define(stmt.name.lexeme, new AtlasNull());
+    this.environment.define(stmt.name.lexeme, atlasNull);
 
     const props: { [key: string]: AtlasValue } = {};
     for (const { name, initializer: expr } of stmt.properties) {
       const value =
         expr instanceof FunctionExpr
-          ? new AtlasFunction(expr, this.environment, name.lexeme === "init")
-          : expr
-          ? this.evaluate(expr)
-          : atlasNull();
+          ? atlasFunction(expr, this.environment, name.lexeme === "init")
+          : atlasNull;
 
       props[name.lexeme] = value;
     }
-    const atlasClass = new AtlasClass(stmt.name.lexeme, props);
+    const classInstance = atlasClass(stmt.name.lexeme, props);
 
-    this.environment.assign(stmt.name, atlasClass);
+    this.environment.assign(stmt.name, classInstance);
   }
 
   visitBreakStmt(): void {
@@ -133,7 +135,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitVarStmt({ property: { initializer, name } }: VarStmt): void {
-    const value = initializer ? this.evaluate(initializer) : atlasNull();
+    const value = initializer ? this.evaluate(initializer) : atlasNull;
     this.environment.define(name.lexeme, value);
   }
 
@@ -149,6 +151,14 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         throw err;
       }
     }
+  }
+
+  visitPanicStmt(stmt: PanicStmt): void {
+    const value = this.evaluate(stmt.value);
+    throw this.error(
+      stmt.value,
+      RuntimeErrors.unrecoverablePanic(value.toString())
+    );
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -179,7 +189,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         if (cachedModule) {
           this.defineModule(name, cachedModule);
         } else {
-          if (this.atlas.reportErrors(errors)) process.exit(65);
+          if (this.atlas.reportErrors(errors)) process.exit(0);
           const moduleEnv = this.visitModule(statements);
           this.defineModule(name, moduleEnv);
           this.cachedModules[file.module] = moduleEnv;
@@ -212,10 +222,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   defineModule(name: Token, env: Environment): void {
-    this.environment.define(
-      name.lexeme,
-      new AtlasModule(name.lexeme, env.values)
-    );
+    this.environment.define(name.lexeme, atlasModule(name.lexeme, env.values));
   }
 
   visitTypeStmt(): void {
@@ -244,17 +251,17 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
 
     switch (expr.operator.type) {
       case "HASH":
-        return new AtlasString(
+        return atlasString(
           this.getStringValue(leftSource, left) +
             this.getStringValue(rightSource, right)
         );
       case "PLUS":
-        return new AtlasNumber(
+        return atlasNumber(
           this.getNumberValue(leftSource, left) +
             this.getNumberValue(rightSource, right)
         );
       case "MINUS":
-        return new AtlasNumber(
+        return atlasNumber(
           this.getNumberValue(leftSource, left) -
             this.getNumberValue(rightSource, right)
         );
@@ -264,9 +271,9 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         if (denominator === 0) {
           throw this.error(rightSource, RuntimeErrors.prohibitedZeroDivision());
         }
-        return new AtlasNumber(numerator / denominator);
+        return atlasNumber(numerator / denominator);
       case "STAR":
-        return new AtlasNumber(
+        return atlasNumber(
           this.getNumberValue(leftSource, left) *
             this.getNumberValue(rightSource, right)
         );
@@ -324,7 +331,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
         const boolean = this.getBooleanValue(source, right);
         return atlasBoolean(boolean ? false : true);
       case "MINUS":
-        return new AtlasNumber(-this.getNumberValue(source, right));
+        return atlasNumber(-this.getNumberValue(source, right));
       default:
         throw this.error(
           expr.operator,
@@ -367,7 +374,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitFunctionExpr(expr: FunctionExpr): AtlasFunction {
-    return new AtlasFunction(expr, this.environment, false);
+    return atlasFunction(expr, this.environment, false);
   }
 
   visitLiteralExpr(expr: LiteralExpr): AtlasValue {
@@ -394,7 +401,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
   }
 
   visitListExpr(expr: ListExpr): AtlasValue {
-    return new AtlasList(expr.items.map(item => this.evaluate(item)));
+    return atlasList(expr.items.map(item => this.evaluate(item)));
   }
 
   visitRecordExpr(expr: RecordExpr): AtlasValue {
@@ -405,7 +412,7 @@ export class Interpreter implements ExprVisitor<AtlasValue>, StmtVisitor<void> {
       entries[string] = this.evaluate(value);
     }
 
-    return new AtlasRecord(entries);
+    return atlasRecord(entries);
   }
 
   visitSetExpr(expr: SetExpr): AtlasValue {

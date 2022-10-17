@@ -1,9 +1,9 @@
 import { NativeError } from "../errors/NativeError";
 import { RuntimeErrors } from "../errors/RuntimeError";
 import { Interpreter } from "../runtime/Interpreter";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 import { NativeFnType, toNativeFunctions } from "./AtlasNativeFn";
-import { AtlasNull, NullType } from "./AtlasNull";
+import { atlasNull, NullType } from "./AtlasNull";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { isAtlasString, StringType } from "./AtlasString";
 import { AtlasType } from "./AtlasType";
@@ -29,7 +29,7 @@ export class AtlasRecord extends AtlasObject {
       throw new NativeError(RuntimeErrors.expectedString());
     }
 
-    return this.entries[key.value] ?? new AtlasNull();
+    return this.entries[key.value] ?? atlasNull;
   }
 
   add(_: Interpreter, key: AtlasValue, value: AtlasValue): AtlasValue {
@@ -52,13 +52,17 @@ export class AtlasRecord extends AtlasObject {
       return entry;
     }
 
-    return new AtlasNull();
+    return atlasNull;
   }
 
   toString(): string {
     return "record";
   }
 }
+
+export const atlasRecord = (
+  entries: { [key: string]: AtlasValue } = {}
+): AtlasRecord => new AtlasRecord(entries);
 
 export class RecordType extends ObjectType {
   readonly type = "Record";
@@ -84,12 +88,19 @@ export class RecordType extends ObjectType {
     );
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    if (this.generics.length === 0) return this;
-
-    const mappedItem = genericTypeMap.get(this.generics[0])!;
-    const itemType = mappedItem.bindGenerics(genericTypeMap);
-    return this.init(itemType);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    if (this.generics.length) {
+      const mappedItem = genericTypeMap.get(this.generics[0])!;
+      const itemType = mappedItem.bindGenerics(genericTypeMap, visited);
+      return this.init(itemType);
+    } else if (this.itemType.generics.length) {
+      const itemType = this.itemType.bindGenerics(genericTypeMap, visited);
+      return this.init(itemType);
+    }
+    return this;
   }
 
   init = (itemType: AtlasType): RecordType => {

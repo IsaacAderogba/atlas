@@ -29,12 +29,20 @@ describe("Generics annotations", () => {
       
       type FooBar[T] = Foo[Bar[T]]
 
+      interface FooImplType {
+        bar: Null
+      }
+
       class FooImpl {
-        bar = null
+        bar: Null
       }
 
       class FooBarImpl implements FooBar[Null] {
-        foo = FooImpl()
+        foo: FooImplType
+
+        init: () -> Instance = f() {
+          this.foo = FooImpl()
+        }
       }
     `);
 
@@ -54,8 +62,8 @@ describe("Generics annotations", () => {
       }
       
       class FooBar implements Foo[Number] & Bar[String] {
-        foo = 0
-        bar = ""
+        foo: Number
+        bar: String
       }    
     `);
 
@@ -72,7 +80,7 @@ describe("Generics annotations", () => {
       
       var addFoo: [T is Number](Foo[T]) -> Number = f(arg) {
         return arg.foo * arg.foo
-      }     
+      }
     `);
 
     expect(errors.length).toEqual(0);
@@ -85,9 +93,9 @@ describe("Generic errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       var foo: [T, K](T, K) -> T = f(t, k) {
-        return t
-      }
-      
+        return t	
+      }	
+              
       foo[String]()
     `);
     expect(errors[0].sourceMessage).toEqual(
@@ -117,8 +125,8 @@ describe("Generic errors", () => {
       var addFoo: [T](T) -> Number = f(arg) {
         return 0
       }
-      
-      addFoo(6)  
+              
+      addFoo(6) 
     `);
 
     expect(errors[0].sourceMessage).toEqual(
@@ -145,9 +153,9 @@ describe("Generic errors", () => {
     const { errors } = tester.typeCheckWorkflow(`      
       var addFoo: [T is Number](T) -> Number = f(arg) {
         return arg * arg
-      }
-      
-      addFoo(6)  
+      }	   
+              
+      addFoo(6) 
     `);
 
     expect(errors[0].sourceMessage).toEqual(

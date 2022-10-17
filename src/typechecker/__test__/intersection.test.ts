@@ -19,8 +19,8 @@ describe("Interface annotations", () => {
     type FooBar = Foo & Bar
 
     class FooBarImpl implements FooBar {
-      foo = "string"
-      bar = "string"
+      foo: String
+      bar: String
     }
     `);
 
@@ -42,8 +42,8 @@ describe("Interface annotations", () => {
       type FooBar = Foo & Bar
       
       class FooBarClass implements FooBar {
-          foo = ""
-          bar = ""
+          foo: String
+          bar: String
       }
     `);
 

@@ -33,6 +33,7 @@ import {
   ImportStmt,
   InterfaceStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -45,19 +46,25 @@ import { isAnyType } from "../primitives/AnyType";
 import { isCallableType } from "../primitives/AtlasCallable";
 import { isAtlasString } from "../primitives/AtlasString";
 import { Types, AtlasType } from "../primitives/AtlasType";
-import { ClassType, FunctionEnum } from "../utils/Enums";
+import { FunctionEnum } from "../utils/Enums";
 import { TypeCheckerLookup } from "./TypeCheckerLookup";
-import { CurrentFunction, TypeModuleEnv, TypeVisitor } from "./TypeUtils";
+import {
+  CurrentInterface,
+  CurrentFunction,
+  TypeModuleEnv,
+  TypeVisitor,
+} from "./TypeUtils";
 import { TypeCheckerSubtyper } from "./TypeCheckerSubtyper";
 import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 import { isGenericType } from "../primitives/GenericType";
+import { isAliasType } from "../primitives/AliasType";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
   readonly subtyper = new TypeCheckerSubtyper(this);
   currentFunction?: CurrentFunction;
-  currentClass = ClassType.NONE;
+  currentInterface?: CurrentInterface;
 
   constructor(private readonly atlas: AtlasAPI) {}
 
@@ -94,55 +101,45 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitClassStmt({ name, properties, typeExpr, parameters }: ClassStmt): void {
-    const enclosingClass = this.currentClass;
-    this.currentClass = ClassType.CLASS;
     const classType = Types.Class.init(name.lexeme);
+    const enclosingClass = this.currentInterface;
+    this.currentInterface = { type: classType };
     this.lookup.defineValue(name, classType);
-    this.lookup.defineType(name, classType);
+
     this.lookup.beginScope();
-
-    // prepare for type synthesis and checking
     classType.generics = this.lookup.defineGenerics(parameters);
-    const fields: Property[] = [];
-    const methods: Property[] = [];
-    for (const prop of properties) {
-      const props = isFunctionExpr(prop.initializer) ? methods : fields;
-      props.push(prop);
-    }
 
-    // type check and define fields in scope
-    for (const prop of fields) {
-      classType.setProp(prop.name.lexeme, this.visitProperty(prop));
-    }
-
-    // create this type now that fields have been bound
-    const thisInstance = classType.returns;
-    this.lookup.getScope().valueScope.set("this", thisInstance);
-
-    // *only* type functions
-    for (const { type, name } of methods) {
-      const value = type
-        ? this.acceptTypeExpr(type)
-        : this.subtyper.error(
-            name,
-            TypeCheckErrors.requiredFunctionAnnotation()
-          );
-      classType.setProp(name.lexeme, value);
-    }
-
-    // with all functions typed, we can finally check them
-    for (const prop of methods) {
-      const { lexeme } = prop.name;
-
-      classType.setProp(
-        lexeme,
-        this.visitProperty(
-          prop,
-          lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
-          classType.findMethod(lexeme)
-        )
+    // type-check fields and methods
+    properties.forEach(({ type, name }) => {
+      classType.set(
+        name.lexeme,
+        type
+          ? this.acceptTypeExpr(type)
+          : this.subtyper.error(name, TypeCheckErrors.requiredAnnotation())
       );
-    }
+    });
+
+    // with all functions typed, we can finally check their bodies and expose `this`
+    this.lookup.getScope().valueScope.set("this", classType.returns);
+    properties.forEach(prop => {
+      const { name, initializer } = prop;
+
+      if (initializer && !isFunctionExpr(initializer)) {
+        classType.set(
+          name.lexeme,
+          this.subtyper.error(name, TypeCheckErrors.prohibitedInitializer())
+        );
+      } else {
+        classType.set(
+          name.lexeme,
+          this.visitProperty(
+            prop,
+            name.lexeme === "init" ? FunctionEnum.INIT : FunctionEnum.METHOD,
+            classType.findField(name.lexeme)
+          )
+        );
+      }
+    });
 
     // assert the type if an `implements` keyword was used
     if (typeExpr) {
@@ -155,7 +152,7 @@ export class TypeChecker implements TypeVisitor {
     }
 
     this.lookup.endScope();
-    this.currentClass = enclosingClass;
+    this.currentInterface = enclosingClass;
   }
 
   visitContinueStmt(): void {
@@ -175,17 +172,23 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitInterfaceStmt(stmt: InterfaceStmt): void {
+    const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, []);
+    const enclosingClass = this.currentInterface;
+    this.currentInterface = { type: interfaceType };
+
+    this.lookup.defineType(stmt.name, interfaceType);
+
     this.lookup.beginScope();
-    const generics = this.lookup.defineGenerics(stmt.parameters);
-    const interfaceType = Types.Interface.init(stmt.name.lexeme, {}, generics);
+
+    interfaceType.generics = this.lookup.defineGenerics(stmt.parameters);
     stmt.entries.forEach(({ key, value }) => {
       const type = this.acceptTypeExpr(value);
       this.lookup.defineType(key, type);
-      interfaceType.setProp(key.lexeme, type);
+      interfaceType.set(key.lexeme, type);
     });
-    this.lookup.endScope();
 
-    this.lookup.defineType(stmt.name, interfaceType);
+    this.lookup.endScope();
+    this.currentInterface = enclosingClass;
   }
 
   visitImportStmt({ modulePath, name }: ImportStmt): void {
@@ -199,7 +202,7 @@ export class TypeChecker implements TypeVisitor {
         if (cachedModule) {
           this.lookup.defineModule(name, cachedModule);
         } else {
-          if (this.atlas.reportErrors(errors)) process.exit(65);
+          if (this.atlas.reportErrors(errors)) process.exit(0);
           const moduleEnv = this.visitModule(statements);
           this.lookup.defineModule(name, moduleEnv);
           this.lookup.setCachedModule(file.module, moduleEnv);
@@ -210,6 +213,10 @@ export class TypeChecker implements TypeVisitor {
 
   visitModuleStmt({ name, block }: ModuleStmt): void {
     this.lookup.defineModule(name, this.visitModule(block.statements));
+  }
+
+  visitPanicStmt(stmt: PanicStmt): void {
+    this.acceptExpr(stmt.value);
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
@@ -353,7 +360,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitGetExpr(expr: GetExpr): AtlasType {
-    return this.visitField(expr);
+    return this.visitGetter(expr);
   }
 
   visitTernaryExpr(expr: TernaryExpr): AtlasType {
@@ -426,7 +433,7 @@ export class TypeChecker implements TypeVisitor {
   }
 
   visitSetExpr(expr: SetExpr): AtlasType {
-    const expected = this.visitField(expr);
+    const expected = this.visitGetter(expr);
     const actual = this.acceptExpr(expr.value, expected);
     return this.subtyper.check(expr.value, actual, expected);
   }
@@ -547,6 +554,13 @@ export class TypeChecker implements TypeVisitor {
     genericType: AtlasType,
     actuals: AtlasType[]
   ): AtlasType {
+    if (this.currentInterface) {
+      const { type } = this.currentInterface;
+      if (type === genericType && type.type === "Interface") {
+        return genericType;
+      }
+    }
+
     if (genericType.generics.length !== actuals.length) {
       return this.subtyper.error(
         source,
@@ -568,10 +582,10 @@ export class TypeChecker implements TypeVisitor {
       })
     );
 
-    return genericType.bindGenerics(genericTypeMap);
+    return genericType.bindGenerics(genericTypeMap, new Map());
   }
 
-  visitField({ name, object }: GetExpr | SetExpr): AtlasType {
+  visitGetter({ name, object }: GetExpr | SetExpr): AtlasType {
     return this.subtyper.synthesize(this.acceptExpr(object), objectType => {
       const memberType = objectType.get(name.lexeme);
       if (isAnyType(objectType)) return objectType;
@@ -626,7 +640,12 @@ export class TypeChecker implements TypeVisitor {
 
     const { expr, expected } = current;
 
-    const expectedParams = isCallableType(expected) ? expected.params : [];
+    let unwrapped = expected;
+    while (isAliasType(unwrapped)) {
+      unwrapped = unwrapped.wrapped;
+    }
+
+    const expectedParams = isCallableType(unwrapped) ? unwrapped.params : [];
     const params = expr.params.map(({ name }, i) => {
       this.lookup.defineValue(name, expectedParams[i] || Types.Any);
       return expectedParams[i] || Types.Any;
@@ -635,7 +654,7 @@ export class TypeChecker implements TypeVisitor {
     for (const statement of expr.body.statements) this.acceptStmt(statement);
 
     const returns =
-      this.currentClass === ClassType.CLASS &&
+      this.currentInterface &&
       this.currentFunction.enumType === FunctionEnum.INIT
         ? this.lookup.scopedValue("this")
         : this.currentFunction.returns;

@@ -1,9 +1,11 @@
 import {
   attachGenericString,
   GenericTypeMap,
+  GenericVisitedMap,
 } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
+import { isGenericType } from "./GenericType";
 
 export class InterfaceType extends ObjectType {
   readonly type = "Interface";
@@ -18,9 +20,24 @@ export class InterfaceType extends ObjectType {
     this.name = name;
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { entries } = bindInterfaceGenerics(this, genericTypeMap);
-    return this.init(this.name, entries);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const entry = visited.get(this);
+    if (entry && entry.map === genericTypeMap) {
+      return entry.type as InterfaceType;
+    }
+
+    const boundInterface = new InterfaceType(this.name, {}, []);
+    visited.set(this, { type: boundInterface, map: genericTypeMap });
+    for (const [name, type] of this.fields) {
+      const value = type.bindGenerics(genericTypeMap, visited);
+      boundInterface.set(name, value);
+      if (isGenericType(value)) boundInterface.generics.push(value);
+    }
+
+    return boundInterface;
   }
 
   init = (
@@ -36,24 +53,6 @@ export class InterfaceType extends ObjectType {
   };
 }
 
-export const bindInterfaceGenerics = (
-  target: AtlasType,
-  map: GenericTypeMap
-): { entries: { [key: string]: AtlasType } } => {
-  if (!isInterfaceType(target)) throw new Error(`Invariant ${target.type}`);
-
-  const entries: { [key: string]: AtlasType } = {};
-  for (const [name, type] of target.fields) {
-    entries[name] = type.bindGenerics(map);
-  }
-
-  for (const [name, type] of target.methods) {
-    entries[name] = type.bindGenerics(map);
-  }
-
-  return { entries };
-};
-
 export const isInterfaceType = (
   value: AtlasType
 ): value is AtlasType & InterfaceType =>
@@ -66,10 +65,6 @@ export const toInterfaceString = (target: AtlasType): string => {
   const props: string[] = [];
 
   for (const [name, type] of target.fields) {
-    props.push(`"${name}": ${type.toString()}`);
-  }
-
-  for (const [name, type] of target.methods) {
     props.push(`"${name}": ${type.toString()}`);
   }
 

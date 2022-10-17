@@ -2,25 +2,23 @@ import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { AtlasClass, ClassType } from "./AtlasClass";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
+import { maybeBindCallable } from "./AtlasCallable";
 
 export class AtlasInstance extends AtlasObject {
   static readonly atlasClass: AtlasClass;
   readonly type = "Instance";
 
-  constructor(
-    readonly atlasClass: AtlasClass,
-    readonly fields: Map<string, AtlasValue>
-  ) {
+  constructor(readonly atlasClass: AtlasClass) {
     super({});
   }
 
   get(name: string): AtlasValue | undefined {
     const field = this.fields.get(name);
-    if (field) return field;
+    if (field) return maybeBindCallable(this, field);
 
-    const method = this.atlasClass.findMethod(name);
-    if (method) return method.bind(this);
+    const value = this.atlasClass.findField(name);
+    if (value) return maybeBindCallable(this, value);
 
     return super.get(name);
   }
@@ -34,6 +32,9 @@ export class AtlasInstance extends AtlasObject {
   }
 }
 
+export const atlasInstance = (atlasClass: AtlasClass): AtlasInstance =>
+  new AtlasInstance(atlasClass);
+
 export class InstanceType extends ObjectType {
   readonly type = "Instance";
 
@@ -41,20 +42,19 @@ export class InstanceType extends ObjectType {
     super();
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this.init(this.classType.bindGenerics(genericTypeMap));
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    return this.init(this.classType.bindGenerics(genericTypeMap, visited));
   }
 
   get(name: string): AtlasType | undefined {
-    return this.classType.findProp(name);
+    return this.classType.findField(name);
   }
 
   get fields(): ObjectType["fields"] {
-    return new Map([...this.internalFields, ...this.classType.fields]);
-  }
-
-  get methods(): ObjectType["methods"] {
-    return new Map([...this.internalMethods, ...this.classType.methods]);
+    return this.classType.fields;
   }
 
   init = (classType: ClassType): InstanceType => new InstanceType(classType);

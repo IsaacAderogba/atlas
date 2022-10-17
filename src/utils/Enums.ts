@@ -5,7 +5,7 @@ export enum FunctionEnum {
   METHOD = "METHOD",
 }
 
-export enum ClassType {
+export enum ClassEnum {
   NONE = "NONE",
   CLASS = "CLASS",
 }

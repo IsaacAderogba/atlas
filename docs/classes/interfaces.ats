@@ -7,6 +7,6 @@ interface Bar {
 }
 
 class FooBar implements Foo & Bar {
-  foo = ""
-  bar = ""
+  foo: String
+  bar: String
 }

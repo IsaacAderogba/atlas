@@ -1,23 +1,18 @@
-import {
-  AtlasCallable,
-  bindCallableGenerics,
-  CallableType,
-} from "./AtlasCallable";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Interpreter } from "../runtime/Interpreter";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 
+type NativeFunction = (
+  interpreter: Interpreter,
+  ...args: AtlasValue[]
+) => AtlasValue;
 export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   readonly type = "NativeFn";
 
-  constructor(
-    public readonly func: (
-      interpreter: Interpreter,
-      ...args: AtlasValue[]
-    ) => AtlasValue
-  ) {
+  constructor(public readonly func: NativeFunction) {
     super();
   }
 
@@ -39,6 +34,9 @@ export class AtlasNativeFn extends AtlasObject implements AtlasCallable {
   }
 }
 
+export const atlasNativeFn = (func: NativeFunction): AtlasNativeFn =>
+  new AtlasNativeFn(func);
+
 type ConvertedFunctions = { [key: string]: AtlasCallable & AtlasValue };
 
 export const toNativeFunctions = (funcs: {
@@ -47,7 +45,7 @@ export const toNativeFunctions = (funcs: {
   const convertedFuncs: ConvertedFunctions = {};
 
   for (const [name, func] of Object.entries(funcs)) {
-    convertedFuncs[name] = new AtlasNativeFn(func);
+    convertedFuncs[name] = atlasNativeFn(func);
   }
 
   return convertedFuncs;
@@ -69,8 +67,14 @@ export class NativeFnType extends ObjectType implements CallableType {
     this.returns = props.returns;
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const params = this.params.map(param =>
+      param.bindGenerics(genericTypeMap, visited)
+    );
+    const returns = this.returns.bindGenerics(genericTypeMap, visited);
     return this.init({ params, returns }, this.generics);
   }
 

@@ -1,50 +1,28 @@
 import { RuntimeError } from "../errors/RuntimeError";
 import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { TypeCheckError } from "../errors/TypeCheckError";
-import {
-  AtlasCallable,
-  CallableType,
-  isCallable,
-  isCallableType,
-} from "./AtlasCallable";
 import { AtlasType } from "./AtlasType";
 import { AtlasValue } from "./AtlasValue";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
+import { maybeBindCallable } from "./AtlasCallable";
 
 export type AtlasObjectProps = { [key: string]: AtlasValue };
 
 export abstract class AtlasObject {
   abstract type: string;
   abstract toString(): string;
-  methods = new Map<string, AtlasCallable & AtlasValue>();
   fields = new Map<string, AtlasValue>();
 
   constructor(properties: AtlasObjectProps = {}) {
-    for (const [name, value] of Object.entries(properties)) {
-      if (isCallable(value)) {
-        this.methods.set(name, value);
-      } else {
-        this.fields.set(name, value);
-      }
-    }
+    this.fields = new Map(Object.entries(properties));
   }
 
   get(name: string): AtlasValue | undefined {
-    const value = this.fields.get(name);
-    if (value) return value;
-
-    const method = this.methods.get(name);
-    if (method) return method.bind(this);
-
-    return undefined;
+    return maybeBindCallable(this, this.fields.get(name));
   }
 
   set(name: string, value: AtlasValue): void {
-    if (isCallable(value)) {
-      this.methods.set(name, value);
-    } else {
-      this.fields.set(name, value);
-    }
+    this.fields.set(name, value);
   }
 
   protected error(
@@ -60,51 +38,32 @@ export type ObjectTypeProps = { [key: string]: AtlasType };
 export abstract class ObjectType {
   abstract type: string;
   abstract toString(): string;
-  abstract bindGenerics(genericTypeMap: GenericTypeMap): AtlasType;
+  abstract bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visitedSet: GenericVisitedMap
+  ): AtlasType;
 
   internalFields = new Map<string, AtlasType>();
-  internalMethods = new Map<string, CallableType & AtlasType>();
   generics: AtlasType[];
 
   constructor(properties: ObjectTypeProps = {}, generics: AtlasType[] = []) {
     this.generics = generics;
-    for (const [name, value] of Object.entries(properties)) {
-      this.setProp(name, value);
-    }
+    this.internalFields = new Map(Object.entries(properties));
   }
 
   get fields(): ObjectType["internalFields"] {
     return this.internalFields;
   }
 
-  get methods(): ObjectType["internalMethods"] {
-    return this.internalMethods;
-  }
-
-  setProp(name: string, value: AtlasType): void {
-    if (isCallableType(value)) {
-      this.internalMethods.set(name, value);
-    } else {
-      this.internalFields.set(name, value);
-    }
-  }
-
   get(name: string): AtlasType | undefined {
     const value = this.internalFields.get(name);
     if (value) return value;
-
-    const method = this.internalMethods.get(name);
-    if (method) return method;
 
     return undefined;
   }
 
   set(name: string, value: AtlasType): void {
-    if (isCallableType(value)) {
-      this.internalMethods.set(name, value);
-    } else {
-      this.internalFields.set(name, value);
-    }
+    this.internalFields.set(name, value);
   }
 
   protected error(

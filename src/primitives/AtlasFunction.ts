@@ -1,17 +1,13 @@
 import { FunctionExpr } from "../ast/Expr";
-import {
-  AtlasCallable,
-  bindCallableGenerics,
-  CallableType,
-} from "./AtlasCallable";
-import { AtlasNull } from "./AtlasNull";
+import { AtlasCallable, CallableType } from "./AtlasCallable";
+import { atlasNull } from "./AtlasNull";
 import { AtlasValue } from "./AtlasValue";
 import { AtlasObject, ObjectType } from "./AtlasObject";
 import { Environment } from "../runtime/Environment";
 import { Interpreter } from "../runtime/Interpreter";
 import { Return } from "../runtime/Throws";
 import { AtlasType } from "./AtlasType";
-import { GenericTypeMap } from "../typechecker/GenericUtils";
+import { GenericTypeMap, GenericVisitedMap } from "../typechecker/GenericUtils";
 
 export class AtlasFunction extends AtlasObject implements AtlasCallable {
   readonly type = "Function";
@@ -35,41 +31,39 @@ export class AtlasFunction extends AtlasObject implements AtlasCallable {
   }
 
   call(interpreter: Interpreter, args: AtlasValue[]): AtlasValue {
-    const execute = (): AtlasValue => {
-      const environment = new Environment(this.closure);
+    const environment = new Environment(this.closure);
 
-      for (const [i, param] of this.expression.params.entries()) {
-        environment.define(param.name.lexeme, args[i]);
-      }
-
-      try {
-        interpreter.interpretBlock(
-          this.expression.body.statements,
-          environment
-        );
-      } catch (err) {
-        if (err instanceof Return) return err.value;
-        throw err;
-      }
-
-      if (this.isInitializer) {
-        return this.closure.get("this", this.expression.keyword);
-      }
-      return new AtlasNull();
-    };
-
-    if (this.expression.async) {
-      interpreter.scheduler.queueTask(() => execute());
-      return new AtlasNull();
+    for (const [i, param] of this.expression.params.entries()) {
+      environment.define(param.name.lexeme, args[i]);
     }
 
-    return execute();
+    try {
+      interpreter.interpretBlock(this.expression.body.statements, environment);
+    } catch (err) {
+      if (err instanceof Return) return err.value;
+      throw err;
+    }
+
+    if (this.isInitializer) {
+      return this.closure.get("this", this.expression.keyword);
+    }
+
+    return atlasNull;
   }
 
   toString(): string {
     return `<fn>`;
   }
 }
+
+export const isAtlasFunction = (type?: AtlasValue): type is AtlasFunction =>
+  type?.type === "Function";
+
+export const atlasFunction = (
+  expression: FunctionExpr,
+  closure: Environment,
+  isInitializer: boolean
+): AtlasFunction => new AtlasFunction(expression, closure, isInitializer);
 
 interface FunctionTypeProps {
   params: AtlasType[];
@@ -86,8 +80,14 @@ export class FunctionType extends ObjectType implements CallableType {
     this.returns = props.returns;
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    const { params, returns } = bindCallableGenerics(this, genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    const params = this.params.map(param => {
+      return param.bindGenerics(genericTypeMap, visited);
+    });
+    const returns = this.returns.bindGenerics(genericTypeMap, visited);
     return this.init({ params, returns }, this.generics);
   }
 
@@ -95,10 +95,8 @@ export class FunctionType extends ObjectType implements CallableType {
     return this.params.length;
   }
 
-  init = (
-    props: FunctionTypeProps,
-    generics: AtlasType[] = []
-  ): FunctionType => new FunctionType(props, generics);
+  init = (props: FunctionTypeProps, generics: AtlasType[] = []): FunctionType =>
+    new FunctionType(props, generics);
 
   toString(): string {
     const args = this.params.map(p => p.toString());

@@ -58,43 +58,6 @@ describe("Analyzer errors", () => {
     });
   });
 
-  it("errors with prohibited async init", () => {
-    const expressions = [
-      `
-      class Foo {
-        init = f*() {
-        }
-      }
-    `,
-    ];
-
-    expressions.forEach(expr => {
-      const { tester } = setupTester();
-      const { errors } = tester.analyzeWorkflow(expr);
-      expect(errors[0].sourceMessage).toMatchObject(
-        SemanticErrors.prohibitedAsyncInit()
-      );
-    });
-  });
-
-  it("errors with prohibited async return", () => {
-    const expressions = [
-      `
-      var foo = f*() {
-        return null
-      }
-    `,
-    ];
-
-    expressions.forEach(expr => {
-      const { tester } = setupTester();
-      const { errors } = tester.analyzeWorkflow(expr);
-      expect(errors[0].sourceMessage).toMatchObject(
-        SemanticErrors.prohibitedAsyncReturn()
-      );
-    });
-  });
-
   it("errors with prohibited this", () => {
     const expressions = ["this"];
 

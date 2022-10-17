@@ -26,6 +26,7 @@ import {
   IfStmt,
   ImportStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   StmtVisitor,
@@ -38,7 +39,7 @@ import { SourceMessage, SourceRangeable } from "../errors/SourceError";
 import { globals } from "../globals";
 import { Scope } from "../utils/Scope";
 import { Stack } from "../utils/Stack";
-import { ClassType, FunctionEnum, VariableState } from "../utils/Enums";
+import { ClassEnum, FunctionEnum, VariableState } from "../utils/Enums";
 import { AtlasAPI } from "../AtlasAPI";
 import { isAtlasString } from "../primitives/AtlasString";
 
@@ -51,7 +52,7 @@ const globalScope = (): AnalyzerScope =>
 export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   private scopes: Stack<AnalyzerScope> = new Stack();
   private currentFunction?: CurrentFunction;
-  private currentClass = ClassType.NONE;
+  private currentClass = ClassEnum.NONE;
   private loopDepth = 0;
   private errors: SemanticError[] = [];
 
@@ -96,10 +97,6 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   private analyzeProperty(prop: Property, type: FunctionEnum): void {
     if (prop.initializer instanceof FunctionExpr) {
-      if (type === FunctionEnum.INIT && prop.initializer.async) {
-        this.error(prop.name, SemanticErrors.prohibitedAsyncInit());
-      }
-
       this.declare(prop.name);
       this.define(prop.name);
       this.analyzeFunction(prop.initializer, { type, expr: prop.initializer });
@@ -124,7 +121,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitClassStmt(stmt: ClassStmt): void {
     const enclosingClass = this.currentClass;
-    this.currentClass = ClassType.CLASS;
+    this.currentClass = ClassEnum.CLASS;
     this.declare(stmt.name);
     this.define(stmt.name);
 
@@ -173,7 +170,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.atlas.reader.readFile(
       stmt.modulePath.literal.value,
       ({ statements, errors }) => {
-        if (this.atlas.reportErrors(errors)) process.exit(65);
+        if (this.atlas.reportErrors(errors)) process.exit(0);
         this.visitModule(stmt.name, statements);
       }
     );
@@ -196,19 +193,18 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(name);
   }
 
+  visitPanicStmt(stmt: PanicStmt): void {
+    this.analyzeExpr(stmt.value);
+  }
+
   visitReturnStmt(stmt: ReturnStmt): void {
     if (this.currentFunction) {
-      const { type, expr } = this.currentFunction;
+      const { type } = this.currentFunction;
 
       switch (type) {
         case FunctionEnum.INIT:
           this.error(stmt.keyword, SemanticErrors.prohibitedInitReturn());
           break;
-        case FunctionEnum.FUNCTION:
-        case FunctionEnum.METHOD:
-          if (expr.async) {
-            this.error(stmt.keyword, SemanticErrors.prohibitedAsyncReturn());
-          }
       }
     } else {
       this.error(stmt.keyword, SemanticErrors.prohibitedFunctionReturn());
@@ -289,7 +285,7 @@ export class Analyzer implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: ThisExpr): void {
-    if (this.currentClass === ClassType.NONE) {
+    if (this.currentClass === ClassEnum.NONE) {
       this.error(expr.keyword, SemanticErrors.prohibitedThis());
     }
   }

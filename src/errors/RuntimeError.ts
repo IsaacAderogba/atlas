@@ -98,6 +98,13 @@ export class RuntimeErrors {
     });
   }
 
+  static expectedFunction(): SourceMessage {
+    return this.formatError({
+      title: "expected function",
+      body: "a function was expected",
+    });
+  }
+
   static expectedCallable(): SourceMessage {
     return this.formatError({
       title: "expected callable",
@@ -109,6 +116,13 @@ export class RuntimeErrors {
     return this.formatError({
       title: "undefined property",
       body: `property ${name} is undefined`,
+    });
+  }
+
+  static unrecoverablePanic(value: string): SourceMessage {
+    return this.formatError({
+      title: "unrecoverable panic",
+      body: `program panicked at "${value}"`,
     });
   }
 }

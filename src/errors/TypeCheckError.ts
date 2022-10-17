@@ -21,7 +21,6 @@ export class TypeCheckErrors {
   }
 
   static invalidSubtype(body: string): SourceMessage {
-    console.log("error", body)
     return this.formatError({
       title: "invalid subtype",
       body: body,
@@ -82,6 +81,13 @@ export class TypeCheckErrors {
     });
   }
 
+  static requiredAnnotation(): SourceMessage {
+    return this.formatError({
+      title: "required annotation",
+      body: "type annotation is required",
+    });
+  }
+
   static requiredGenericArgs(): SourceMessage {
     return this.formatError({
       title: "required generic arguments",
@@ -107,6 +113,13 @@ export class TypeCheckErrors {
     return this.formatError({
       title: "unknown property",
       body: `property ${name} cannot be inferred`,
+    });
+  }
+
+  static prohibitedInitializer(): SourceMessage {
+    return this.formatError({
+      title: "prohbited initializer",
+      body: `only methods can be initialized outside of a class' init method`,
     });
   }
 

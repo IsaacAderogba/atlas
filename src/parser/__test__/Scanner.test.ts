@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { TokenType } from "../../ast/TokenType";
 import { SyntaxErrors } from "../../errors/SyntaxError";
 import { atlasBoolean } from "../../primitives/AtlasBoolean";
-import { AtlasNull } from "../../primitives/AtlasNull";
-import { AtlasNumber } from "../../primitives/AtlasNumber";
-import { AtlasString } from "../../primitives/AtlasString";
+import { atlasNull } from "../../primitives/AtlasNull";
+import { atlasNumber, AtlasNumber } from "../../primitives/AtlasNumber";
+import { atlasString, AtlasString } from "../../primitives/AtlasString";
 
 describe("Scanner tokens", () => {
   it("tokenizes single-character tokens", () => {
@@ -95,6 +95,7 @@ describe("Scanner tokens", () => {
       { char: "is", type: "IS" },
       { char: "import", type: "IMPORT" },
       { char: "module", type: "MODULE" },
+      { char: "panic", type: "PANIC" },
       { char: "return", type: "RETURN" },
       { char: "super", type: "SUPER" },
       { char: "this", type: "THIS" },
@@ -120,12 +121,12 @@ describe("Scanner tokens", () => {
         {
           char: '"string"',
           type: "STRING",
-          literal: new AtlasString("string"),
+          literal: atlasString("string"),
         },
         {
           char: "'string'",
           type: "STRING",
-          literal: new AtlasString("string"),
+          literal: atlasString("string"),
         },
       ];
 
@@ -142,8 +143,8 @@ describe("Scanner tokens", () => {
   it("tokenizes number", () => {
     const charTypes: { char: string; type: TokenType; literal: AtlasNumber }[] =
       [
-        { char: "2", type: "NUMBER", literal: new AtlasNumber(2) },
-        { char: "2.2", type: "NUMBER", literal: new AtlasNumber(2.2) },
+        { char: "2", type: "NUMBER", literal: atlasNumber(2) },
+        { char: "2.2", type: "NUMBER", literal: atlasNumber(2.2) },
       ];
 
     charTypes.forEach(({ char, type, literal }) => {
@@ -181,7 +182,7 @@ describe("Scanner tokens", () => {
     const { tokens } = tester.scanWorkflow("null");
 
     expect(tokens[0].type).toEqual("NULL");
-    expect(tokens[0].literal).toEqual(new AtlasNull());
+    expect(tokens[0].literal).toEqual(atlasNull);
 
     expect(tokens.length).toEqual(2);
   });

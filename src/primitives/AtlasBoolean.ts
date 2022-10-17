@@ -13,8 +13,11 @@ export class AtlasBoolean extends AtlasObject {
   }
 }
 
+export const atlasTrue = new AtlasBoolean(true);
+export const atlasFalse = new AtlasBoolean(false);
+
 export const atlasBoolean = (value: true | false): AtlasBoolean =>
-  new AtlasBoolean(value);
+  value === true ? atlasTrue : atlasFalse;
 
 export class BooleanType extends ObjectType {
   readonly type = "Boolean";

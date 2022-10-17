@@ -30,18 +30,24 @@ export const createSubtyper = (): ((
     );
   };
 
-  const isSubtype = (a: AtlasType, b: AtlasType): boolean => {
+  const isSubtype = (
+    a: AtlasType,
+    b: AtlasType,
+    visited?: Map<AtlasType, string>
+  ): boolean => {
     if (a === b) return true;
     if (isAnyType(a) || isAnyType(b)) return true;
 
-    if (isAliasType(a)) return isSubtype(a.wrapped, b);
-    if (isAliasType(b)) return isSubtype(a, b.wrapped);
+    if (isAliasType(a)) return isSubtype(a.wrapped, b, visited);
+    if (isAliasType(b)) return isSubtype(a, b.wrapped, visited);
 
-    if (isUnionType(a)) return a.types.every(a => isSubtype(a, b));
-    if (isUnionType(b)) return b.types.some(b => isSubtype(a, b));
+    if (isUnionType(a)) return a.types.every(a => isSubtype(a, b, visited));
+    if (isUnionType(b)) return b.types.some(b => isSubtype(a, b, visited));
 
-    if (isIntersectionType(a)) return a.types.some(a => isSubtype(a, b));
-    if (isIntersectionType(b)) return b.types.every(b => isSubtype(a, b));
+    if (isIntersectionType(a))
+      return a.types.some(a => isSubtype(a, b, visited));
+    if (isIntersectionType(b))
+      return b.types.every(b => isSubtype(a, b, visited));
 
     if (isNullType(a) && isNullType(b)) return true;
     if (isBooleanType(a) && isBooleanType(b)) return true;
@@ -49,33 +55,35 @@ export const createSubtyper = (): ((
     if (isStringType(a) && isStringType(b)) return true;
 
     if (isListType(a) && isListType(b)) {
-      return isSubtype(a.itemType, b.itemType);
-    }
+      return isSubtype(a.itemType, b.itemType, visited);
+    } else if (isRecordType(a) && isRecordType(b)) {
+      return isSubtype(a.itemType, b.itemType, visited);
+    } else if (isInterfaceType(a) && isInterfaceType(b)) {
+      const succeeded = [...b.fields.entries()].every(([name, type]) => {
+        const compare = a.fields.get(name);
 
-    if (isRecordType(a) && isRecordType(b)) {
-      return isSubtype(a.itemType, b.itemType);
-    }
+        if (compare) {
+          const visitSet = visited ?? new Map<AtlasType, string>();
+          if (visitSet.get(compare) === name) {
+            // console.log("compare", { compare, type });
+            return true;
+          }
+          visitSet.set(compare, name);
+          visitSet.set(type, name);
+          return isSubtype(compare, type, visitSet);
+        }
 
-    if (isInterfaceType(a) && isInterfaceType(b)) {
-      const mergedA = new Map([...a.methods, ...a.fields]);
-      const mergedB = new Map([...b.methods, ...b.fields]);
-
-      const succeeded = [...mergedB.entries()].every(([name, type]) => {
-        const compare = mergedA.get(name);
-        if (compare) return isSubtype(compare, type);
         return false;
       });
 
       if (succeeded) return true;
-    }
-
-    if (isCallableType(a) && isCallableType(b)) {
+    } else if (isCallableType(a) && isCallableType(b)) {
       const succeeded =
         a.arity() === b.arity() &&
-        isSubtype(a.returns, b.returns) &&
-        a.params.every((a, i) => isSubtype(b.params[i], a));
+        isSubtype(a.returns, b.returns, visited) &&
+        a.params.every((a, i) => isSubtype(b.params[i], a, visited));
 
-      if (succeeded) return succeeded;
+      if (succeeded) return true;
     }
 
     error(a, b);

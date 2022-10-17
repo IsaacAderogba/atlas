@@ -5,9 +5,9 @@ import { AtlasValue } from "../primitives/AtlasValue";
 import { SourceFile, SourceMessage, SourceRange } from "../errors/SourceError";
 import { Keywords } from "../ast/Keywords";
 import { SyntaxError, SyntaxErrors } from "../errors/SyntaxError";
-import { AtlasString } from "../primitives/AtlasString";
-import { AtlasNumber } from "../primitives/AtlasNumber";
-import { AtlasNull } from "../primitives/AtlasNull";
+import { atlasString } from "../primitives/AtlasString";
+import { atlasNumber } from "../primitives/AtlasNumber";
+import { atlasNull } from "../primitives/AtlasNull";
 import { atlasBoolean } from "../primitives/AtlasBoolean";
 
 export class Scanner {
@@ -156,7 +156,7 @@ export class Scanner {
     const text = this.file.source.substring(this.start, this.current);
     switch (text) {
       case "null":
-        this.addToken("NULL", { literal: new AtlasNull() });
+        this.addToken("NULL", { literal: atlasNull });
         break;
       case "true":
         this.addToken("TRUE", { literal: atlasBoolean(true) });
@@ -183,7 +183,7 @@ export class Scanner {
 
     // Trim the surrounding quotes
     const value = this.file.source.substring(this.start + 1, this.current - 1);
-    this.addToken("STRING", { literal: new AtlasString(value) });
+    this.addToken("STRING", { literal: atlasString(value) });
   }
 
   private number(): void {
@@ -200,7 +200,7 @@ export class Scanner {
     const value = parseFloat(
       this.file.source.substring(this.start, this.current)
     );
-    this.addToken("NUMBER", { literal: new AtlasNumber(value) });
+    this.addToken("NUMBER", { literal: atlasNumber(value) });
   }
 
   private match(expected: string): boolean {

@@ -7,7 +7,7 @@ import { InstanceType } from "./AtlasInstance";
 import { ListType } from "./AtlasList";
 import { ModuleType } from "./AtlasModule";
 import { NativeFnType } from "./AtlasNativeFn";
-import { NullType } from "./AtlasNull";
+import { NullType, nullType } from "./AtlasNull";
 import { NumberType } from "./AtlasNumber";
 import { RecordType } from "./AtlasRecord";
 import { StringType } from "./AtlasString";
@@ -46,7 +46,7 @@ export const ValueTypes = {
   List: new ListType(new GenericType("T")),
   Module: new ModuleType("Module", {}),
   NativeFn: new NativeFnType({ params: [], returns: Any }),
-  Null: new NullType(),
+  Null: nullType,
   Number: new NumberType(),
   Record: new RecordType(new GenericType("T")),
   String: new StringType(),

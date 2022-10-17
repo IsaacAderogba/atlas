@@ -11,3 +11,6 @@ var resolvedPromise2 = Future.Promise[Number](f(resolve, reject) {
 Future.all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
     print(result)
 })
+
+-- stdout --
+[1, 2]

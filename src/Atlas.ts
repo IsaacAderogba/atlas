@@ -41,14 +41,14 @@ export class Atlas implements AtlasAPI {
 
   runFile(path: string): void {
     this.reader.readFile(path, ({ statements, errors }) => {
-      if (this.reportErrors(errors)) process.exit(65);
+      if (this.reportErrors(errors)) process.exit(0);
 
       const status = this.run(statements);
       switch (status) {
         case AtlasStatus.STATIC_ERROR:
-          return process.exit(65);
+          return process.exit(0);
         case AtlasStatus.RUNTIME_ERROR:
-          return process.exit(70);
+          return process.exit(0);
         case AtlasStatus.SUCCESS:
         case AtlasStatus.VALID:
           return process.exit(0);

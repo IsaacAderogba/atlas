@@ -11,5 +11,5 @@ export class AnyType extends ObjectType {
   toString = (): string => this.type;
 }
 
-export const isAnyType = (value: AtlasType): value is AnyType =>
-  value.type === "Any";
+export const isAnyType = (value?: AtlasType): value is AnyType =>
+  value?.type === "Any";

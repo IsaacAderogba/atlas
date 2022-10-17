@@ -1,10 +1,14 @@
 type Actual = Any
 type Expected = Any
 
+interface MatcherType {
+  actual: Actual
+}
+
 class Matcher {
 	actual: Actual
 
-	init: (Actual) -> Matcher = f(actual) {
+	init: (Actual) -> Instance = f(actual) {
 		this.actual = actual
 	}
 
@@ -19,6 +23,6 @@ class Matcher {
 	}
 }
 
-var expect: (Actual) -> Matcher = f(actual) {
+var expect: (Actual) -> MatcherType = f(actual) {
 	return Matcher(actual)
 }

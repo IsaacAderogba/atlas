@@ -83,7 +83,6 @@ export class CallExpr implements BaseExpr {
 export class FunctionExpr implements BaseExpr {
   constructor(
     readonly keyword: Token,
-    readonly async: Token | undefined,
     readonly params: Parameter[],
     readonly body: BlockStmt
   ) {}

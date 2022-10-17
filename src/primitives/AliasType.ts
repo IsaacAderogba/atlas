@@ -1,6 +1,7 @@
 import {
   attachGenericString,
   GenericTypeMap,
+  GenericVisitedMap,
 } from "../typechecker/GenericUtils";
 import { ObjectType } from "./AtlasObject";
 import { AtlasType } from "./AtlasType";
@@ -16,8 +17,11 @@ export class AliasType extends ObjectType {
     super({}, generics);
   }
 
-  bindGenerics(genericTypeMap: GenericTypeMap): AtlasType {
-    return this.wrapped.bindGenerics(genericTypeMap);
+  bindGenerics(
+    genericTypeMap: GenericTypeMap,
+    visited: GenericVisitedMap
+  ): AtlasType {
+    return this.wrapped.bindGenerics(genericTypeMap, visited);
   }
 
   init = (

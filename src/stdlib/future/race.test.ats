@@ -8,6 +8,9 @@ var resolvedPromise2 = Future.Promise[Number](f(resolve, reject) {
   resolve(2)
 })
 
-Future.all[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
+Future.race[Number]([resolvedPromise, resolvedPromise2]).then(f(result) {
     print(result)
 })
+
+-- stdout --
+1

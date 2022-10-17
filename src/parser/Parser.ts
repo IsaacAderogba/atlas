@@ -34,6 +34,7 @@ import {
   ImportStmt,
   InterfaceStmt,
   ModuleStmt,
+  PanicStmt,
   ReturnStmt,
   Stmt,
   TypeStmt,
@@ -175,6 +176,7 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match("PANIC")) return this.panicStatement();
     if (this.match("RETURN")) return this.returnStatement();
     if (this.match("WHILE")) return this.whileStatement();
     if (this.match("IF")) return this.ifStatement();
@@ -183,6 +185,12 @@ export class Parser {
     if (this.match("CONTINUE")) return new ContinueStmt(this.previous());
 
     return this.expressionStatement();
+  }
+
+  private panicStatement(): ReturnStmt {
+    const keyword = this.previous();
+    const value = this.expression();
+    return new PanicStmt(keyword, value);
   }
 
   private returnStatement(): ReturnStmt {
@@ -410,7 +418,6 @@ export class Parser {
 
   private func(): FunctionExpr {
     const keyword = this.previous();
-    const async = this.match("STAR") ? this.previous() : undefined;
     this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
 
     const parameters = this.parameters("RIGHT_PAREN");
@@ -419,7 +426,7 @@ export class Parser {
     this.consume("LEFT_BRACE", SyntaxErrors.expectedLeftBrace());
 
     const body = this.blockStatement();
-    return new FunctionExpr(keyword, async, parameters, body);
+    return new FunctionExpr(keyword, parameters, body);
   }
 
   private list(): ListExpr {
@@ -558,7 +565,7 @@ export class Parser {
   }
 
   private callableTypeExpr(): TypeExpr {
-    const parameters = this.typeParameters();
+    const parameters = this.typeParameters();	
     const open = this.consume("LEFT_PAREN", SyntaxErrors.expectedLeftParen());
     const typeExprs = this.typeExprs("RIGHT_PAREN");
     this.consume("RIGHT_PAREN", SyntaxErrors.expectedRightParen());
@@ -641,7 +648,6 @@ export class Parser {
     const name = consume();
     const type = this.match("COLON") ? this.typeExpr() : undefined;
     const initializer = this.match("EQUAL") ? this.expression() : undefined;
-
 
     return new Property(name, type, initializer);
   }

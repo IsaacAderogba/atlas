@@ -9,7 +9,7 @@ describe("Class annotations", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar = ""
+        bar: String
       }
 
       Foo().bar = "hi"
@@ -25,7 +25,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
       }
 
       Foo().bar = "hi"
@@ -42,7 +42,7 @@ describe("Class errors", () => {
 
     const { errors } = tester.typeCheckWorkflow(`
       class Foo {
-        bar: Number = 0
+        bar: Number
       }
 
       Foo().ho = "hi"

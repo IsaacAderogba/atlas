@@ -1,0 +1,11 @@
+interface ErrorType {
+  message: String
+}
+
+class Error implements ErrorType {
+  message: String
+
+  init: (String) -> Instance = f(message) {
+    this.message = message
+  }
+}

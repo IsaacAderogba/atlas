@@ -65,8 +65,8 @@ describe("Interpreter statements", () => {
     const { tester } = setupTester();
     tester.interpretWorkflow(`
       class Foo {
-        foo = "foo"
         init = f() {
+          this.foo = "foo"
           this.bar = this.foo # "bar"
         }
       }
