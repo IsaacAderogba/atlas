@@ -1,25 +1,9 @@
-import Exception from "exception"
-import Future from "future"
-
-var promise = Future.Promise[Number](f(resolve, reject) {
-  if (false) {
-    resolve(1000)
-  } else {
-    reject(Exception.Error("error"))
+var record: Record[() -> Number] = {
+  "foo": f() {
+    return 1
   }
-})
+}
 
-promise
-  .then(f(number) {
-    print(number) // 1000
-  })
-  .catch(f(error) {
-    print(error.message) // "error"
-  })
-  .finally(f(result) {
-    print(result) // 1000 or Error instance
-  })
-
-promise
-	.call()
-	.abort("Crashed")
+var list: List[() -> Number] = [f() {
+  return 1
+}]
