@@ -88,7 +88,7 @@ export class FunctionType extends ObjectType implements CallableType {
       return param.bindGenerics(genericTypeMap, visited);
     });
     const returns = this.returns.bindGenerics(genericTypeMap, visited);
-    return this.init({ params, returns }, this.generics);
+    return this.init({ params, returns });
   }
 
   arity(): number {

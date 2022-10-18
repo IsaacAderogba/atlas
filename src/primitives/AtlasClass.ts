@@ -81,7 +81,7 @@ export class ClassType extends ObjectType implements CallableType {
       entries[name] = type.bindGenerics(genericTypeMap, visited);
     }
 
-    return this.init(this.name, entries, this.generics);
+    return this.init(this.name, entries);
   }
 
   arity(): number {

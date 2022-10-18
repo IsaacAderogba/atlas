@@ -1,25 +1,32 @@
-import Exception from "exception"
-import Future from "future"
+interface Foo[T] {
+  foo: T
+}
 
-var promise = Future.Promise[Number](f(resolve, reject) {
-  if (false) {
-    resolve(1000)
-  } else {
-    reject(Exception.Error("error"))
+interface Bar[T] {
+  bar: T
+}
+
+type FooBar[T] = Foo[Bar[T]]
+
+interface FooImplType {
+  bar: String
+}
+
+class FooImpl {
+  bar: String
+
+  init: () -> Instance = f() {
+    this.bar = 1
   }
-})
+}
 
-promise
-  .then(f(number) {
-    print(number) // 1000
-  })
-  .catch(f(error) {
-    print(error.message) // "error"
-  })
-  .finally(f(result) {
-    print(result) // 1000 or Error instance
-  })
+class FooBarImpl implements FooBar[String] {
+  foo: FooImplType
 
-promise
-	.call()
-	.abort("Crashed")
+  init: () -> Instance = f() {
+    this.foo = FooImpl()
+  }
+}
+
+var fooBar = FooBarImpl()
+print(fooBar.foo.bar + fooBar.foo.bar)

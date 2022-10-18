@@ -75,7 +75,7 @@ export class NativeFnType extends ObjectType implements CallableType {
       param.bindGenerics(genericTypeMap, visited)
     );
     const returns = this.returns.bindGenerics(genericTypeMap, visited);
-    return this.init({ params, returns }, this.generics);
+    return this.init({ params, returns });
   }
 
   arity(): number {
