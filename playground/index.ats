@@ -1,32 +1,9 @@
-interface Foo[T] {
-  foo: T
-}
-
-interface Bar[T] {
-  bar: T
-}
-
-type FooBar[T] = Foo[Bar[T]]
-
-interface FooImplType {
-  bar: String
-}
-
-class FooImpl {
-  bar: String
-
-  init: () -> Instance = f() {
-    this.bar = 1
+var record: Record[() -> Number] = {
+  "foo": f() {
+    return 1
   }
 }
 
-class FooBarImpl implements FooBar[String] {
-  foo: FooImplType
-
-  init: () -> Instance = f() {
-    this.foo = FooImpl()
-  }
-}
-
-var fooBar = FooBarImpl()
-print(fooBar.foo.bar + fooBar.foo.bar)
+var list: List[() -> Number] = [f() {
+  return 1
+}]

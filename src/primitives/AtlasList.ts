@@ -139,5 +139,5 @@ export class ListType extends ObjectType {
   toString = (): string => `List[${this.itemType.toString()}]`;
 }
 
-export const isListType = (type: AtlasType): type is ListType =>
-  type.type === "List";
+export const isListType = (type?: AtlasType): type is ListType =>
+  type?.type === "List";

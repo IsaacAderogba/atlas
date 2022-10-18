@@ -59,6 +59,8 @@ import { globalTypeScope, TypeCheckerScope } from "./TypeCheckerScope";
 import { AtlasAPI } from "../AtlasAPI";
 import { isGenericType } from "../primitives/GenericType";
 import { isAliasType } from "../primitives/AliasType";
+import { isRecordType } from "../primitives/AtlasRecord";
+import { isListType } from "../primitives/AtlasList";
 
 export class TypeChecker implements TypeVisitor {
   readonly lookup = new TypeCheckerLookup(this);
@@ -398,8 +400,9 @@ export class TypeChecker implements TypeVisitor {
     }
   }
 
-  visitListExpr(expr: ListExpr): AtlasType {
-    const types = expr.items.map(item => this.acceptExpr(item));
+  visitListExpr(expr: ListExpr, expected?: AtlasType): AtlasType {
+    const itemType = isListType(expected) ? expected.itemType : undefined;
+    const types = expr.items.map(item => this.acceptExpr(item, itemType));
     const actual = types.length ? Types.Union.init(types) : Types.Any;
     return Types.List.init(actual);
   }
@@ -425,10 +428,13 @@ export class TypeChecker implements TypeVisitor {
     );
   }
 
-  visitRecordExpr(expr: RecordExpr): AtlasType {
-    // const type = expected && isInterfaceType(expected) ? expected : undefined;
-    const types = expr.entries.map(({ value }) => this.acceptExpr(value));
+  visitRecordExpr(expr: RecordExpr, expected?: AtlasType): AtlasType {
+    const itemType = isRecordType(expected) ? expected.itemType : undefined;
+    const types = expr.entries.map(({ value }) =>
+      this.acceptExpr(value, itemType)
+    );
     const actual = types.length ? Types.Union.init(types) : Types.Any;
+
     return Types.Record.init(actual);
   }
 

@@ -110,5 +110,5 @@ export class RecordType extends ObjectType {
   toString = (): string => `{ String: Record[${this.itemType.toString()}] }`;
 }
 
-export const isRecordType = (type: AtlasType): type is RecordType =>
-  type.type === "Record";
+export const isRecordType = (type?: AtlasType): type is RecordType =>
+  type?.type === "Record";
